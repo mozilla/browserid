@@ -2,41 +2,42 @@
 
 // a little node webserver designed to run the unit tests herein
 
-var      sys = require("sys"),
-        http = require("http"),
-         url = require("url"),
-        path = require("path"),
-          fs = require("fs"),
-     express = require("express"),
-substitution = require('./libs/substitute.js'),
+var       sys = require('sys'),
+         http = require('http'),
+          url = require('url'),
+         path = require('path'),
+           fs = require('fs'),
+      express = require('express'),
+   nodemailer = require('nodemailer'),
+ substitution = require('./libs/substitute.js'),
 configuration = require('./libs/configuration.js');
 
+// This is host ip address, default: 127.0.0.1
 var PRIMARY_HOST = "127.0.0.1";
 
+// A list of the bound servers, default: [ ]
 var boundServers = [ ];
 
-//
 // this is the test harness, don't send emails, dump them to stdout
-//
-var nodemailer = require('nodemailer');
 nodemailer.EmailMessage.prototype.send = function(callback) {
   this.prepareVariables();
   var headers = this.generateHeaders(),
-    body = this.generateBody();
+         body = this.generateBody();
   console.log(headers);
   console.log(body);
 };
 
+// TODO: Document usage and defaults
 var subs = undefined;
 function substitutionMiddleware(req, resp, next) {
   if (!subs) {
     subs = { };
     for (var i = 0; i < boundServers.length; i++) {
-      var o = boundServers[i]
-      var a = o.server.address();
-      var from = o.name;
-      var to = "http://" + a.address + ":" + a.port;
-      subs[from] = to;
+      var o = boundServers[i],
+          a = o.server.address(),
+       from = o.name,
+         to = "http://" + a.address + ":" + a.port;
+ subs[from] = to;
 
       // now do another replacement to catch bare hostnames sans http(s)
       // and explicit cases where port is appended
@@ -49,11 +50,11 @@ function substitutionMiddleware(req, resp, next) {
         fromWithPort = from + ":80";
       }
       to = to.substr(7);
-      
+
       if (o.subPath) to += o.subPath;
-      
+
       subs[fromWithPort] = to;
-      subs[from] = to;
+              subs[from] = to;
     }
   }
   (substitution.substitute(subs))(req, resp, next);
@@ -133,14 +134,15 @@ dirs.forEach(function(dirObj) {
   }
 
   var so = {
-    path: dirObj.path,
-    server: undefined,
-    port: port_num++,
-    name: dirObj.name,
+       path: dirObj.path,
+     server: undefined,
+       port: port_num++,
+       name: dirObj.name,
     handler: runJS.handler,
-    setup: runJS.setup,
+      setup: runJS.setup,
     subPath: dirObj.subPath
   };
+
   so.server = createServer(so)
   boundServers.push(so);
   console.log("  " + dirObj.name + ": " + formatLink(so.server));
