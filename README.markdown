@@ -96,6 +96,7 @@ After installing all of the requirements you'll need to run this code in the ter
 Checking for program g++ or c++          : ...
 ...
 ```
+
 Then you should then only need to type the following into your terminal:
 
 ``` terminal
@@ -136,18 +137,20 @@ Unit tests are under `browserid/tests/`, and you should run them often.
 Changelog
 ---------
 
-train-2011.08.04:
-  * when user closes dialog without clicking "cancel", properly return 'null' to the webpage (via getVerifiedEmail callback) - issue #107
-  * improve checks to warn developer that prerequisite software is missing. issue #110
-  * parameterize software to support multiple deployment environments (dev/beta/prod) issues #102 & #52
-  * documentation updates.
-  * improved logging (using the winston logging framework for node.js)
-  * [website] fixed inclusion of youtube video (now over https to keep browsers from getting scared about mixed mode resource inclusion)
+**train-2011.08.04**
 
-train-1:
-  * beginning of time, everything is new.
-  * (2011.08.03) include youtube video embedding over https (issue #112)
-  * (2011.08.04) fix mozillalabs.com link in dialog (issue #116)
+* When user closes dialog without clicking `cancel`, properly return `null` to the webpage (via `getVerifiedEmail` callback). *issue #107*
+* Improve checks to warn developer that prerequisite software is missing. *issue #110*
+* Parameterize software to support multiple deployment environments: `dev`, `beta`, and `prod`. *issues #102 & #52*
+* Documentation updates.
+* Improved logging using the `winston` logging framework for `node.js`.
+* [Website] fixed inclusion of youtube video, now over https to keep browsers from getting scared about mixed mode resource inclusion.
+
+**train-1**
+
+* Beginning of time, everything is new.
+* (2011.08.03) Include youtube video embedding over https *issue #112*
+* (2011.08.04) Fix mozillalabs.com link in dialog. *issue #116*
 
 
 Contributing
