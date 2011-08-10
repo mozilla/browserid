@@ -10,7 +10,7 @@ This repository contains several parts that make up the BrowserID Project:
 * *The verifier* - A stateless node.js server which does cryptographic verification of assertions. This thing is hosted on browserid.org as a convenience, but people using browserid can choose to relocated it if they want to their own servers.
 * *Sample and test code* - To test the above parts
 * *The browserid.org website* - The templates, css, and javascript that make up the visible part of browserid.org
-* *The javascript/HTML dialog & include library** - This is include.js and the code that it includes, the bit that someone using browserid will include.
+* *The javascript/HTML dialog & include library* - This is include.js and the code that it includes, the bit that someone using browserid will include.
 
 
 Examples
