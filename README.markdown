@@ -102,8 +102,7 @@ Then you should then only need to type the following into your terminal:
 ~/browserid/$ node ./run.js
 ```
 
-And open your web browser to any of these:
-Running test servers:
+And open your web browser to any of these to see the test servers:
 
 * A local Verify server: http://127.0.0.1:10000
 * The implentation example: http://127.0.0.1:10001
