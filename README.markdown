@@ -18,7 +18,7 @@ Examples
 
 Using BrowserID is really simple:
 
-First include the BrowserID JavaScript library in your site by adding a script tag to your <head>:
+First include the BrowserID JavaScript library in your site by adding a script tag to your `<head>`:
 
 ``` html
 <script src="https://browserid.org/include.js" type="text/javascript"></script>
