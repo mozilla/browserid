@@ -127,7 +127,7 @@ Issues & Documentation
 * [Documentation]()
 * [Issues](https://github.com/mozilla/browserid/issues)
 
-We use Git Flow, and so one minor difference you might notice is that the "main" branch is `dev`, not `master.
+We use Git Flow, and so one minor difference you might notice is that the "main" branch is `dev`, not `master`.
 The approach is described in a [blog post](http://lloyd.io/applying-gitflow).
 Please issue pull requests targeted at the `dev` branch.
 Unit tests are under `browserid/tests/`, and you should run them often.
