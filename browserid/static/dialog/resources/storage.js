@@ -33,57 +33,203 @@
  *
  * ***** END LICENSE BLOCK ***** */
 
-var jwk = require("./jwk");
-
-var getEmails = function() {
-  try {
-    var emails = JSON.parse(window.localStorage.emails);
-    if (emails != null)
-      return emails;
-  } catch(e) {
-  }
+BrowserID.Storage = (function() {
   
-  // if we had a problem parsing or the emails are null
-  clearEmails();
-  return {};
-};
-
-var _storeEmails = function(emails) {
-  window.localStorage.emails = JSON.stringify(emails);
-};
-
-var addEmail = function(email, obj) {
-  var emails = getEmails();
-  emails[email] = obj;
-  _storeEmails(emails);
-};
-
-var removeEmail = function(email) {
-  var emails = getEmails();
-  delete emails[email];
-  _storeEmails(emails);
-};
-
-var clearEmails = function() {
-  _storeEmails({});
-};
-
-var storeTemporaryKeypair = function(keypair) {
-  window.localStorage.tempKeypair = JSON.stringify({
-    publicKey: keypair.publicKey.toSimpleObject(),
-    secretKey: keypair.secretKey.toSimpleObject()
-  });
-};
-
-var retrieveTemporaryKeypair = function() {
-  var raw_kp = JSON.parse(window.localStorage.tempKeypair);
-  window.localStorage.tempKeypair = null;
-  if (raw_kp) {
-    var kp = new jwk.KeyPair();
-    kp.publicKey = jwk.PublicKey.fromSimpleObject(raw_kp.publicKey);
-    kp.secretKey = jwk.SecretKey.fromSimpleObject(raw_kp.secretKey);
-    return kp;
-  } else {
-    return null;
+  var jwk;
+  
+  function prepareDeps() {
+    if (!jwk) {
+      jwk = require("./jwk");
+    }
   }
-};
+
+  function storeEmails(emails) {
+    window.localStorage.emails = JSON.stringify(emails);
+  }
+
+  function clear() {
+    storeEmails({});
+    var localStorage = window.localStorage;
+    localStorage.removeItem("tempKeypair");
+    localStorage.removeItem("stagedOnBehalfOf");
+    localStorage.removeItem("sitesToEmail");
+  }
+
+  function getEmails() {
+    try {
+      var emails = JSON.parse(window.localStorage.emails);
+      if (emails !== null)
+        return emails;
+    } catch(e) {
+    }
+    
+    // if we had a problem parsing or the emails are null
+    clear();
+    return {};
+  }
+
+  function getEmail(email) {
+    var ids = getEmails();
+
+    return ids && ids[email];
+  }
+
+  function addEmail(email, obj) {
+    var emails = getEmails();
+    emails[email] = obj;
+    storeEmails(emails);
+  }
+
+  function removeEmail(email) {
+    var emails = getEmails();
+    if(emails[email]) {
+      delete emails[email];
+      storeEmails(emails);
+
+      // remove any sites associated with this email address.
+      var sitesToEmail = JSON.parse(localStorage.sitesToEmail || "{}");
+      for(var site in sitesToEmail) {
+        if(sitesToEmail[site] === email) {
+          delete sitesToEmail[site];
+        }
+      }
+      localStorage.sitesToEmail = JSON.stringify(sitesToEmail);
+    }
+    else {
+      throw "unknown email address";
+    }
+  }
+
+  function invalidateEmail(email) {
+    var id = getEmail(email);
+    if (id) {
+      delete id.priv;
+      delete id.pub;
+      delete id.cert;
+      addEmail(email, id);
+    }
+    else {
+      throw "unknown email address";
+    }
+  }
+
+  function storeTemporaryKeypair(keypair) {
+    window.localStorage.tempKeypair = JSON.stringify({
+      publicKey: keypair.publicKey.toSimpleObject(),
+      secretKey: keypair.secretKey.toSimpleObject()
+    });
+  }
+
+  function retrieveTemporaryKeypair() {
+    var raw_kp = JSON.parse(window.localStorage.tempKeypair);
+    window.localStorage.tempKeypair = null;
+    if (raw_kp) {
+      prepareDeps();
+      var kp = new jwk.KeyPair();
+      kp.publicKey = jwk.PublicKey.fromSimpleObject(raw_kp.publicKey);
+      kp.secretKey = jwk.SecretKey.fromSimpleObject(raw_kp.secretKey);
+      return kp;
+    } else {
+      return null;
+    }
+  }
+
+  function setStagedOnBehalfOf(origin) {
+    window.localStorage.stagedOnBehalfOf = JSON.stringify({
+      at: new Date().toString(),
+      origin: origin
+    });
+  }
+
+  function getStagedOnBehalfOf() {
+    var origin;
+
+    try {
+      var staged = JSON.parse(window.localStorage.stagedOnBehalfOf);
+      
+      if (staged) {
+        if ((new Date() - new Date(staged.at)) > (5 * 60 * 1000)) throw "stale";
+        if (typeof(staged.origin) !== 'string') throw "malformed";
+        origin = staged.origin;
+      }
+    } catch (x) {
+      console.log(x);
+      delete window.localStorage.stagedOnBehalfOf;
+    }
+
+    return origin;
+  }
+
+  function setSiteEmail(site, email) {
+    if(getEmail(email)) {
+      var localStorage = window.localStorage;
+
+      var sitesToEmail = JSON.parse(localStorage.sitesToEmail || "{}");
+      sitesToEmail[site] = email;
+
+      localStorage.sitesToEmail = JSON.stringify(sitesToEmail);
+    }
+    else {
+      throw "unknown email address";
+    }
+  }
+
+  function getSiteEmail(site) {
+    var sitesToEmail = JSON.parse(localStorage.sitesToEmail || "{}");
+    return sitesToEmail[site];
+  }
+
+  return {
+    /**
+     * Add an email address and optional key pair.
+     * @method addEmail
+     */
+    addEmail: addEmail,
+    /**
+     * Get all email addresses and their associated key pairs
+     * @method getEmails
+     */
+    getEmails: getEmails,
+    /**
+     * Get one email address and its key pair, if found.  Returns undefined if 
+     * not found.
+     * @method getEmail
+     */
+    getEmail: getEmail,
+    /**
+     * Remove an email address, its key pairs, and any sites associated with 
+     * email address.
+     * @throws "unknown email address" if email address is not known.
+     * @method removeEmail
+     */
+    removeEmail: removeEmail,
+    /**
+     * Remove the key information for an email address.
+     * @throws "unknown email address" if email address is not known.
+     * @method invalidateEmail
+     */
+    invalidateEmail: invalidateEmail,
+    /**
+     * Set the associated email address for a site
+     * @throws "uknown email address" if the email address is not known.
+     * @method setSiteEmail
+     */
+    setSiteEmail: setSiteEmail,
+    /**
+     * Get the associated email address for a site, if known.  If not known, 
+     * return undefined.
+     * @method getSiteEmail
+     */
+    getSiteEmail: getSiteEmail,
+    /**
+     * Clear all stored data - email addresses, key pairs, temporary key pairs, 
+     * site/email associations.
+     * @method clear
+     */
+    clear: clear,
+    storeTemporaryKeypair: storeTemporaryKeypair,
+    retrieveTemporaryKeypair: retrieveTemporaryKeypair,
+    setStagedOnBehalfOf: setStagedOnBehalfOf,
+    getStagedOnBehalfOf: getStagedOnBehalfOf
+  };
+}());

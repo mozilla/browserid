@@ -1,3 +1,4 @@
+/*jshint browsers:true, forin: true, laxbreak: true */
 /*global alert:true, setupNativeChannel:true, setupIFrameChannel:true*/
 /* ***** BEGIN LICENSE BLOCK *****
  * Version: MPL 1.1/GPL 2.0/LGPL 2.1
@@ -51,21 +52,28 @@
 
 
 (function() {
-  // Read a page's GET URL variables and return them as an associative array.
-  function getUrlVars() {
-    var hashes = {},
-        hash,
-        pairs = window.location.href.slice(window.location.href.indexOf('#') + 1).split('&');
-
-    for(var i = 0, pair; pair=pairs[i]; ++i) {
-      hash = pair.split('=');
-      hashes[hash[0]] = hash[1];
-    }
-    return hashes;
+  function getRelayID() {
+    return window.location.href.slice(window.location.href.indexOf('#') + 1);
   }
 
-  function getRelay() {
-    var frameWindow = window.opener.frames['browserid_relay'];
+  function getRelayName() {
+    return "browserid_relay_" + getRelayID();
+  }
+
+  function getRelayWindow() {
+    var frameWindow = window.opener.frames[getRelayName()];
+    return frameWindow;
+  }
+
+  function registerWithRelayFrame(callback) {
+    var frameWindow = getRelayWindow();
+    if (frameWindow) {
+      frameWindow['register_dialog'](callback);
+    }
+  }
+
+  function getRPRelay() {
+    var frameWindow = getRelayWindow();
     return frameWindow && frameWindow['browserid_relay'];
   }
 
@@ -101,30 +109,36 @@
   };
 
   var setupIFrameChannel = function(controller) {
-    var hash = getUrlVars();
-    var origin = hash['host'];
-
     // TODO - Add a check for whether the dialog was opened by another window
     // (has window.opener) as well as whether the relay function exists.
     // If these conditions are not met, then print an appropriate message.
 
+    // get the relay here at the time the channel is setup before any navigation has
+    // occured.  if we wait the window hash might change as a side effect to user
+    // navigation, which would cause us to not find our parent window.
+    // issue #295
+    var relay = getRPRelay();
+    
     function onsuccess(rv) {
       // Get the relay here so that we ensure that the calling window is still
       // open and we aren't causing a problem.
-      var relay = getRelay();
-      if(relay) {
+      if (relay) {
         relay(rv, null);
       }
     }
 
     function onerror(error) {
-      var relay = getRelay();
-      if(relay) {
+      if (relay) {
         relay(null, error);
       }
     }
 
-    controller.getVerifiedEmail(origin, onsuccess, onerror);
+    // The relay frame will give us the origin.
+    registerWithRelayFrame(function(origin) {
+      controller.getVerifiedEmail(origin, onsuccess, onerror);
+    });
+
+    window.location.hash = '';
   };
 
 }());

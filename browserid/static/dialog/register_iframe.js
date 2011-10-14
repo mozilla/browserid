@@ -47,14 +47,19 @@ var jwk = require("./jwk"),
       origin: "*",
       scope: "mozid"
     });
-  
+
+  //
+  // for now, DISABLE primary support
+  //
+
+  /*
   // primary requests a keygen to certify  
   chan.bind("generateKey", function(trans, args) {
     // keygen
     var keypair = jwk.KeyPair.generate(vep.params.algorithm, 64);
 
     // save it in a special place for now
-    storeTemporaryKeypair(keypair);
+    BrowserIDStorage.storeTemporaryKeypair(keypair);
     
     // serialize and return
     return keypair.publicKey.serialize();
@@ -62,7 +67,7 @@ var jwk = require("./jwk"),
 
   // add the cert 
   chan.bind("registerVerifiedEmailCertificate", function(trans, args) {
-    var keypair = retrieveTemporaryKeypair();
+    var keypair = BrowserIDStorage.retrieveTemporaryKeypair();
 
     // parse the cert
     var raw_cert = args.cert;
@@ -86,8 +91,9 @@ var jwk = require("./jwk"),
       isPrimary: true
     };
 
-    addEmail(email, new_email_obj);
+    BrowserIDStorage.addEmail(email, new_email_obj);
   });
+  */
 
   // reenable this once we're ready
   /*

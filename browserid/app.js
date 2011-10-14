@@ -40,7 +40,6 @@ url = require('url'),
 wsapi = require('./lib/wsapi.js'),
 ca = require('./lib/ca.js'),
 httputils = require('./lib/httputils.js'),
-webfinger = require('./lib/webfinger.js'),
 sessions = require('connect-cookie-session'),
 express = require('express'),
 secrets = require('../libs/secrets.js'),
@@ -62,7 +61,6 @@ function internal_redirector(new_url, suppress_noframes) {
   return function(req, resp, next) {
     if (suppress_noframes)
       resp.removeHeader('x-frame-options');
-    
     req.url = new_url;
     return next();
   };
@@ -104,32 +102,39 @@ function router(app) {
     res.render('index.ejs', {title: 'A Better Way to Sign In', fullpage: true});
   });
 
-  app.get(/^\/prove(\.html)?$/, function(req,res) {
-    res.render('prove.ejs', {title: 'Verify Email Address', fullpage: false});
+  // BA removed .html URLs. If we have 404s,
+  // we should set up some redirects
+  
+  app.get("/signup", function(req, res) {
+    res.render('signup.ejs', {title: 'Sign Up', fullpage: false});
   });
 
-  app.get(/^\/users(\.html)?$/, function(req,res) {
-    res.render('users.ejs', {title: 'for Users', fullpage: false});
+  app.get("/forgot", function(req, res) {
+    res.render('forgot.ejs', {title: 'Forgot Password', fullpage: false, email: req.query.email});
   });
 
-  app.get(/^\/developers(\.html)?$/, function(req,res) {
-    res.render('developers.ejs', {title: 'for Developers', fullpage: false});
+  app.get("/signin", function(req, res) {
+    res.render('signin.ejs', {title: 'Sign In', fullpage: false});
   });
 
-  app.get(/^\/primaries(\.html)?$/, function(req,res) {
-    res.render('primaries.ejs', {title: 'for Primary Authorities', fullpage: false});
+  app.get("/about", function(req, res) {
+    res.render('about.ejs', {title: 'About', fullpage: false});
   });
 
-  app.get(/^\/manage(\.html)?$/, function(req,res) {
-    res.render('manage.ejs', {title: 'My Account', fullpage: false});
-  });
-
-  app.get(/^\/tos(\.html)?$/, function(req, res) {
+  app.get("/tos", function(req, res) {
     res.render('tos.ejs', {title: 'Terms of Service', fullpage: false});
   });
 
-  app.get(/^\/privacy(\.html)?$/, function(req, res) {
+  app.get("/privacy", function(req, res) {
     res.render('privacy.ejs', {title: 'Privacy Policy', fullpage: false});
+  });
+
+  app.get("/verify_email_address", function(req, res) {
+    res.render('verifyuser.ejs', {title: 'Complete Registration', fullpage: true, token: req.query.token});
+  });
+
+  app.get("/add_email_address", function(req,res) {
+    res.render('verifyemail.ejs', {title: 'Verify Email Address', fullpage: false});
   });
 
   // register all the WSAPI handlers
@@ -142,7 +147,7 @@ function router(app) {
 
   // vep bundle of JavaScript
   app.get("/vepbundle", function(req, res) {
-    fs.readFile(__dirname + "/../lib/jwcrypto/vepbundle.js", function(error, content) {
+    fs.readFile(__dirname + "/../node_modules/jwcrypto/vepbundle.js", function(error, content) {
       if (error) {
         res.writeHead(500);
         res.end("oops");
@@ -151,17 +156,6 @@ function router(app) {
         res.writeHead(200, {'Content-Type': 'text/javascript'});
         res.write(content);
         res.end();
-      }
-    });
-  });
-
-  // FIXME: remove this call
-  app.get('/users/:identity.xml', function(req, resp, next) {
-    webfinger.renderUserPage(req.params.identity, function (resultDocument) {
-      if (resultDocument === undefined) {
-        httputils.fourOhFour(resp, "I don't know anything about: " + req.params.identity + "\n");
-      } else {
-        httputils.xmlResponse(resp, resultDocument);
       }
     });
   });
@@ -185,7 +179,7 @@ exports.setup = function(server) {
 
   // over SSL?
   var overSSL = (configuration.get('scheme') == 'https');
-  
+
   server.use(express.cookieParser());
 
   var cookieSessionMiddleware = sessions({
@@ -196,12 +190,12 @@ exports.setup = function(server) {
       httpOnly: true,
       // IMPORTANT: we allow users to go 1 weeks on the same device
       // without entering their password again
-      maxAge: (7 * 24 * 60 * 60 * 1000), 
+      maxAge: configuration.get('authentication_duration_ms'),
       secure: overSSL
     }
   });
 
-  // cookie sessions
+  // cookie sessions && cache control
   server.use(function(req, resp, next) {
     // cookie sessions are only applied to calls to /wsapi
     // as all other resources can be aggressively cached
@@ -209,6 +203,9 @@ exports.setup = function(server) {
     // the fallout is that all code that interacts with sessions
     // should be under /wsapi
     if (/^\/wsapi/.test(req.url)) {
+      // explicitly disallow caching on all /wsapi calls (issue #294)
+      resp.setHeader('Cache-Control', 'no-cache, max-age=0');
+
       // we set this parameter so the connect-cookie-session
       // sends the cookie even though the local connection is HTTP
       // (the load balancer does SSL)
@@ -222,6 +219,19 @@ exports.setup = function(server) {
     }
   });
 
+  // verify all JSON responses are objects - prevents regression on issue #217
+  server.use(function(req, resp, next) {
+    var realRespJSON = resp.json;
+    resp.json = function(obj) {
+      if (!obj || typeof obj !== 'object') {
+        logger.error("INTERNAL ERROR!  *all* json responses must be objects");
+        throw "internal error";
+      }
+      realRespJSON.call(resp, obj);
+    };
+    return next();
+  });
+
   server.use(express.bodyParser());
 
   // Check CSRF token early.  POST requests are only allowed to
@@ -232,14 +242,14 @@ exports.setup = function(server) {
       var denied = false;
       if (!/^\/wsapi/.test(req.url)) { // post requests only allowed to /wsapi
         denied = true;
-        logger.warn("CSRF validation failure: POST only allowed to /wsapi urls.  not '" + req.url + "'");        
+        logger.warn("CSRF validation failure: POST only allowed to /wsapi urls.  not '" + req.url + "'");
       }
 
       if (req.session === undefined) { // there must be a session
         denied = true;
-        logger.warn("CSRF validation failure: POST calls to /wsapi require an active session");        
+        logger.warn("CSRF validation failure: POST calls to /wsapi require an active session");
       }
-      
+
       // the session must have a csrf token
       if (typeof req.session.csrf !== 'string') {
         denied = true;

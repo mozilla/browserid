@@ -51,9 +51,18 @@ var g_config = {
 
 // get the value for a given key, this mechanism allows the rest of the
 // application to reach in and set
-exports.get = function(val) {
-  if (val === 'env') return process.env['NODE_ENV'];
-  return g_config[val];
+exports.get = function(key) {
+  if (key === 'env') return process.env['NODE_ENV'];
+  return g_config[key];
+}
+
+// allow the application to set configuration variables
+// iff we're in a test_ environment
+exports.set = function(key, val) {
+  if (!/^test_/.test(exports.get('env')))
+    throw "you may only set configuration variables in a test_ environment " +
+          "(not in '" + exports.get('env') + "')";
+  g_config[key] = val;
 }
 
 // *** the various deployment configurations ***
@@ -70,7 +79,10 @@ g_configs.production = {
   database: {
     driver: "mysql",
     user: 'browserid'
-  }
+  },
+  bcrypt_work_factor: 12,
+  authentication_duration_ms: (7 * 24 * 60 * 60 * 1000),
+  certificate_validity_ms: (24 * 60 * 60 * 1000)
 };
 
 // beta (diresworb.org) the only difference from production 
@@ -91,8 +103,21 @@ g_configs.local =  {
   email_to_console: true, // don't send email, just dump verification URLs to console.
   use_minified_resources: false,
   var_path: path.join(__dirname, "..", "var"),
-  database: { driver: "json" }
+  database: { driver: "json" },
+  bcrypt_work_factor: g_configs.production.bcrypt_work_factor,
+  authentication_duration_ms: g_configs.production.authentication_duration_ms,
+  certificate_validity_ms: g_configs.production.certificate_validity_ms
 };
+
+Object.keys(g_configs).forEach(function(config) {
+  if (!g_configs[config].smtp) {
+    g_configs[config].smtp = {
+      host: process.env['SMTP_HOST'],
+      user: process.env['SMTP_USER'],
+      pass: process.env['SMTP_PASS']
+    };
+  }
+});
 
 // test environments are variations on local
 g_configs.test_json = JSON.parse(JSON.stringify(g_configs.local));

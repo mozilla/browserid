@@ -43,9 +43,9 @@ start_stop = require('./lib/start-stop.js'),
 wsapi = require('./lib/wsapi.js'),
 email = require('../lib/email.js'),
 ca = require('../lib/ca.js'),
-jwcert = require('../../lib/jwcrypto/jwcert'),
-jwk = require('../../lib/jwcrypto/jwk'),
-jws = require('../../lib/jwcrypto/jws');
+jwcert = require('jwcrypto/jwcert'),
+jwk = require('jwcrypto/jwk'),
+jws = require('jwcrypto/jws');
 
 var suite = vows.describe('ca');
 
@@ -57,11 +57,13 @@ var kp = jwk.KeyPair.generate("RS",64);
 
 var email_addr = "foo@foo.com";
 
-// create a new account via the api with (first address)
+// certify a key
 suite.addBatch({
   "certify a public key": {
     topic: function() {
-      return ca.certify(email_addr, kp.publicKey);
+      var expiration = new Date();
+      expiration.setTime(new Date().valueOf() + 5000);
+      return ca.certify(email_addr, kp.publicKey, expiration);
     },
     "parses" : function(cert_raw, err) {
       var cert = ca.parseCert(cert_raw);

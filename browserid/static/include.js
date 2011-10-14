@@ -35,16 +35,9 @@
 
 // this is the file that the RP includes to shim in the
 // navigator.id.getVerifiedEmail() function
+(function() {
+  "use strict";
 
-if (!navigator.id) {
-  navigator.id = {};
-}
-
-if (!navigator.id.getVerifiedEmail || navigator.id._getVerifiedEmailIsShimmed)
-{
-  var ipServer = "https://browserid.org";
-  var isMobile = navigator.userAgent.indexOf('Fennec/') != -1;
-  
   // local embedded copy of jschannel: http://github.com/mozilla/jschannel
   var Channel = (function() {
     // current transaction id, start out at a random *odd* number between 1 and a million
@@ -52,10 +45,10 @@ if (!navigator.id.getVerifiedEmail || navigator.id._getVerifiedEmailIsShimmed)
     // channel instances.  That means of all messages posted from a single javascript
     // evaluation context, we'll never have two with the same id.
     var s_curTranId = Math.floor(Math.random()*1000001);
-    
+
     // no two bound channels in the same javascript evaluation context may have the same origin & scope.
     // futher if two bound channels have the same scope, they may not have *overlapping* origins
-    // (either one or both support '*').  This restriction allows a single onMessage handler to efficiently
+    // (either one or both support '*').  This restriction allows a single onMessage handler to efficient
     // route messages based on origin and scope.  The s_boundChans maps origins to scopes, to message
     // handlers.  Request and Notification messages are routed using this table.
     // Finally, channels are inserted into this table when built, and removed when destroyed.
@@ -561,8 +554,66 @@ if (!navigator.id.getVerifiedEmail || navigator.id._getVerifiedEmailIsShimmed)
     };
   })();
 
+  function getInternetExplorerVersion() {
+    var rv = -1; // Return value assumes failure.
+    if (navigator.appName == 'Microsoft Internet Explorer') {
+      var ua = navigator.userAgent;
+      var re = new RegExp("MSIE ([0-9]{1,}[\.0-9]{0,})");
+      if (re.exec(ua) != null)
+        rv = parseFloat(RegExp.$1);
+    }
 
-  var chan = undefined;
+    return rv;
+  }
+
+  function checkIE() {
+    var ieVersion = getInternetExplorerVersion(),
+        ieNosupport = ieVersion > -1 && ieVersion < 9,
+        message;
+
+    if(ieNosupport) {
+      message = "Unfortunately, your version of Internet Explorer is not yet supported.\n" +
+            'If you are using Internet Explorer 9, turn off "Compatibility View".';
+    }
+
+    return message;
+  }
+
+  function explicitNosupport() {
+    var message = checkIE();
+
+    if (message) {
+       message += "\nWe are working hard to bring BrowserID support to your browser!";
+       alert(message);
+    }
+
+    return message;
+  }
+
+  function checkRequirements() {
+    var localStorage = 'localStorage' in window && window['localStorage'] !== null;
+    var postMessage = !!window.postMessage;
+    var json = true;
+
+    if(window.JSON) {
+      // If there is no native JSON support, we use Crockford's JSON2 library.
+      try {
+        // Android < 3 blows up on this.
+        JSON.parse(null);
+      }
+      catch(e) {
+        json = false;
+      }
+    }
+
+    var explicitNo = explicitNosupport()
+
+    if(!explicitNo && !(localStorage && postMessage && json)) {
+      alert("Unfortunately, your browser does not meet the minimum HTML5 support required for BrowserID.");
+    }
+
+    return localStorage && postMessage && json && !(explicitNo);
+  }
 
   // this is for calls that are non-interactive
   function _open_hidden_iframe(doc) {
@@ -572,190 +623,278 @@ if (!navigator.id.getVerifiedEmail || navigator.id._getVerifiedEmailIsShimmed)
     iframe.src = ipServer + "/register_iframe";
     return iframe;
   }
-  
-  function _open_relay_frame(doc) {
+
+  function _get_relayframe_id() {
+    var randomString = '';
+    var possible = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789";
+    for (var i=0; i < 4; i++) {
+      randomString += possible.charAt(Math.floor(Math.random() * possible.length));
+    }
+    return randomString;
+  }
+
+  function _open_relayframe(framename) {
+    var doc = window.document;
     var iframe = doc.createElement("iframe");
-    iframe.setAttribute('name', 'browserid_relay');
+    iframe.setAttribute('name', framename);
     iframe.setAttribute('src', ipServer + "/relay");
     iframe.style.display = "none";
     doc.body.appendChild(iframe);
+
     return iframe;
   }
   
   function _open_window() {
-    // FIXME: need to pass the location in a more trustworthy fashion
-    // HOW? set up a direct reference to the open window
+    // we open the window initially blank, and only after our relay frame has
+    // been constructed do we update the location.  This is done because we
+    // must launch the window inside a click handler, but we should wait to
+    // start loading it until our relay iframe is instantiated and ready.
+    // see issue #287 & #286
     return window.open(
-      ipServer + "/sign_in#host=" + document.location.host, "_mozid_signin",
-      isMobile ? undefined : "menubar=0,location=0,resizable=0,scrollbars=0,status=0,dialog=1,width=520,height=350");
+      "about:blank",
+      "_mozid_signin",
+      isFennec ? undefined : "menubar=0,location=0,resizable=0,scrollbars=0,status=0,dialog=1,width=700,height=375");
   }
 
-  navigator.id.getVerifiedEmail = function(callback) {
-    var doc = window.document;
-    var w = _open_window();
-    var iframe = _open_relay_frame(doc);
-
-    // clean up a previous channel that never was reaped
-    if (chan) chan.destroy();
-    chan = Channel.build({window: iframe.contentWindow, origin: ipServer, scope: "mozid"});
-    
-    function cleanup() {
-      chan.destroy();
-      chan = undefined;
-      w.close();
-      iframe.parentNode.removeChild(iframe);
+  function _attach_event(element, name, listener) {
+    if (element.addEventListener) {
+      element.addEventListener(name, listener, false);
     }
+    else if(element.attachEvent) {
+      // IE < 9
+      element.attachEvent(name, listener);
+    }
+  }
 
-    chan.call({
-      method: "getVerifiedEmail",
-      success: function(rv) {
-        if (callback) {
-          // return the string representation of the JWT, the client is responsible for unpacking it.
-          callback(rv);
+  function _detatch_event(element, name, listener) {
+    if (element.removeEventListener) {
+      element.removeEventListener(name, listener, false);
+    }
+    else if(element.detachEvent) {
+      element.detachEvent(name, listener);
+    }
+  }
+
+  /**
+   * The meat and potatoes of the verified email protocol
+   */
+
+
+  if (!navigator.id) {
+    navigator.id = {};
+  }
+
+  if (!navigator.id.getVerifiedEmail || navigator.id._getVerifiedEmailIsShimmed) {
+    var ipServer = "https://browserid.org";
+    var isFennec = navigator.userAgent.indexOf('Fennec/') != -1;
+
+    var chan, w, iframe;
+
+    // keep track of these so that we can re-use/re-focus an already open window.
+    navigator.id.getVerifiedEmail = function(callback) {
+      if(!checkRequirements()) {
+        return;
+      }
+
+      if (w) {
+        // if there is already a window open, just focus the old window.
+        w.focus();
+        return;
+      }
+
+      var frameid = _get_relayframe_id();
+      var iframe = _open_relayframe("browserid_relay_" + frameid);
+      w = _open_window();
+
+      // if the RP window closes, close the dialog as well.
+      _attach_event(window, 'unload', cleanup);
+
+      // clean up a previous channel that never was reaped
+      if (chan) chan.destroy();
+      chan = Channel.build({
+        window: iframe.contentWindow,
+        origin: ipServer,
+        scope: "mozid",
+        onReady: function() {
+          // We have to change the name of the relay frame every time or else Firefox
+          // has a problem re-attaching new iframes with the same name.  Code inside
+          // of frames with the same name sometimes does not get run.
+          // See https://bugzilla.mozilla.org/show_bug.cgi?id=350023
+          w.location = ipServer + "/sign_in#" + frameid;
+          w.focus();
         }
-        cleanup();
-      },
-      error: function(code, msg) {
-        // XXX: we don't make the code and msg available to the user.
-        if (callback) callback(null);
-        cleanup();
+      });
+
+      function cleanup() {
+        chan.destroy();
+        chan = null;
+
+        w.close();
+        w = null;
+
+        iframe.parentNode.removeChild(iframe);
+        iframe = null;
+
+        _detatch_event(window, 'unload', cleanup);
       }
-    });
-  };
 
-/*
-  // preauthorize a particular email
-  // FIXME: lots of cut-and-paste code here, need to refactor
-  // not refactoring now because experimenting and don't want to break existing code
-  navigator.id.preauthEmail = function(email, onsuccess, onerror) {
-    var doc = window.document;
-    var iframe = _create_iframe(doc);
+      chan.call({
+        method: "getVerifiedEmail",
+        success: function(rv) {
+          if (callback) {
+            // return the string representation of the JWT, the client is responsible for unpacking it.
+            callback(rv);
+          }
+          cleanup();
+        },
+        error: function(code, msg) {
+          // XXX: we don't make the code and msg available to the user.
+          if (callback) callback(null);
+          cleanup();
+        }
+      });
+    };
 
-    // clean up a previous channel that never was reaped
-    if (chan) chan.destroy();
-    chan = Channel.build({window: iframe.contentWindow, origin: ipServer, scope: "mozid"});
-
-    function cleanup() {
-      chan.destroy();
-      chan = undefined;
-      doc.body.removeChild(iframe);
-    }
-
-    chan.call({
-      method: "preauthEmail",
-      params: email,
-      success: function(rv) {
-        onsuccess(rv);
-        cleanup();
-      },
-      error: function(code, msg) {
-        if (onerror) onerror(code, msg);
-        cleanup();
-      }
-    });
-  };
-  */
-
-  // get a particular verified email
-  // FIXME: needs to ditched for now until fixed
   /*
-  navigator.id.getSpecificVerifiedEmail = function(email, token, onsuccess, onerror) {
-    var doc = window.document;
+    // preauthorize a particular email
+    // FIXME: lots of cut-and-paste code here, need to refactor
+    // not refactoring now because experimenting and don't want to break existing code
+    navigator.id.preauthEmail = function(email, onsuccess, onerror) {
+      var doc = window.document;
+      var iframe = _create_iframe(doc);
 
-    // if we have a token, we should not be opening a window, rather we should be
-    // able to do this entirely through IFRAMEs
-    var w;
-    if (token) {
-        var iframe = _create_iframe(doc);
-        w = iframe.contentWindow;
-    } else {
-        _open_window();
-        _open_relay_frame(doc);
-    }
+      // clean up a previous channel that never was reaped
+      if (chan) chan.destroy();
+      chan = Channel.build({window: iframe.contentWindow, origin: ipServer, scope: "mozid"});
 
-    // clean up a previous channel that never was reaped
-    if (chan) chan.destroy();
-    chan = Channel.build({window: w, origin: ipServer, scope: "mozid"});
+      function cleanup() {
+        chan.destroy();
+        chan = undefined;
+        doc.body.removeChild(iframe);
+      }
 
-    function cleanup() {
-      chan.destroy();
-      chan = undefined;
+      chan.call({
+        method: "preauthEmail",
+        params: email,
+        success: function(rv) {
+          onsuccess(rv);
+          cleanup();
+        },
+        error: function(code, msg) {
+          if (onerror) onerror(code, msg);
+          cleanup();
+        }
+      });
+    };
+    */
+
+    // get a particular verified email
+    // FIXME: needs to ditched for now until fixed
+    /*
+    navigator.id.getSpecificVerifiedEmail = function(email, token, onsuccess, onerror) {
+      var doc = window.document;
+
+      // if we have a token, we should not be opening a window, rather we should be
+      // able to do this entirely through IFRAMEs
+      var w;
       if (token) {
-          // just remove the IFRAME
-          doc.body.removeChild(iframe);
+          var iframe = _create_iframe(doc);
+          w = iframe.contentWindow;
       } else {
-          w.close();
+          _open_window();
+          _open_relay_frame(doc);
       }
+
+      // clean up a previous channel that never was reaped
+      if (chan) chan.destroy();
+      chan = Channel.build({window: w, origin: ipServer, scope: "mozid"});
+
+      function cleanup() {
+        chan.destroy();
+        chan = undefined;
+        if (token) {
+            // just remove the IFRAME
+            doc.body.removeChild(iframe);
+        } else {
+            w.close();
+        }
+      }
+
+      chan.call({
+        method: "getSpecificVerifiedEmail",
+        params: [email, token],
+        success: function(rv) {
+          if (onsuccess) {
+            // return the string representation of the JWT, the client is responsible for unpacking it.
+            onsuccess(rv);
+          }
+          cleanup();
+        },
+        error: function(code, msg) {
+          if (onerror) onerror(code, msg);
+          cleanup();
+        }
+      });
+    };
+    */
+
+    var _noninteractiveCall = function(method, args, onsuccess, onerror) {
+      var doc = window.document;
+      iframe = _open_hidden_iframe(doc);
+
+      // clean up channel
+      if (chan) chan.destroy();
+      chan = Channel.build({window: iframe.contentWindow, origin: ipServer, scope: "mozid"});
+      
+      function cleanup() {
+        chan.destroy();
+        chan = undefined;
+        doc.body.removeChild(iframe);
+      }
+      
+      chan.call({
+        method: method,
+        params: args,
+        success: function(rv) {
+          if (onsuccess) {
+            onsuccess(rv);
+          }
+          cleanup();
+        },
+        error: function(code, msg) {
+          if (onerror) onerror(code, msg);
+          cleanup();
+        }
+      });    
     }
 
-    chan.call({
-      method: "getSpecificVerifiedEmail",
-      params: [email, token],
-      success: function(rv) {
-        if (onsuccess) {
-          // return the string representation of the JWT, the client is responsible for unpacking it.
-          onsuccess(rv);
-        }
-        cleanup();
-      },
-      error: function(code, msg) {
-        if (onerror) onerror(code, msg);
-        cleanup();
-      }
-    });
-  };
-  */
+    //
+    // for now, disabling primary support.
+    //
 
-  function _noninteractiveCall(method, args, onsuccess, onerror) {
-    var doc = window.document;
-    iframe = _open_hidden_iframe(doc);
+    /*
+    // check if a valid cert exists for this verified email
+    // calls back with true or false
+    // FIXME: implement it for real, but
+    // be careful here because this needs to be limited
+    navigator.id.checkVerifiedEmail = function(email, onsuccess, onerror) {
+      onsuccess(false);
+    };
 
-    // clean up channel
-    if (chan) chan.destroy();
-    chan = Channel.build({window: iframe.contentWindow, origin: ipServer, scope: "mozid"});
+    // generate a keypair
+    navigator.id.generateKey = function(onsuccess, onerror) {
+      _noninteractiveCall("generateKey", {},
+                          onsuccess, onerror);
+    };
     
-    function cleanup() {
-      chan.destroy();
-      chan = undefined;
-      doc.body.removeChild(iframe);
-    }
+    navigator.id.registerVerifiedEmailCertificate = function(certificate, updateURL, onsuccess, onerror) {
+      _noninteractiveCall("registerVerifiedEmailCertificate",
+                          {cert:certificate, updateURL: updateURL},
+                          onsuccess, onerror);
+    };
+    */
     
-    chan.call({
-      method: method,
-      params: args,
-      success: function(rv) {
-        console.log(method + " channel returned: rv is " + rv);
-        if (onsuccess) {
-          onsuccess(rv);
-        }
-        cleanup();
-      },
-      error: function(code, msg) {
-        if (onerror) onerror(code, msg);
-        cleanup();
-      }
-    });    
+    navigator.id._getVerifiedEmailIsShimmed = true;
   }
+}());
 
-  // check if a valid cert exists for this verified email
-  // calls back with true or false
-  // FIXME: implement it for real, but
-  // be careful here because this needs to be limited
-  navigator.id.checkVerifiedEmail = function(email, onsuccess, onerror) {
-    onsuccess(false);
-  };
-
-  // generate a keypair
-  navigator.id.generateKey = function(onsuccess, onerror) {
-    _noninteractiveCall("generateKey", {},
-                        onsuccess, onerror);
-  };
-  
-  navigator.id.registerVerifiedEmailCertificate = function(certificate, updateURL, onsuccess, onerror) {
-    _noninteractiveCall("registerVerifiedEmailCertificate",
-                        {cert:certificate, updateURL: updateURL},
-                        onsuccess, onerror);
-  };
-  
-  navigator.id._getVerifiedEmailIsShimmed = true;
-}

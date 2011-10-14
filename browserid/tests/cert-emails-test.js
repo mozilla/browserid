@@ -43,10 +43,10 @@ start_stop = require('./lib/start-stop.js'),
 wsapi = require('./lib/wsapi.js'),
 email = require('../lib/email.js'),
 ca = require('../lib/ca.js'),
-jwcert = require('../../lib/jwcrypto/jwcert'),
-jwk = require('../../lib/jwcrypto/jwk'),
-jws = require('../../lib/jwcrypto/jws'),
-jwt = require('../../lib/jwcrypto/jwt');
+jwcert = require('jwcrypto/jwcert'),
+jwk = require('jwcrypto/jwk'),
+jws = require('jwcrypto/jws'),
+jwt = require('jwcrypto/jwt');
 
 var suite = vows.describe('cert-emails');
 
@@ -68,7 +68,6 @@ suite.addBatch({
   "stage an account": {
     topic: wsapi.post('/wsapi/stage_user', {
       email: 'syncer@somehost.com',
-      pass: 'fakepass',
       pubkey: 'fakekey',
       site:'fakesite.com'
     }),
@@ -81,23 +80,11 @@ suite.addBatch({
 suite.addBatch({
   "verifying account ownership": {
     topic: function() {
-      wsapi.get('/wsapi/prove_email_ownership', { token: token }).call(this);
+      wsapi.post('/wsapi/complete_user_creation', { token: token, pass: 'fakepass' }).call(this);
     },
     "works": function(r, err) {
       assert.equal(r.code, 200);
-      assert.strictEqual(true, JSON.parse(r.body));
-    }
-  }
-});
-
-suite.addBatch({
-  "calling registration_status after a registration is complete": {
-    topic: wsapi.get("/wsapi/registration_status"),
-    "yields a HTTP 200": function (r, err) {
-      assert.strictEqual(r.code, 200);
-    },
-    "returns a json encoded string - `complete`": function (r, err) {
-      assert.strictEqual(JSON.parse(r.body), "complete");
+      assert.strictEqual(true, JSON.parse(r.body).success);
     }
   }
 });
@@ -181,9 +168,6 @@ suite.addBatch({
       assert.strictEqual(r.code, 400);
     }
   }
-
-
-  // NOTE: db-test has more thorough tests of the algorithm behind the sync_emails API  
 });
 
 start_stop.addShutdownBatches(suite);

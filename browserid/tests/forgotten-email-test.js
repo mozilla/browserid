@@ -60,8 +60,6 @@ suite.addBatch({
   "stage first account": {
     topic: wsapi.post('/wsapi/stage_user', {
       email: 'first@fakeemail.com',
-      pass: 'firstfakepass',
-      pubkey: 'fakepubkey',
       site:'fakesite.com'
     }),
     "the token is sane": function(r, err) {
@@ -73,21 +71,21 @@ suite.addBatch({
 suite.addBatch({
   "create first account": {
     topic: function() {
-      wsapi.get('/wsapi/prove_email_ownership', { token: token }).call(this);
+      wsapi.post('/wsapi/complete_user_creation', { token: token, pass: 'firstfakepass' }).call(this);
     },
     "account created": function(r, err) {
       assert.equal(r.code, 200);
-      assert.strictEqual(true, JSON.parse(r.body));
+      assert.strictEqual(true, JSON.parse(r.body).success);
     }
   }
 });
 
 suite.addBatch({
   "email created": {
-    topic: wsapi.get('/wsapi/registration_status'),
+    topic: wsapi.get('/wsapi/user_creation_status', { email: 'first@fakeemail.com' } ),
     "should exist": function(r, err) {
       assert.strictEqual(r.code, 200);
-      assert.strictEqual(JSON.parse(r.body), "complete");
+      assert.strictEqual(JSON.parse(r.body).status, "complete");
     }
   }
 });
@@ -95,34 +93,25 @@ suite.addBatch({
 // add a new email address to the account (second address)
 suite.addBatch({
   "add a new email address to our account": {
-    topic: wsapi.post('/wsapi/add_email', {
+    topic: wsapi.post('/wsapi/stage_email', {
       email: 'second@fakeemail.com',
       site:'fakesite.com'
     }),
     "the token is sane": function(r, err) {
       assert.strictEqual('string', typeof token);
     }
-  },
-/*  "set the key again": {
-    topic: wsapi.post('/wsapi/set_key', {
-      email: 'second@fakeemail.com',
-      pubkey: 'fakepubkey2'
-    }),
-    "the token is sane": function(r, err) {
-      assert.strictEqual('string', typeof token);
-    }
-  }*/
+  }
 });
 
 // confirm second email email address to the account
 suite.addBatch({
   "create second account": {
     topic: function() {
-      wsapi.get('/wsapi/prove_email_ownership', { token: token }).call(this);
+      wsapi.post('/wsapi/complete_email_addition', { token: token }).call(this);
     },
     "account created": function(r, err) {
       assert.equal(r.code, 200);
-      assert.strictEqual(true, JSON.parse(r.body));
+      assert.strictEqual(JSON.parse(r.body).success, true);
     }
   }
 });
@@ -132,19 +121,19 @@ suite.addBatch({
   "first email exists": {
     topic: wsapi.get('/wsapi/have_email', { email: 'first@fakeemail.com' }),
     "should exist": function(r, err) {
-      assert.strictEqual(true, JSON.parse(r.body));
+      assert.strictEqual(JSON.parse(r.body).email_known, true);
     }
   },
   "second email exists": {
     topic: wsapi.get('/wsapi/have_email', { email: 'second@fakeemail.com' }),
     "should exist": function(r, err) {
-      assert.strictEqual(JSON.parse(r.body), true);
+      assert.strictEqual(JSON.parse(r.body).email_known, true);
     }
   },
   "a random email doesn't exist": {
     topic: wsapi.get('/wsapi/have_email', { email: 'third@fakeemail.com' }),
     "shouldn't exist": function(r, err) {
-      assert.strictEqual(JSON.parse(r.body), false);
+      assert.strictEqual(JSON.parse(r.body).email_known, false);
     }
   }
 });
@@ -155,8 +144,6 @@ suite.addBatch({
   "re-stage first account": {
     topic: wsapi.post('/wsapi/stage_user', {
       email: 'first@fakeemail.com',
-      pass: 'secondfakepass',
-      pubkey: 'fakepubkey2',
       site:'otherfakesite.com'
     }),
     "the token is sane": function(r, err) {
@@ -171,13 +158,13 @@ suite.addBatch({
   "first email works": {
     topic: wsapi.post('/wsapi/authenticate_user', { email: 'first@fakeemail.com', pass: 'firstfakepass' }),
     "should work": function(r, err) {
-      assert.strictEqual(true, JSON.parse(r.body));
+      assert.strictEqual(JSON.parse(r.body).success, true);
     }
   },
   "second email works": {
     topic: wsapi.post('/wsapi/authenticate_user', { email: 'second@fakeemail.com', pass: 'firstfakepass' }),
     "should work": function(r, err) {
-      assert.strictEqual(true, JSON.parse(r.body));
+      assert.strictEqual(JSON.parse(r.body).success, true);
     }
   }
 });
@@ -186,11 +173,11 @@ suite.addBatch({
 suite.addBatch({
   "re-create first email address": {
     topic: function() {
-      wsapi.get('/wsapi/prove_email_ownership', { token: token }).call(this);
+      wsapi.post('/wsapi/complete_user_creation', { token: token, pass: 'secondfakepass' }).call(this);
     },
     "account created": function(r, err) {
       assert.equal(r.code, 200);
-      assert.strictEqual(true, JSON.parse(r.body));
+      assert.strictEqual(JSON.parse(r.body).success, true);
     }
   }
 });
@@ -201,39 +188,31 @@ suite.addBatch({
   "first email, first pass bad": {
     topic: wsapi.post('/wsapi/authenticate_user', { email: 'first@fakeemail.com', pass: 'firstfakepass' }),
     "shouldn't work": function(r, err) {
-      assert.strictEqual(JSON.parse(r.body), false);
+      assert.strictEqual(JSON.parse(r.body).success, false);
     }
   },
   "first email, second pass good": {
     topic: wsapi.post('/wsapi/authenticate_user', { email: 'first@fakeemail.com', pass: 'secondfakepass' }),
     "should work": function(r, err) {
-      assert.strictEqual(JSON.parse(r.body), true);
-    }
-  },
-  "sync emails": {
-    topic: wsapi.post('/wsapi/sync_emails', {'emails': '{}'}),
-      "should work" : function(r, err) {
-      var parsed_body = JSON.parse(r.body);
-      assert.equal(typeof parsed_body.unknown_emails, "object");
-      assert.equal(typeof parsed_body.key_refresh, "object");
+      assert.strictEqual(JSON.parse(r.body).success, true);
     }
   },
   "logout": {
     topic: wsapi.post('/wsapi/logout', {}),
-      "should work": function(r, err) {
-      assert.strictEqual(JSON.parse(r.body), "ok");
+    "should work": function(r, err) {
+      assert.strictEqual(JSON.parse(r.body).success, true);
     }
   },
   "second email, first pass good": {
     topic: wsapi.post('/wsapi/authenticate_user', { email: 'second@fakeemail.com', pass: 'firstfakepass' }),
     "should work": function(r, err) {
-      assert.strictEqual(JSON.parse(r.body), true);
+      assert.strictEqual(JSON.parse(r.body).success, true);
     }
   },
   "second email, second pass bad": {
     topic: wsapi.post('/wsapi/authenticate_user', { email: 'second@fakeemail.com', pass: 'secondfakepass' }),
     "shouldn' work": function(r, err) {
-      assert.strictEqual(JSON.parse(r.body), false);
+      assert.strictEqual(JSON.parse(r.body).success, false);
     }
   },
 });

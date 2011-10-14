@@ -42,6 +42,20 @@ mustache = require('mustache'),
 config = require('../../libs/configuration.js'),
 logger = require('../../libs/logging.js').logger;
 
+/* if smtp parameters are configured, use them */
+var smtp_params = config.get('smtp');
+console.log("SMTP", smtp_params);
+if (smtp_params && smtp_params.host) {
+  emailer.SMTP = { host: smtp_params.host };
+  logger.info("delivering email via SMTP host: " +  emailer.SMTP.host);
+  if (smtp_params.user) {
+    logger.info("authenticating to email host as" +  emailer.SMTP.user);
+    emailer.SMTP.use_authentication = true;
+    emailer.SMTP.user = smtp_params.user;
+    emailer.SMTP.pass = smtp_params.pass;
+  }
+}
+
 const template = fs.readFileSync(path.join(__dirname, "prove_template.txt")).toString();
 
 var interceptor = undefined;
@@ -61,8 +75,8 @@ exports.setInterceptor = function(callback) {
   interceptor = callback;
 };
 
-exports.sendVerificationEmail = function(email, site, secret) {
-  var url = config.get('URL') + "/prove?token=" + encodeURIComponent(secret);
+function doSend(landing_page, email, site, secret) {
+  var url = config.get('URL') + "/" + landing_page + "?token=" + encodeURIComponent(secret);
 
   if (interceptor) {
     interceptor(email, site, secret);
@@ -82,4 +96,12 @@ exports.sendVerificationEmail = function(email, site, secret) {
       }
     });
   };
+};
+
+exports.sendNewUserEmail = function(email, site, secret) {
+  doSend('verify_email_address', email, site, secret);
+};
+
+exports.sendAddAddressEmail = function(email, site, secret) {
+  doSend('add_email_address', email, site, secret);
 };

@@ -36,9 +36,9 @@
 
 // certificate authority
 
-var jwcert = require('../../lib/jwcrypto/jwcert'),
-    jwk = require('../../lib/jwcrypto/jwk'),
-    jws = require('../../lib/jwcrypto/jws'),
+var jwcert = require('jwcrypto/jwcert'),
+    jwk = require('jwcrypto/jwk'),
+    jws = require('jwcrypto/jws'),
     configuration = require('../../libs/configuration'),
     secrets = require('../../libs/secrets'),
     path = require("path"),
@@ -57,18 +57,22 @@ function parseCert(serializedCert) {
 }
 
 function certify(email, publicKey, expiration) {
-  return new jwcert.JWCert(HOSTNAME, new Date(), publicKey, {email: email}).sign(secrets.SECRET_KEY);
+  if (expiration == null)
+    throw "expiration cannot be null";
+  return new jwcert.JWCert(HOSTNAME, expiration, publicKey, {email: email}).sign(secrets.SECRET_KEY);
 }
 
 function verifyChain(certChain, cb) {
   // raw certs
-  return jwcert.JWCert.verifyChain(certChain, function(issuer, next) {
-    // for now we only do browserid.org issued keys
-    if (issuer != HOSTNAME)
-      return next(null);
-
-    next(secrets.PUBLIC_KEY);
-  }, cb);
+  return jwcert.JWCert.verifyChain(
+    certChain, new Date(),
+    function(issuer, next) {
+      // for now we only do browserid.org issued keys
+      if (issuer != HOSTNAME)
+        return next(null);
+      
+      next(secrets.PUBLIC_KEY);
+    }, cb);
 }
 
 // exports, not the key stuff
