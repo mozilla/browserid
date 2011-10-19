@@ -21,8 +21,9 @@ browserid server & web home for browserid.org
 %setup -q -n browserid
 
 %build
-(cd browserid && ./compress.sh)
 npm install
+export PATH=$PWD/node_modules/.bin:$PATH
+(cd browserid && ./compress.sh)
 git log -1 --oneline > browserid/static/ver.txt
 
 %install
