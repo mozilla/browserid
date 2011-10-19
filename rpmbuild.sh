@@ -1,5 +1,7 @@
 #!/bin/bash
 
+set -e
+
 progname=$(basename $0)
 
 cd $(dirname $0)    # top level of the checkout
@@ -15,6 +17,15 @@ rm -rf rpmbuild/RPMS
 
 tar -C .. --exclude rpmbuild -czf \
     $PWD/rpmbuild/SOURCES/browserid-server.tar.gz browserid
+
+# build requires uglifyjs
+if [ ! -d rpmbuild/uglifyjs ]; then
+    git clone git://github.com/mishoo/UglifyJS.git rpmbuild/uglifyjs
+fi
+export PATH=$PWD/rpmbuild/uglifyjs/bin:$PATH
+export NODE_PATH=$PWD/rpmbuild/uglifyjs:$NODE_PATH
+
+set +e
 
 rpmbuild --define "_topdir $PWD/rpmbuild" -ba browserid.spec
 rc=$?

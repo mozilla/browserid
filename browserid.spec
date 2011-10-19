@@ -12,7 +12,7 @@ Source0:       %{name}.tar.gz
 BuildRoot:     %{_tmppath}/%{name}-%{version}-%{release}-root
 AutoReqProv:   no
 Requires:      openssl nodejs
-BuildRequires: gcc-c++ make npm openssl-devel
+BuildRequires: gcc-c++ git jre make npm openssl-devel
 
 %description
 browserid server & web home for browserid.org
@@ -21,7 +21,9 @@ browserid server & web home for browserid.org
 %setup -q -n browserid
 
 %build
+(cd browserid && ./compress.sh)
 npm install
+git log -1 --oneline > browserid/static/ver.txt
 
 %install
 rm -rf %{buildroot}
