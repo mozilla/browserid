@@ -42,35 +42,37 @@
 (function() {
   "use strict";
 
-  var user = BrowserID.User;
+  var bid = BrowserID,
+      user = bid.User,
+      support = bid.BrowserSupport,
+      supported = true;
 
   PageController.extend("Dialog", {}, {
       init: function(el) {
         var self=this;
-        //this.element.show();
 
         // keep track of where we are and what we do on success and error
         self.onsuccess = null;
         self.onerror = null;
         setupChannel(self);
         self.stateMachine();
+       
       },
         
       getVerifiedEmail: function(origin_url, onsuccess, onerror) {
-        this.onsuccess = onsuccess;
-        this.onerror = onerror;
+        var self=this;
+        self.onsuccess = onsuccess;
+        self.onerror = onerror;
 
         user.setOrigin(origin_url);
         
-        // get the cleaned origin.
-        $("#sitename").text(user.getHostname());
+        if(self.checkSupport()) {
+          $("#sitename").text(user.getHostname());
 
-        this.doCheckAuth();
+          self.doCheckAuth();
+        }
 
-        var self=this;
-        $(window).bind("unload", function() {
-          self.doCancel();
-        });
+        $(window).bind("unload", self.doCancel.bind(self));
       },
 
 
@@ -78,7 +80,6 @@
         var self=this, 
             hub = OpenAjax.hub, 
             el = this.element;
-       
 
         hub.subscribe("user_staged", function(msg, info) {
           self.doConfirmUser(info.email);
@@ -100,7 +101,7 @@
         });
 
         hub.subscribe("assertion_generated", function(msg, info) {
-          if(info.assertion !== null) {
+          if (info.assertion !== null) {
             self.doAssertionGenerated(info.assertion);
           }
           else {
@@ -138,6 +139,18 @@
 
       },
 
+      checkSupport: function() {
+        var supported = false;//support.isSupported();
+
+        if (!supported) {
+          this.element.unsupported({
+            reason: support.getNoSupportReason()
+          });
+        }
+
+        return supported;
+      },
+
       doConfirmUser: function(email) {
         this.confirmEmail = email;
 
@@ -150,7 +163,7 @@
 
       doCancel: function() {
         var self=this;
-        if(self.onsuccess) {
+        if (self.onsuccess) {
           self.onsuccess(null);
         }
       },
