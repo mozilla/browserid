@@ -557,55 +557,6 @@
     };
   })();
 
-  function getInternetExplorerVersion() {
-    var rv = -1; // Return value assumes failure.
-    if (navigator.appName == 'Microsoft Internet Explorer') {
-      var ua = navigator.userAgent;
-      var re = new RegExp("MSIE ([0-9]{1,}[\.0-9]{0,})");
-      if (re.exec(ua) != null)
-        rv = parseFloat(RegExp.$1);
-    }
-
-    return rv;
-  }
-
-  function checkIE() {
-    var ieVersion = getInternetExplorerVersion(),
-        ieNosupport = ieVersion > -1 && ieVersion < 9,
-        message;
-
-    if(ieNosupport) {
-      message = "Unfortunately, your version of Internet Explorer is not yet supported.\n" +
-            'If you are using Internet Explorer 9, turn off "Compatibility View".';
-    }
-
-    return message;
-  }
-
-  function explicitNosupport() {
-    var message = checkIE();
-
-    if (message) {
-       message += "\nWe are working hard to bring BrowserID support to your browser!";
-       alert(message);
-    }
-
-    return message;
-  }
-
-  function checkRequirements() {
-    var localStorage = 'localStorage' in window && window['localStorage'] !== null;
-    var postMessage = !!window.postMessage;
-    var json = true;
-
-    var explicitNo = explicitNosupport()
-
-    if(!explicitNo && !(localStorage && postMessage && json)) {
-      alert("Unfortunately, your browser does not meet the minimum HTML5 support required for BrowserID.");
-    }
-
-    return localStorage && postMessage && json && !(explicitNo);
-  }
 
   // this is for calls that are non-interactive
   function _open_hidden_iframe(doc) {
@@ -684,10 +635,6 @@
 
     // keep track of these so that we can re-use/re-focus an already open window.
     navigator.id.getVerifiedEmail = function(callback) {
-      if(!checkRequirements()) {
-        return;
-      }
-
       if (w) {
         // if there is already a window open, just focus the old window.
         w.focus();
