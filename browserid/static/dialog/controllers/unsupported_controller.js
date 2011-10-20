@@ -39,15 +39,15 @@
 
   var bid = BrowserID;
 
-  PageController.extend("unsupported", {}, {
+  PageController.extend("Unsupported", {}, {
     init: function(el, options) {
       options = options || {};
 
       options.reason = options.reason || "";
 
       this._super(el, {
-        bodyTemplate: "unsupported.ejs",
-        bodyVars: options
+        errorTemplate: "unsupported.ejs",
+        errorVars: options
       });
     }
   });
