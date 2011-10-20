@@ -112,7 +112,7 @@ g_configs.local =  {
 
 if (undefined !== process.env['NODE_EXTRA_CONFIG']) {
   var fs = require('fs');
-  eval(fs.readFileSync(process.env['NODE_EXTRA_CONFIG']));
+  eval(fs.readFileSync(process.env['NODE_EXTRA_CONFIG']) + '');
 }
 
 Object.keys(g_configs).forEach(function(config) {
