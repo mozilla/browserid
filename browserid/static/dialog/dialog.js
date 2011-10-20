@@ -50,6 +50,7 @@ steal.plugins(
                'underscore-min',
                'channel',
                'browserid',
+               'browser-support',
                'storage',
                'tooltip',
                'validation',
@@ -63,12 +64,14 @@ steal.plugins(
                'dialog',
                'authenticate',
                'checkregistration',
-               'pickemail')					// loads files in controllers folder
+               'pickemail',
+               'unsupported')					// loads files in controllers folder
 
 	.views('authenticate.ejs',
            'confirmemail.ejs',
            'pickemail.ejs',
-           'wait.ejs'
+           'wait.ejs',
+           'unsupported.ejs'
           ).
 
           then(function() {
