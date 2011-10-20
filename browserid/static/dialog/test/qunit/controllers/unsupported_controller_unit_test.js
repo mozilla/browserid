@@ -63,7 +63,7 @@ steal.plugins("jquery").then("/dialog/controllers/page_controller",
     ok(controller, "A controller has been created");
 
 
-    var html = el.find(".contents").html();
+    var html = el.find("#error .contents").html();
     ok(html.length, "a template has been written");
 
     var ie = el.find("#ie");
@@ -77,7 +77,7 @@ steal.plugins("jquery").then("/dialog/controllers/page_controller",
     ok(controller, "A controller has been created");
 
 
-    var html = el.find(".contents").html();
+    var html = el.find("#error .contents").html();
     ok(html.length, "a template has been written");
 
     var ie = el.find("#ie");
