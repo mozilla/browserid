@@ -106,6 +106,22 @@ steal.plugins("jquery").then("/dialog/controllers/page_controller", function() {
     ok(html.length, "with wait template specified, wait text is loaded");
   });
 
+  test("page controller with error template renders in #error .contents", function() {
+    controller = el.page({
+      errorTemplate: waitTemplate,
+      errorVars: {
+        title: "Test title",
+        message: "Test message"
+      }
+    }).controller();
+
+    var html = el.find("#formWrap .contents").html();
+    equal(html, "", "with error template specified, form is ignored");
+
+    html = el.find("#error .contents").html();
+    ok(html.length, "with error template specified, error text is loaded");
+  });
+
   test("renderError renders an error message", function() {
     controller = el.page({
       waitTemplate: waitTemplate,
@@ -115,7 +131,7 @@ steal.plugins("jquery").then("/dialog/controllers/page_controller", function() {
       }
     }).controller();
    
-    controller.renderError({
+    controller.renderError("wait.ejs", {
       title: "error title",
       message: "error message"
     });
