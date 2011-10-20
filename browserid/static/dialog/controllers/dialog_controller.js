@@ -141,7 +141,7 @@
       },
 
       checkSupport: function() {
-        var supported = false;//support.isSupported();
+        var supported = support.isSupported();
 
         if (!supported) {
           this.element.unsupported({
