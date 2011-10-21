@@ -15,6 +15,7 @@ steal("/dialog/resources/browserid.js",
 	.views('wait.ejs')
   .then("/dialog/controllers/page_controller.js")
   .then("browserid_unit_test")
+  .then("include_unit_test")
   .then("resources/browser-support_unit_test")
   .then("resources/validation_unit_test")
   .then("resources/storage_unit_test")
