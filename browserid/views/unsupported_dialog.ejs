@@ -1,0 +1,34 @@
+  <section id="error" style="display: block">
+      <div class="table">
+          <div class="vertical contents">
+              <div id="reason">
+                <% if (reason === "IE_VERSION") { %>
+                  <strong id="ie">Your version of Internet Explorer is not supported :(</strong>
+                <% } %>
+
+                <p>
+                  We're sorry, but currently your browser isn't supported.
+                <p>
+              </div>
+
+              <div id="alternative">
+
+                <div id="borderbox">
+                  <a href="http://getfirefox.com" target="_blank">
+                    <img src="/i/firefox_logo.png" width="250" height="88" alt="Firefox logo" />
+                  </a>
+
+                  <p>
+                    BrowserID requires <a href="http://getfirefox.com" target="_blank" title="Get Firefox">Firefox</a>
+                  </p>
+
+                  <p class="lighter">
+                    or other <a href="" target="_blank">modern browser.</a>
+                  </p>
+                </div>
+
+              </div>
+
+          </div>
+      </div>
+  </section>

@@ -79,9 +79,14 @@ function router(app) {
     metrics.userEntry(req);
     res.render('dialog.ejs', {
       title: 'A Better Way to Sign In',
-      layout: false,
+      layout: 'dialog_layout.ejs',
+      useJavascript: true,
       production: configuration.get('use_minified_resources')
     });
+  });
+
+  app.get("/unsupported_dialog", function(req,res) {
+    res.render('unsupported_dialog.ejs', {reason:'', layout: 'dialog_layout.ejs', useJavascript: false});
   });
 
   // simple redirects (internal for now)
