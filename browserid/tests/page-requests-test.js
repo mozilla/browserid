@@ -111,7 +111,14 @@ suite.addBatch({
   'GET /pk':                     respondsWith(200),
   'GET /vepbundle':              respondsWith(200),
   'GET /signin':                 respondsWith(200),
-  'GET /unsupported_dialog':     respondsWith(200)
+  'GET /unsupported_dialog':     respondsWith(200),
+  'GET /developers':             respondsWith(200),
+  'GET /manage':                 respondsWith(302),
+  'GET /users':                  respondsWith(302),
+  'GET /users/':                 respondsWith(302),
+  'GET /primaries':              respondsWith(302),
+  'GET /primaries/':             respondsWith(302),
+  'GET /developers':             respondsWith(302)
 });
 
 // run or export the suite.
