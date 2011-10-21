@@ -64,9 +64,8 @@
         self.onsuccess = onsuccess;
         self.onerror = onerror;
 
-        user.setOrigin(origin_url);
-        
         if(self.checkSupport()) {
+          user.setOrigin(origin_url);
           $("#sitename").text(user.getHostname());
 
           self.doCheckAuth();
