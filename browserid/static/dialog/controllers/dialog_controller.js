@@ -64,12 +64,10 @@
         self.onsuccess = onsuccess;
         self.onerror = onerror;
 
-        if(self.checkSupport()) {
-          user.setOrigin(origin_url);
-          $("#sitename").text(user.getHostname());
+        user.setOrigin(origin_url);
+        $("#sitename").text(user.getHostname());
 
-          self.doCheckAuth();
-        }
+        self.doCheckAuth();
 
         $(window).bind("unload", self.doCancel.bind(self));
       },

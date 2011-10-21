@@ -22,5 +22,4 @@ steal("/dialog/resources/browserid.js",
   .then("resources/network_unit_test")
   .then("resources/user_unit_test")
   .then("controllers/page_controller_unit_test")
-  .then("controllers/unsupported_controller_unit_test")
 
