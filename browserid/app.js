@@ -86,7 +86,7 @@ function router(app) {
   });
 
   app.get("/unsupported_dialog", function(req,res) {
-    res.render('unsupported_dialog.ejs', {reason:'', layout: 'dialog_layout.ejs', useJavascript: false});
+    res.render('unsupported_dialog.ejs', {layout: 'dialog_layout.ejs', useJavascript: false});
   });
 
   // simple redirects (internal for now)

@@ -136,18 +136,6 @@
 
       },
 
-      checkSupport: function() {
-        var supported = support.isSupported();
-
-        if (!supported) {
-          this.element.unsupported({
-            reason: support.getNoSupportReason()
-          });
-        }
-
-        return supported;
-      },
-
       doConfirmUser: function(email) {
         this.confirmEmail = email;
 
