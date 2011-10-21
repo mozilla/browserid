@@ -557,6 +557,88 @@
     };
   })();
 
+  var BrowserSupport = (function() {
+    var win = window,
+        nav = navigator,
+        reason;
+
+    // For unit testing
+    function setTestEnv(newNav, newWindow) {
+      nav = newNav;
+      win = newWindow;
+    }
+
+    function getInternetExplorerVersion() {
+      var rv = -1; // Return value assumes failure.
+      if (nav.appName == 'Microsoft Internet Explorer') {
+        var ua = nav.userAgent;
+        var re = new RegExp("MSIE ([0-9]{1,}[\.0-9]{0,})");
+        if (re.exec(ua) != null)
+          rv = parseFloat(RegExp.$1);
+      }
+
+      return rv;
+    }
+
+    function checkIE() {
+      var ieVersion = getInternetExplorerVersion(),
+          ieNosupport = ieVersion > -1 && ieVersion < 9;
+
+      if(ieNosupport) {
+        return "IE_VERSION";
+      }
+    }
+
+    function explicitNosupport() {
+      return checkIE();
+    }
+
+    function checkLocalStorage() {
+      var localStorage = 'localStorage' in win && win['localStorage'] !== null;
+      if(!localStorage) {
+        return "LOCALSTORAGE";
+      }
+    }
+
+    function checkPostMessage() {
+      if(!win.postMessage) {
+        return "POSTMESSAGE";
+      }
+    }
+
+    function isSupported() {
+      reason = checkLocalStorage() || checkPostMessage() || explicitNosupport();
+
+      return !reason;
+    }
+
+    function getNoSupportReason() {
+      return reason;
+    }
+
+    return {
+      /**
+       * Set the test environment.
+       * @method setTestEnv
+       */
+      setTestEnv: setTestEnv,
+      /**
+       * Check whether the current browser is supported
+       * @method isSupported
+       * @returns {boolean}
+       */
+      isSupported: isSupported,
+      /**
+       * Called after isSupported, if isSupported returns false.  Gets the reason 
+       * why browser is not supported.
+       * @method getNoSupportReason
+       * @returns {string}
+       */
+      getNoSupportReason: getNoSupportReason
+    };
+    
+  }());
+
 
   // this is for calls that are non-interactive
   function _open_hidden_iframe(doc) {
@@ -587,16 +669,20 @@
     return iframe;
   }
   
-  function _open_window() {
+  function _open_window(url) {
+    url = url || "about:blank";
     // we open the window initially blank, and only after our relay frame has
     // been constructed do we update the location.  This is done because we
     // must launch the window inside a click handler, but we should wait to
     // start loading it until our relay iframe is instantiated and ready.
     // see issue #287 & #286
-    return window.open(
-      "about:blank",
+    var dialog = window.open(
+      url,
       "_mozid_signin",
       isFennec ? undefined : "menubar=0,location=0,resizable=0,scrollbars=0,status=0,dialog=1,width=700,height=375");
+
+    dialog.focus();
+    return dialog;
   }
 
   function _attach_event(element, name, listener) {
@@ -641,6 +727,11 @@
         return;
       }
 
+      if (!BrowserSupport.isSupported()) {
+        w = _open_window(ipServer + "/unsupported_dialog");
+        return;
+      }
+
       var frameid = _get_relayframe_id();
       var iframe = _open_relayframe("browserid_relay_" + frameid);
       w = _open_window();
@@ -659,8 +750,8 @@
           // has a problem re-attaching new iframes with the same name.  Code inside
           // of frames with the same name sometimes does not get run.
           // See https://bugzilla.mozilla.org/show_bug.cgi?id=350023
-          w.location = ipServer + "/sign_in#" + frameid;
-          w.focus();
+          //w.location = ipServer + "/sign_in#" + frameid;
+          w = _open_window(ipServer + "/sign_in#" + frameid);
         }
       });
 
@@ -668,8 +759,10 @@
         chan.destroy();
         chan = null;
 
-        w.close();
-        w = null;
+        if (w) {
+          w.close();
+          w = null;
+        }
 
         iframe.parentNode.removeChild(iframe);
         iframe = null;
