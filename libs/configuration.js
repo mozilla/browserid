@@ -78,7 +78,11 @@ g_configs.production = {
   var_path: '/home/browserid/var/',
   database: {
     driver: "mysql",
-    user: 'browserid'
+    user: 'browserid',
+    create_schema: true
+  },
+  cluster: {
+    workers: 1,
   },
   bcrypt_work_factor: 12,
   authentication_duration_ms: (7 * 24 * 60 * 60 * 1000),
@@ -104,10 +108,16 @@ g_configs.local =  {
   use_minified_resources: false,
   var_path: path.join(__dirname, "..", "var"),
   database: { driver: "json" },
+  cluster: { workers: 1 },
   bcrypt_work_factor: g_configs.production.bcrypt_work_factor,
   authentication_duration_ms: g_configs.production.authentication_duration_ms,
   certificate_validity_ms: g_configs.production.certificate_validity_ms
 };
+
+if (undefined !== process.env['NODE_EXTRA_CONFIG']) {
+  var fs = require('fs');
+  eval(fs.readFileSync(process.env['NODE_EXTRA_CONFIG']) + '');
+}
 
 Object.keys(g_configs).forEach(function(config) {
   if (!g_configs[config].smtp) {

@@ -160,6 +160,13 @@ function router(app) {
   // register all the WSAPI handlers
   wsapi.setup(app);
 
+  // health check
+  app.get("/__heartbeat__", function(req, res) {
+    res.writeHead(200);
+    res.write('ok');
+    res.end();
+  });
+
   // the public key
   app.get("/pk", function(req, res) {
     res.json(ca.PUBLIC_KEY.toSimpleObject());
