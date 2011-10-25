@@ -38,6 +38,8 @@
 var  path = require("path"),
 fs = require("fs"),
 express = require("express"),
+cluster = require("cluster"),
+configuration = require("../libs/configuration.js"),
 logger = require("../libs/logging.js").logger;
 
 const amMain = (process.argv[1] === __filename);
@@ -60,7 +62,23 @@ exports.runServer = function() {
   // use the express 'static' middleware for serving of static files (cache headers, HTTP range, etc)
   app.use(express.static(path.join(__dirname, "static")));
 
-  app.listen(PRIMARY_PORT, PRIMARY_HOST);
+  if (/^test_/.test(process.env['NODE_ENV'])) {
+    app.listen(PRIMARY_PORT, PRIMARY_HOST);
+  } else {
+    var process_type = configuration.get("process_type");
+    var cluster_dir = configuration.get("var_path") + "/cluster-" + process_type;
+    var cluster_cfg = configuration.get("cluster");
+
+    cluster(app)
+      .use(cluster.logger(cluster_dir))
+      .use(cluster.stats({ connections: true, requests: true }))
+      .use(cluster.repl(cluster_dir + "/cluster.sock"))
+      .set("workers", parseInt(cluster_cfg.workers))
+      .set("timeout", 30*1000)
+      .set("title", "cluster master: " + process_type)
+      .set("worker title", "cluster worker {n}: " + process_type)
+      .listen(PRIMARY_PORT, PRIMARY_HOST);
+  }
 };
 
 exports.stopServer = function(cb) {

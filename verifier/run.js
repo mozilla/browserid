@@ -35,10 +35,12 @@
  *
  * ***** END LICENSE BLOCK ***** */
 
-var   sys = require("sys"),
-     path = require("path"),
-       fs = require("fs"),
-  express = require("express");
+var sys = require("sys"),
+path = require("path"),
+fs = require("fs"),
+cluster = require("cluster"),
+configuration = require("../libs/configuration.js"),
+express = require("express");
 
 var PRIMARY_HOST = "127.0.0.1";
 var PRIMARY_PORT = 62800;
@@ -50,4 +52,20 @@ var app = express.createServer();
 // let the specific server interact directly with the express server to register their middleware
 if (handler.setup) handler.setup(app);
 
-app.listen(PRIMARY_PORT, PRIMARY_HOST);
+if (/^test_/.test(process.env['NODE_ENV'])) {
+  app.listen(PRIMARY_PORT, PRIMARY_HOST);
+} else {
+  var process_type = configuration.get("process_type");
+  var cluster_dir = configuration.get("var_path") + "/cluster-" + process_type;
+  var cluster_cfg = configuration.get("cluster");
+
+  cluster(app)
+    .use(cluster.logger(cluster_dir))
+    .use(cluster.stats({ connections: true, requests: true }))
+    .use(cluster.repl(cluster_dir + "/cluster.sock"))
+    .set("workers", parseInt(cluster_cfg.workers))
+    .set("timeout", 30*1000)
+    .set("title", "cluster master: " + process_type)
+    .set("worker title", "cluster worker {n}: " + process_type)
+    .listen(PRIMARY_PORT, PRIMARY_HOST);
+}
