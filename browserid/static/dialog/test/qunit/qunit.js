@@ -16,10 +16,12 @@ steal("/dialog/resources/browserid.js",
   .then("/dialog/controllers/page_controller.js")
   .then("browserid_unit_test")
   .then("include_unit_test")
+  .then("pages/add_email_address_test")
   .then("resources/browser-support_unit_test")
   .then("resources/validation_unit_test")
   .then("resources/storage_unit_test")
   .then("resources/network_unit_test")
   .then("resources/user_unit_test")
+  .then("controllers/page_controller_unit_test")
   .then("controllers/page_controller_unit_test")
 
