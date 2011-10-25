@@ -44,8 +44,8 @@
 
   var bid = BrowserID,
       user = bid.User,
-      support = bid.BrowserSupport,
-      supported = true;
+      errors = bid.Errors,
+      offline = false;
 
   PageController.extend("Dialog", {}, {
       init: function(el) {
@@ -64,6 +64,11 @@
         self.onsuccess = onsuccess;
         self.onerror = onerror;
 
+        if('onLine' in navigator && !navigator.onLine) {
+          self.doOffline();
+          return;
+        }
+
         user.setOrigin(origin_url);
         $("#sitename").text(user.getHostname());
 
@@ -77,6 +82,15 @@
         var self=this, 
             hub = OpenAjax.hub, 
             el = this.element;
+
+        hub.subscribe("offline", function(msg, info) {
+          self.doOffline();
+        });
+
+        hub.subscribe("xhrError", function(msg, info) {
+          //self.doXHRError(info);
+          // XXX how are we going to handle this?
+        });
 
         hub.subscribe("user_staged", function(msg, info) {
           self.doConfirmUser(info.email);
@@ -136,6 +150,15 @@
 
       },
 
+      doOffline: function() {
+        this.renderError("wait.ejs", errors.offline);
+        offline = true;
+      },
+
+      doXHRError: function(info) {
+        if (!offline) this.renderError("wait.ejs", errors.offline);  
+      },
+
       doConfirmUser: function(email) {
         this.confirmEmail = email;
 
@@ -180,7 +203,8 @@
       doEmailConfirmed: function() {
         var self=this;
         // yay!  now we need to produce an assertion.
-        user.getAssertion(this.confirmEmail, self.doAssertionGenerated.bind(self));
+        user.getAssertion(this.confirmEmail, self.doAssertionGenerated.bind(self),
+          self.getErrorDialog(errors.getAssertion));
       },
 
       doAssertionGenerated: function(assertion) {
@@ -193,15 +217,15 @@
       },
 
       doNotMe: function() {
-        user.logoutUser(this.doAuthenticate.bind(this));
+        var self=this;
+        user.logoutUser(self.doAuthenticate.bind(self), self.getErrorDialog(errors.logoutUser));
       },
 
       syncEmails: function() {
         var self = this;
         user.syncEmails(self.doPickEmail.bind(self), 
-          self.getErrorDialog(BrowserID.Errors.signIn));
+          self.getErrorDialog(errors.signIn));
       },
-
 
       doCheckAuth: function() {
         var self=this;
@@ -213,7 +237,7 @@
               self.doAuthenticate();
             }
           }, 
-          self.getErrorDialog(BrowserID.Errors.checkAuthentication));
+          self.getErrorDialog(errors.checkAuthentication));
     }
 
   });

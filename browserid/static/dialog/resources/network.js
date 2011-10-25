@@ -37,37 +37,14 @@
 BrowserID.Network = (function() {
   "use strict";
 
-  var csrf_token;
-  var xhr = $;
-  var server_time;
-  var auth_status;
+  var XHR_TIMEOUT = 10000,
+      csrf_token,
+      xhr = $,
+      server_time,
+      auth_status,
+      hub = OpenAjax.hub;
 
-  function withContext(cb) {
-    if (typeof auth_status === 'boolean' && typeof csrf_token !== 'undefined') cb();
-    else {
-      xhr.ajax({
-        url: "/wsapi/session_context",
-        type: "GET",
-        success: function(result) {
-          csrf_token = result.csrf_token;
-          server_time = {
-            remote: result.server_time,
-            local: (new Date()).getTime()
-          };
-          auth_status = result.authenticated;
-          _.defer(cb);
-        },
-        dataType: "json"
-      });
-    }
-  }
-
-  function clearContext() {
-    var undef;
-    csrf_token = server_time = auth_status = undef;
-  }
-
-  function createDeferred(cb) {
+  function deferResponse(cb) {
     if (cb) {
       return function() {
         var args = _.toArray(arguments);
@@ -76,6 +53,27 @@ BrowserID.Network = (function() {
         });
       };
     }
+  }
+
+  function xhrError(cb, errorMessage) {
+    return function() {
+      if (cb) cb();
+      hub.publish("xhrError", errorMessage);
+    };
+  }
+
+  function get(options) {
+    xhr.ajax({
+      type: "GET",
+      url: options.url,
+      // We defer the responses because otherwise jQuery eats any exceptions 
+      // that are thrown in the response handlers and it becomes very difficult 
+      // to debug.
+      success: deferResponse(options.success),
+      error: deferResponse(xhrError(options.error, options.errorMessage)),
+      dataType: "json",
+      timeout: XHR_TIMEOUT
+    });
   }
 
   function post(options) {
@@ -90,11 +88,45 @@ BrowserID.Network = (function() {
         type: "POST",
         url: options.url,
         data: data,
-        success: options.success,
-        error: options.error
+        // We defer the responses because otherwise jQuery eats any exceptions 
+        // that are thrown in the response handlers and it becomes very difficult 
+        // to debug.
+        success: deferResponse(options.success),
+        error: deferResponse(xhrError(options.error, options.errorMessage)),
+        timeout: XHR_TIMEOUT
       });
-    });
+    }, options.error);
   }
+
+  function withContext(cb, onFailure) {
+    if (typeof auth_status === 'boolean' && typeof csrf_token !== 'undefined') cb();
+    else {
+      xhr.ajax({
+        url: "/wsapi/session_context",
+        success: function(result) {
+          csrf_token = result.csrf_token;
+          server_time = {
+            remote: result.server_time,
+            local: (new Date()).getTime()
+          };
+          auth_status = result.authenticated;
+          cb();
+        },
+        error: deferResponse(xhrError(onFailure)),
+        timeout: XHR_TIMEOUT
+      });
+    }
+  }
+
+  function clearContext() {
+    var undef;
+    csrf_token = server_time = auth_status = undef;
+  }
+
+  // Not really part of the Network API, but related to networking
+  $(document).bind("offline", function() {
+    hub.publish("offline");
+  });
 
   var Network = {
     /**
@@ -133,7 +165,7 @@ BrowserID.Network = (function() {
               // session, let's set it to perhaps save a network request
               // (to fetch session context).
               auth_status = authenticated;
-              _.delay(onSuccess, 0, authenticated);
+              if(onSuccess) onSuccess(authenticated);
             } catch (e) {
               onFailure("unexpected server response: " + e);
             }
@@ -154,19 +186,20 @@ BrowserID.Network = (function() {
       withContext(function() {
         try {
           if (typeof auth_status !== 'boolean') throw "can't get authentication status!";
-          _.delay(onSuccess, 0, auth_status);
+          if (onSuccess) onSuccess(auth_status);
         } catch(e) {
           if (onFailure) onFailure(e.toString());
         }
-      });
+      }, onFailure);
     },
 
     /**
      * Log the authenticated user out
      * @method logout
      * @param {function} [onSuccess] - called on completion
+     * @param {function} [onFailure] - Called on XHR failure.
      */
-    logout: function(onSuccess) {
+    logout: function(onSuccess, onFailure) {
       post({
         url: "/wsapi/logout",
         success: function() {
@@ -176,8 +209,9 @@ BrowserID.Network = (function() {
           // FIXME: we should return a confirmation that the
           // user was successfully logged out.
           auth_status = false;
-          if (onSuccess) _.defer(onSuccess);
-        }
+          if (onSuccess) onSuccess();
+        },
+        error: onFailure
       });
     },
 
@@ -197,10 +231,7 @@ BrowserID.Network = (function() {
           site : origin
         },
         success: function(status) {
-          var staged = status.success;
-          // why a delay here? Because of the test harness?
-          // shouldn't the delay be in the test harness?
-          _.delay(onSuccess, 0, staged);
+          if (onSuccess) onSuccess(status.success);
         },
         error: onFailure
       });
@@ -215,10 +246,10 @@ BrowserID.Network = (function() {
      * I think so (BA).
      */
     emailForVerificationToken: function(token, onSuccess, onFailure) {
-      xhr.ajax({
+      get({
         url : "/wsapi/email_for_token?token=" + encodeURIComponent(token),
         success: function(data) {
-          onSuccess(data.email);
+          if (onSuccess) onSuccess(data.email);
         },
         error: onFailure
       });
@@ -231,12 +262,10 @@ BrowserID.Network = (function() {
      * @param {function} [onFailure] - Called on XHR failure.
      */
     checkUserRegistration: function(email, onSuccess, onFailure) {
-      xhr.ajax({
+      get({
         url: "/wsapi/user_creation_status?email=" + encodeURIComponent(email),
         success: function(status, textStatus, jqXHR) {
-          if (onSuccess) {
-            _.delay(onSuccess, 0, status.status);
-          }
+          if (onSuccess) onSuccess(status.status);
         },
         error: onFailure
       });
@@ -258,9 +287,7 @@ BrowserID.Network = (function() {
           pass: password
         },
         success: function(status, textStatus, jqXHR) {
-          if (onSuccess) {
-            _.delay(onSuccess, 0, status.success);
-          }
+          if (onSuccess) onSuccess(status.success);
         },
         error: onFailure
       });
@@ -275,7 +302,7 @@ BrowserID.Network = (function() {
      */
     requestPasswordReset: function(email, origin, onSuccess, onFailure) {
       if (email) {
-        this.createUser(email, origin, onSuccess, onFailure);
+        Network.createUser(email, origin, onSuccess, onFailure);
       } else {
         // TODO: if no email is provided, then what?
         throw "no email provided to password reset";
@@ -291,9 +318,7 @@ BrowserID.Network = (function() {
      */ 
     resetPassword: function(password, onSuccess, onFailure) {
       // XXX fill this in.
-      if (onSuccess) {
-        _.defer(onSuccess);
-      }
+      if (onSuccess) onSuccess();
     },
 
     /**
@@ -308,7 +333,7 @@ BrowserID.Network = (function() {
     changePassword: function(oldPassword, newPassword, onSuccess, onFailure) {
       // XXX fill this in
       if (onSuccess) {
-        _.delay(onSuccess, 0, true);
+        onSuccess(true);
       }
     },
 
@@ -327,9 +352,7 @@ BrowserID.Network = (function() {
           token: token
         },
         success: function(status, textStatus, jqXHR) {
-          if (onSuccess) {
-            _.delay(onSuccess, 0, status.success);
-          }
+          if (onSuccess) onSuccess(status.success);
         },
         error: onFailure
       });
@@ -344,7 +367,7 @@ BrowserID.Network = (function() {
     cancelUser: function(onSuccess, onFailure) {
       post({
         url: "/wsapi/account_cancel",
-        success: createDeferred(onSuccess),
+        success: onSuccess,
         error: onFailure
       });
     },
@@ -365,8 +388,7 @@ BrowserID.Network = (function() {
           site: origin
         },
         success: function(status) {
-          var staged = status.success;
-          _.delay(onSuccess, 0, staged);
+          if (onSuccess) onSuccess(status.success);
         },
         error: onFailure
       });
@@ -380,12 +402,10 @@ BrowserID.Network = (function() {
      * @param {function} [onfailure] - called on xhr failure.
      */
     checkEmailRegistration: function(email, onSuccess, onFailure) {
-      xhr.ajax({
+      get({
         url: "/wsapi/email_addition_status?email=" + encodeURIComponent(email),
         success: function(status, textStatus, jqXHR) {
-          if (onSuccess) {
-            _.delay(onSuccess, 0, status.status);
-          }
+          if (onSuccess) onSuccess(status.status);
         },
         error: onFailure
       });
@@ -401,12 +421,10 @@ BrowserID.Network = (function() {
      * @param {function} [onFailure] - Called on XHR failure.
      */
     emailRegistered: function(email, onSuccess, onFailure) {
-      xhr.ajax({
+      get({
         url: "/wsapi/have_email?email=" + encodeURIComponent(email),
         success: function(data, textStatus, xhr) {
-          if(onSuccess) {
-            _.delay(onSuccess, 0, data.email_known);
-          }
+          if(onSuccess) onSuccess(data.email_known);
         },
         error: onFailure
       });
@@ -426,11 +444,9 @@ BrowserID.Network = (function() {
           email: email
         },
         success: function(status, textStatus, jqXHR) {
-          if (onSuccess) {
-            _.delay(onSuccess, 0, status.success);
-          }
+          if (onSuccess) onSuccess(status.success);
         },
-        failure: onFailure
+        error: onFailure
       });
     },
 
@@ -438,15 +454,15 @@ BrowserID.Network = (function() {
      * Certify the public key for the email address.
      * @method certKey
      */
-    certKey: function(email, pubkey, onSuccess, onError) {
+    certKey: function(email, pubkey, onSuccess, onFailure) {
       post({
         url: "/wsapi/cert_key",
         data: {
           email: email,
           pubkey: pubkey.serialize()
         },
-        success: createDeferred(onSuccess),
-        error: onError
+        success: onSuccess,
+        error: onFailure
       });
     },
 
@@ -455,10 +471,9 @@ BrowserID.Network = (function() {
      * @method listEmails
      */
     listEmails: function(onSuccess, onFailure) {
-      xhr.ajax({
-        type: "GET",
+      get({
         url: "/wsapi/list_emails",
-        success: createDeferred(onSuccess),
+        success: onSuccess,
         error: onFailure
       });
     },
@@ -482,7 +497,7 @@ BrowserID.Network = (function() {
         } catch(e) {
           onFailure(e.toString());
         }
-      });
+      }, onFailure);
     }
   };
 

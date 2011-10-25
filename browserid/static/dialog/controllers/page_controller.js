@@ -101,8 +101,8 @@
 
     renderWait: function(body, body_vars) {
       this.renderTemplates("#wait", body, body_vars);
-      $("body").removeClass("error").removeClass("form").addClass("waiting");
-      $("#wait").stop().css('opacity', 1).hide().fadeIn(ANIMATION_TIME);
+      $("body").removeClass("error").removeClass("form").addClass("waiting").css('opacity', 1);
+      $("#wait").stop().hide().fadeIn(ANIMATION_TIME);
     },
 
     renderError: function(body, body_vars) {
