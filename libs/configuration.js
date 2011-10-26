@@ -78,7 +78,8 @@ g_configs.production = {
   var_path: '/home/browserid/var/',
   database: {
     driver: "mysql",
-    user: 'browserid'
+    user: 'browserid',
+    create_schema: true
   },
   bcrypt_work_factor: 12,
   authentication_duration_ms: (7 * 24 * 60 * 60 * 1000),
@@ -108,6 +109,11 @@ g_configs.local =  {
   authentication_duration_ms: g_configs.production.authentication_duration_ms,
   certificate_validity_ms: g_configs.production.certificate_validity_ms
 };
+
+if (undefined !== process.env['NODE_EXTRA_CONFIG']) {
+  var fs = require('fs');
+  eval(fs.readFileSync(process.env['NODE_EXTRA_CONFIG']) + '');
+}
 
 Object.keys(g_configs).forEach(function(config) {
   if (!g_configs[config].smtp) {
@@ -152,8 +158,9 @@ g_config['URL'] = g_config['scheme'] + '://' + g_config['hostname'] + getPortFor
  * all source files are written for that environment.
  */
 exports.performSubstitution = function(app) {
-  if (process.env['NODE_ENV'] !== 'production' &&
-      process.env['NODE_ENV'] !== 'local') {
+  if (g_config.hostname != 'browserid.org' ||
+      g_config.port != '443' ||
+      g_config.scheme != 'https') {
     app.use(substitution.substitute({
       'https://browserid.org': g_config['URL'],
       'browserid.org:443': g_config['hostname'] + ':' + g_config['port'],

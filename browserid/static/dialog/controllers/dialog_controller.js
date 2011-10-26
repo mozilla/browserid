@@ -74,7 +74,10 @@
 
         self.doCheckAuth();
 
-        $(window).bind("unload", self.doCancel.bind(self));
+        $(window).bind("unload", function() {
+          bid.Storage.setStagedOnBehalfOf("");
+          self.doCancel();
+        });
       },
 
 
