@@ -39,38 +39,25 @@ require('./lib/test_env.js');
 
 const assert = require('assert'),
 http = require('http'),
-vows = require('vows');
+vows = require('vows'),
+start_stop = require('./lib/start-stop.js'),
+wsapi = require('./lib/wsapi.js');
 
 var suite = vows.describe('page requests');
 
+// start up a pristine server
+start_stop.addStartupBatches(suite);
+
 // This set of tests check to make sure all of the expected pages are served 
-// up with the correct status codes.  We create a thin REST client and take 
-// a lot of the code from the vows page to check the status codes of each 
-// request.
+// up with the correct status codes.  We use Lloyd's wsapi client as our REST 
+// interface.
 
-
-// create a thin REST client to use.
-var rest = (function() {
-  var client = http.createClient(10002, 'localhost');
-  var doRequest = function(type, url, callback) {
-    var request = client.request(type, url);
-    request.end();
-    request.on('response', function (response) {
-      callback(null, response);  
-    });
-  }
-
-  return {
-    get: doRequest.bind(this, 'GET'),
-    post: doRequest.bind(this, 'POST')
-  };
-}());
 
 
 // Taken from the vows page.
 function assertStatus(code) {
-  return function (e, res) {
-    assert.equal(res.statusCode, code);
+  return function (res, err) {
+    assert.equal(res.code, code);
   };
 }
 
@@ -85,7 +72,7 @@ function respondsWith(status) {
 
       // Perform the contextual client request,
       // with the above method and path.
-      rest[method](path, this.callback);
+      wsapi[method](path).call(this);
     }
   };
 
@@ -120,6 +107,9 @@ suite.addBatch({
   'GET /primaries/':             respondsWith(302),
   'GET /developers':             respondsWith(302)
 });
+
+// shut the server down and cleanup
+start_stop.addShutdownBatches(suite);
 
 // run or export the suite.
 if (process.argv[1] === __filename) suite.run();
