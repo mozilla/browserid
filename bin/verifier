@@ -74,29 +74,35 @@ app.post('/verify', function(req, resp, next) {
   var assertion = (req.query && req.query.assertion) ? req.query.assertion : req. body.assertion;
   var audience = (req.query && req.query.audience) ? req.query.audience : req.body.audience;
 
-  if (!(assertion && audience))
-    return resp.json({ status: "failure", reason: "need assertion and audience" });
+  if (!(assertion && audience)) {
+    return resp.json({ 
+      status: "failure", 
+      reason: "need assertion and audience" 
+    });
+  }
 
   certassertion.verify(
     assertion, audience,
     function(email, audienceFromAssertion, expires, issuer) {
       resp.json({
-        status : "okay",
-        email : email,
-        audience : audience, // NOTE: we return the audience formatted as the RP provided it, not normalized in any way.
-        expires : expires.valueOf(),
+        status: "okay",
+        email: email,
+        audience: audience, // NOTE: we return the audience formatted as the RP provided it, not normalized in any way.
+        expires: expires.valueOf(),
         issuer: issuer
       });
-
-      metrics.report('verify', {
-        result: 'success',
+      metrics.report("verify", {
+        result: "success",
         rp: audienceFromAssertion
       });
     },
     function(error) {
-      resp.json({"status":"failure", reason: (error ? error.toString() : "unknown")});
-      metrics.report('verify', {
-        result: 'failure',
+      resp.json({
+        status: "failure", 
+        reason: (error ? error.toString() : "unknown")
+      });
+      metrics.report("verify", {
+        result: "failure",
         rp: audience
       });
     });
