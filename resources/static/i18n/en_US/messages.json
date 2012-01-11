@@ -1,0 +1,84 @@
+var json_locale_data = {
+   "messages" : {
+      "" : {
+         "MIME-Version" : " 1.0",
+         "POT-Creation-Date" : " 2012-01-06 16:08-0800",
+         "Last-Translator" : " FULL NAME <EMAIL@ADDRESS>",
+         "Content-Type" : " text/plain; charset=utf-8",
+         "PO-Revision-Date" : " YEAR-MO-DA HO:MI+ZONE",
+         "Language-Team" : " LANGUAGE <LL@li.org>",
+         "Content-Transfer-Encoding" : " 8bit",
+         "Project-Id-Version" : " PACKAGE VERSION",
+         "Report-Msgid-Bugs-To" : " "
+      },
+      "next" : [
+         null,
+         ""
+      ],
+      "The email field is required." : [
+         null,
+         ""
+      ],
+      "verify email" : [
+         null,
+         ""
+      ],
+      "Sign in using" : [
+         null,
+         ""
+      ],
+      "Password" : [
+         null,
+         ""
+      ],
+      "forgot your password?" : [
+         null,
+         ""
+      ],
+      "This field must be an email address." : [
+         null,
+         ""
+      ],
+      "Email" : [
+         null,
+         ""
+      ],
+      "Browser ID" : [
+         null,
+         ""
+      ],
+      "This email looks new, so let's get you set up." : [
+         null,
+         ""
+      ],
+      "The account cannot be logged in with this username and password." : [
+         null,
+         ""
+      ],
+      "BrowserID is the fast and secure way to sign in &mdash; <a target=\"_blank\" href=\"/about\">learn more</a>" : [
+         null,
+         ""
+      ],
+      "select email" : [
+         null,
+         ""
+      ],
+      "Welcome to BrowserID!" : [
+         null,
+         ""
+      ],
+      "We just sent an email to that address!  If you really want to send another, wait a minute or two and try again." : [
+         null,
+         ""
+      ],
+      "Enter your email address to sign in to <strong>%1</strong>" : [
+         null,
+         ""
+      ],
+      "The password field is required." : [
+         null,
+         ""
+      ]
+   }
+}
+;
