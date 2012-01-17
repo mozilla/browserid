@@ -117,7 +117,11 @@ BrowserID.Modules.PageModule = (function() {
       screens.wait.hide();
       screens.error.hide();
       screens.form.show(body, body_vars);
-      dom.focus("input:visible:eq(0)");
+      // Do not focus the first input element if we are showing the SOPA screen
+      // or else mobile devices show the mobile keyboard.
+      if(!window.showingSOPA) {
+        dom.focus("input:visible:eq(0)");
+      }
     },
 
     renderWait: function(body, body_vars) {
