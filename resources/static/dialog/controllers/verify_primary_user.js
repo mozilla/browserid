@@ -7,6 +7,7 @@ BrowserID.Modules.VerifyPrimaryUser = (function() {
   "use strict";
 
   var bid = BrowserID,
+      dom = bid.DOM,
       sc,
       win,
       add,
@@ -50,6 +51,9 @@ BrowserID.Modules.VerifyPrimaryUser = (function() {
 
       data.requiredEmail = data.requiredEmail || false;
       self.renderDialog("verify_primary_user", data);
+
+      // Allow hitting enter to start verifying the email
+      dom.focus("#verifyWithPrimary");
 
       self.bind("#cancel", "click", cancelEvent(cancel));
 
