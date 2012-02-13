@@ -354,7 +354,7 @@
             }
           }, timeout);
         }
-        
+
         var onMessage = function(origin, method, m) {
           // if an observer was specified at allocation time, invoke it
           if (typeof cfg.gotMessageObserver === 'function') {
@@ -840,7 +840,21 @@
     }
 
     function checkLocalStorage() {
-      var localStorage = 'localStorage' in win && win['localStorage'] !== null;
+      try {
+        var localStorage = 'localStorage' in win
+                        && win['localStorage'] !== null;
+
+        win['localStorage'].setItem("test", "true");
+        win['localStorage'].removeItem("test");
+      } catch(e) {
+          // Firefox/Fennec/Chrome blow up when trying to access
+          // localStorage. Prevent the user from getting the dialog.
+          // An explicit check is done because Firefox will report the
+          // user as not having localStorage and the generic "unsupported"
+          // dialog shows - not very good whenever we.
+          return "LOCALSTORAGE_DISABLED";
+      }
+
       if(!localStorage) {
         return "LOCALSTORAGE";
       }
@@ -859,10 +873,11 @@
     }
 
     function isSupported() {
-      reason = checkLocalStorage() || checkPostMessage() || checkJSON() || explicitNosupport();
+      reason = explicitNosupport() || checkLocalStorage() || checkPostMessage() || checkJSON();
 
       return !reason;
     }
+
 
     function getNoSupportReason() {
       return reason;
@@ -942,8 +957,15 @@
         }
 
         if (!BrowserSupport.isSupported()) {
+          var reason = BrowserSupport.getNoSupportReason(),
+              url = "unsupported_dialog";
+
+          if(reason === "LOCALSTORAGE_DISABLED") {
+            url = "localstorage_disabled";
+          }
+
           w = window.open(
-            ipServer + "/unsupported_dialog",
+            ipServer + "/" + url,
             null,
             windowOpenOpts);
           return;
