@@ -13,7 +13,6 @@ BrowserID.Network = (function() {
       domain_key_creation_time,
       auth_status,
       code_version,
-      cookies_enabled,
       time_until_delay,
       mediator = bid.Mediator,
       xhr = bid.XHR,
@@ -29,7 +28,6 @@ BrowserID.Network = (function() {
     domain_key_creation_time = result.domain_key_creation_time;
     auth_status = result.auth_level;
     code_version = result.code_version;
-    cookies_enabled = result.cookies_enabled || true;
 
     // seed the PRNG
     // FIXME: properly abstract this out, probably by exposing a jwcrypto
@@ -563,17 +561,8 @@ BrowserID.Network = (function() {
       withContext(function() {
         complete(onComplete, code_version);
       }, onFailure);
-    },
-
-    /**
-     * Check if the user's cookies are enabled
-     * @method cookiesEnabled
-     */
-    cookiesEnabled: function(onComplete, onFailure) {
-      withContext(function() {
-        complete(onComplete, cookies_enabled);
-      }, onFailure);
     }
+
   };
 
   return Network;

@@ -47,7 +47,7 @@ BrowserID.Errors = (function(){
 
     cookiesDisabled: {
       title: gettext("We are sorry, BrowserID requires cookies"),
-      message: gettext("BrowserID requires your browser's cookies to be enabled to operate. Please enable your browser's cookies and try again")
+      message: gettext("BrowserID requires your browser's cookies to be enabled to operate. Please enable your browser's cookies.")
     },
 
     cookiesEnabled: {
@@ -72,6 +72,11 @@ BrowserID.Errors = (function(){
 
     isUserAuthenticatedToPrimary: {
       title: "Checking Whether User is Authenticated with IdP"
+    },
+
+    localStorageDisabled: {
+      title: gettext("We are sorry, BrowserID requires localStorage"),
+      message: gettext("BrowserID requires localStorage to be enabled to operate. In Firefox and Chrome, this requires enabling cookies.")
     },
 
     logoutUser: {

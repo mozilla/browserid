@@ -59,7 +59,6 @@ BrowserID.TestHelpers = (function() {
 
       transport.setDelay(0);
       transport.setContextInfo("auth_level", undefined);
-      transport.setContextInfo("cookies_enabled", true);
       transport.useResult("valid");
 
       network.init();
