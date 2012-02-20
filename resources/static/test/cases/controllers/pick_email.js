@@ -144,6 +144,15 @@
     });
     controller.signIn();
   });
+  
+  test("can uncheck the persistence checkbox", function() {
+    createController(true);
+    
+    $("#remember").attr("checked", true);
+    $("label[for=remember]").trigger("click");
+
+    equal($("#remember").is(":checked"), false, "checkbox properly unchecked");
+  });
 
   asyncTest("addEmail triggers an 'add_email' message", function() {
     createController(false);
@@ -165,6 +174,15 @@
     $("label[for=testuser_testuser_com]").trigger("click");
 
     equal($("#testuser_testuser_com").is(":checked"), true, "radio button is correctly selected");
+  });
+
+  test("click on the 'Always sign in...' label - check the checkbox", function() {
+    createController(true);
+
+    equal($("#remember").is(":checked"), false, "checkbox is not checked");
+    $("label[for=remember]").trigger("click");
+
+    equal($("#remember").is(":checked"), true, "checkbox is correctly checked");
   });
 
 }());
