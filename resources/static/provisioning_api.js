@@ -621,6 +621,10 @@
     };
   })();
 
+  if (navigator.mozid) {
+    navigator.id = navigator.mozid;
+  }
+
   if (!navigator.id) {
     navigator.id = {};
   }
