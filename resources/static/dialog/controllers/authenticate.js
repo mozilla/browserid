@@ -40,7 +40,7 @@ BrowserID.Modules.Authenticate = (function() {
   function checkEmail(info) {
     var email = getEmail(),
         self = this;
-
+    console.log('AOK authenticate.js checkEmail info=', info);
     if (!email) return;
 
     if(info && info.type) {
@@ -54,11 +54,17 @@ BrowserID.Modules.Authenticate = (function() {
 
     function onAddressInfo(info) {
       addressInfo = info;
-
+      console.info('AOK authenticate.js onaddressInfo info=', info);
       if(info.type === "primary") {
+        console.info('AOK authenticate.js closing with primary_user');
         self.close("primary_user", info, info);
-      }
-      else if(info.known) {
+        // TODO (aok) Do we need a proxy condition here?
+      } else if (info.type === "proxyidp") {
+        // TODO (aok) or can we just use primary above?
+        console.info('AOK PROXYIDP authenticate.js closing with primary_user FROM PROXY IDP');
+        self.close("primary_user", info, info);
+
+      } else if(info.known) {
         enterPasswordState.call(self);
       } else {
         createSecondaryUser.call(self);
@@ -149,7 +155,7 @@ BrowserID.Modules.Authenticate = (function() {
   var Module = bid.Modules.PageModule.extend({
     start: function(options) {
       options = options || {};
-
+      console.info('AOK authenticate.js module extend start called');
       addressInfo = null;
       lastEmail = options.email || "";
 
