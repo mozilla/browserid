@@ -46,6 +46,8 @@ BrowserID.State = (function() {
       self.tosURL = info.tosURL;
       requiredEmail = info.requiredEmail;
 
+      startAction(false, "doRPInfo", info);
+
       if ((typeof(requiredEmail) !== "undefined") && (!bid.verifyEmail(requiredEmail))) {
         // Invalid format
         startAction("doError", "invalid_required_email", {email: requiredEmail});

@@ -45,7 +45,7 @@
   }
 
   #signIn {
-    top: 45px;  /* 45px is a magic number - the height of the favicon area */
+    top: auto;  /* this will be set in JS to be at the bottom of the header */
     right: 0;
     width: auto;
   }
@@ -58,11 +58,31 @@
        * being partially cut off by the site URL bar
        */
       position: static;
+      padding: 10px;
+      border-bottom: 1px solid rgba(0,0,0,0.05);
+      background-image: url('/i/bg.png');
+      text-align: center;
+      left: 0;
   }
 
-  #favicon {
-    padding: 10px;
+  #favicon img {
+      max-width: 32px;
+      max-height: 32px;
+      display: inline;
+      margin: 0;
+      vertical-align: middle;
   }
+
+  #favicon h2, #favicon h3 {
+      margin: 5px 0 0 0;
+  }
+
+  #favicon .vertical {
+      height: auto;
+      line-height: 20px;
+  }
+
+
 
   #signIn .container {
       width: 100%;
@@ -79,26 +99,6 @@
 
   #signIn form {
       padding: 0;
-  }
-
-  #favicon {
-      border-bottom: 1px solid rgba(0,0,0,0.05);
-      background-image: url('/i/bg.png');
-      text-align: center;
-      left: 0;
-  }
-
-  #favicon img {
-      width: 32px;
-      height: auto;
-      display: inline;
-      margin: 0;
-      vertical-align: middle;
-  }
-
-  #favicon .vertical {
-      height: auto;
-      line-height: 20px;
   }
 
   #formWrap {

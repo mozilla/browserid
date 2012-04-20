@@ -74,7 +74,6 @@ BrowserID.Modules.Dialog = (function() {
 
   function setOrigin(origin) {
     user.setOrigin(origin);
-    dom.setInner("#sitename", user.getHostname());
   }
 
   function onWindowUnload() {
@@ -83,10 +82,24 @@ BrowserID.Modules.Dialog = (function() {
 
   function fixupURL(origin, url) {
     var u;
-    if (/^http/.test(url)) u = URLParse(url);
+    // Pulling these charcaters from RFC 3986 reserved and unreserved character
+    // list plus the % to allow for encoding -
+    // http://tools.ietf.org/html/rfc3986#page-12
+    if (!/^[a-zA-Z0-9-._~:\/?#[\]@!$&'()*+,;=%]+$/.test(url)) throw "illegal characters in url";
+    else if (/^http/.test(url)) u = URLParse(url);
     else if (/^\//.test(url)) u = URLParse(origin + url);
     else throw "relative urls not allowed: (" + url + ")";
+
+
     return encodeURI(u.validate().normalize().toString());
+  }
+
+  function fixupPath(origin_url, path) {
+    // Until we have our head around the dangers of data uris and images that
+    // come from other domains, only allow absolute paths from the origin.
+    if (/^\//.test(path))  return fixupURL(origin_url, path);
+
+    throw "must be an absolute path: (" + path + ")";
   }
 
   var Dialog = bid.Modules.PageModule.extend({
@@ -124,18 +137,23 @@ BrowserID.Modules.Dialog = (function() {
       params.hostname = user.getHostname();
 
       // verify params
-      if (params.tosURL && params.privacyURL) {
-        try {
+      try {
+        if (params.tosURL && params.privacyURL) {
           params.tosURL = fixupURL(origin_url, params.tosURL);
           params.privacyURL = fixupURL(origin_url, params.privacyURL);
-        } catch(e) {
-          return self.renderError("error", {
-            action: {
-              title: "error in " + origin_url,
-              message: "improper usage of API: " + e
-            }
-          });
         }
+
+        if (params.logoURL) {
+          params.logoURL = fixupPath(origin_url, params.logoURL);
+        }
+      } catch(e) {
+        this.renderError("error", {
+          action: {
+            title: "error in " + origin_url,
+            message: "improper usage of API: " + e
+          }
+        });
+        return;
       }
 
       // XXX Perhaps put this into the state machine.
