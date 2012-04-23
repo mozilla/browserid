@@ -5,7 +5,7 @@
 BrowserID.Storage = (function() {
 
   var jwk,
-      storage = localStorage;
+      storage = window.localStorage;
 
   function prepareDeps() {
     if (!jwk) {

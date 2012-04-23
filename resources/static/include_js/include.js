@@ -956,12 +956,21 @@
         throw "navigator.id.get() requires a callback argument";
       }
 
+      var browserSupported = BrowserSupport.isSupported();
+
       if (options && options.silent) {
-        _noninteractiveCall('getPersistentAssertion', { }, function(rv) {
-          callback(rv);
-        }, function(e, msg) {
+        // We MUST check for browser support or else an exception will be
+        // thrown in the _noninteractiveCall when a JSChannel is created.
+        if(browserSupported) {
+          _noninteractiveCall('getPersistentAssertion', { }, function(rv) {
+            callback(rv);
+          }, function(e, msg) {
+            callback(null);
+          });
+        }
+        else {
           callback(null);
-        });
+        }
       } else {
         // focus an existing window
         if (w) {
@@ -974,7 +983,7 @@
           return;
         }
 
-        if (!BrowserSupport.isSupported()) {
+        if (!browserSupported) {
           var reason = BrowserSupport.getNoSupportReason(),
               url = "unsupported_dialog";
 
