@@ -120,10 +120,15 @@ BrowserID.Storage = (function() {
   }
 
   function setStagedOnBehalfOf(origin) {
-    storage.stagedOnBehalfOf = JSON.stringify({
-      at: new Date().toString(),
-      origin: origin
-    });
+    try {
+      storage.stagedOnBehalfOf = JSON.stringify({
+        at: new Date().toString(),
+        origin: origin
+      });
+    }
+    catch(e) {
+      // Chrome, Safari and FF will blow up here if cookies are disabled.
+    }
   }
 
   function getStagedOnBehalfOf() {
@@ -175,14 +180,23 @@ BrowserID.Storage = (function() {
   }
 
   function generic2KeySet(namespace, key, value) {
-    var allInfo = JSON.parse(storage[namespace] || "{}");
-    allInfo[key] = value;
-    storage[namespace] = JSON.stringify(allInfo);
+    try {
+      var allInfo = JSON.parse(storage[namespace] || "{}");
+      allInfo[key] = value;
+      storage[namespace] = JSON.stringify(allInfo);
+    } catch(e) {
+      // Do nothing, Chrome, Safari and FF will blow up here if cookies are
+      // disabled.
+    }
   }
 
   function generic2KeyGet(namespace, key) {
-    var allInfo = JSON.parse(storage[namespace] || "{}");
-    return allInfo[key];
+    try {
+      var allInfo = JSON.parse(storage[namespace] || "{}");
+      return allInfo[key];
+    } catch(e) {
+      return undefined;
+    }
   }
 
   function generic2KeyRemove(namespace, key) {
