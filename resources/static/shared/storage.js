@@ -29,10 +29,13 @@ BrowserID.Storage = (function() {
   }
 
   function logError(msg) {
-    // Check for the existence of window.console for IE.  IE does not support console
-    // logging unless its dev tools are open.
-    if(window.console && console.log) {
+    try {
       console.log(msg);
+    } catch(e) {
+      // Do nothing. The console.log is inside of a try/catch because some
+      // versions of IE do not have window.console unless the dev tools are
+      // open.  This ensures that any browser that does not support console.log
+      // will not cause any problems while we are trying to log errors.
     }
   }
 
