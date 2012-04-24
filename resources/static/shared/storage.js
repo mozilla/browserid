@@ -28,6 +28,14 @@ BrowserID.Storage = (function() {
     }
   }
 
+  function logError(msg) {
+    // Check for the existence of window.console for IE.  IE does not support console
+    // logging unless its dev tools are open.
+    if(window.console && console.log) {
+      console.log(msg);
+    }
+  }
+
   function storeEmails(emails) {
     storage.emails = JSON.stringify(emails);
   }
@@ -128,6 +136,7 @@ BrowserID.Storage = (function() {
     }
     catch(e) {
       // Chrome, Safari and FF will blow up here if cookies are disabled.
+      logError("error writing to storage: " + e);
     }
   }
 
@@ -187,6 +196,7 @@ BrowserID.Storage = (function() {
     } catch(e) {
       // Do nothing, Chrome, Safari and FF will blow up here if cookies are
       // disabled.
+      logError("error writing to storage: " + e);
     }
   }
 
@@ -195,6 +205,7 @@ BrowserID.Storage = (function() {
       var allInfo = JSON.parse(storage[namespace] || "{}");
       return allInfo[key];
     } catch(e) {
+      logError("error reading from storage: " + e);
       return undefined;
     }
   }
