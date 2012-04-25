@@ -57,7 +57,8 @@ BrowserID.Modules.ProvisionPrimaryUser = (function() {
 
       if(!(auth && prov)) {
         user.addressInfo(email, function(status) {
-          if(status.type === "primary") {
+          if(status.type === "primary" ||
+             status.type === "proxyidp") {
             provisionPrimaryUser.call(self, email, status.auth, status.prov);
           }
           else {
