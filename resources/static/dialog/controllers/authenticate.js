@@ -55,15 +55,9 @@ BrowserID.Modules.Authenticate = (function() {
     function onAddressInfo(info) {
       addressInfo = info;
       console.info('AOK authenticate.js onaddressInfo info=', info);
-      if(info.type === "primary") {
+      if(info.type === "primary" || info.type === "proxyidp") {
         console.info('AOK authenticate.js closing with primary_user');
         self.close("primary_user", info, info);
-        // TODO (aok) Do we need a proxy condition here?
-      } else if (info.type === "proxyidp") {
-        // TODO (aok) or can we just use primary above?
-        console.info('AOK PROXYIDP authenticate.js closing with primary_user FROM PROXY IDP');
-        self.close("primary_user", info, info);
-
       } else if(info.known) {
         enterPasswordState.call(self);
       } else {

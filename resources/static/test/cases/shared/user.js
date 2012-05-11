@@ -1105,7 +1105,7 @@ var jwcrypto = require("./lib/jwcrypto");
     );
   });
 
-  asyncTest("addressInfo with primary authenticated user", function() {
+  asyncTest("addressInfo with normal IdP authenticated user", function() {
     xhr.useResult("primary");
     provisioning.setStatus(provisioning.AUTHENTICATED);
     lib.addressInfo(
@@ -1127,6 +1127,36 @@ var jwcrypto = require("./lib/jwcrypto");
       "registered@testuser.com",
       function(info) {
         equal(info.type, "primary", "correct type");
+        equal(info.email, "registered@testuser.com", "correct email");
+        equal(info.authed, false, "user is not authenticated with IdP");
+        start();
+      },
+      testHelpers.unexpectedFailure
+    );
+  });
+
+  asyncTest("addressInfo with proxy IdP authenticated user", function() {
+    xhr.useResult("proxyidp");
+    provisioning.setStatus(provisioning.AUTHENTICATED);
+    lib.addressInfo(
+      "registered@testuser.com",
+      function(info) {
+        equal(info.type, "proxyidp", "correct type");
+        equal(info.email, "registered@testuser.com", "correct email");
+        equal(info.authed, true, "user is authenticated with IdP");
+        start();
+      },
+      testHelpers.unexpectedFailure
+    );
+  });
+
+  asyncTest("addressInfo with proxy IdP unauthenticated user", function() {
+    xhr.useResult("proxyidp");
+    provisioning.setStatus(provisioning.NOT_AUTHENTICATED);
+    lib.addressInfo(
+      "registered@testuser.com",
+      function(info) {
+        equal(info.type, "proxyidp", "correct type");
         equal(info.email, "registered@testuser.com", "correct email");
         equal(info.authed, false, "user is not authenticated with IdP");
         start();

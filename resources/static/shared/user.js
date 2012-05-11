@@ -767,10 +767,10 @@ BrowserID.User = (function() {
      *     type: <secondary|primary|proxyidp>
      *     known: boolean, present if type is secondary.  True if email
      *        address is registered with BrowserID.
-     *     authed: boolean, present if type is primary (or proxyidp??? AOK) - whether the user
+     *     authed: boolean, present if type is primary or proxyidp - whether the user
      *        is authenticated to the IdP as this user.
      *     auth: string - url to send users for auth - present if type is
-     *        primary (or proxyidp??? AOK).
+     *        primary or proxyidp.
      *     prov: string - url to embed for silent provisioning
      * @param {function} [onFailure] - Called on XHR failure.
      */
@@ -788,8 +788,7 @@ BrowserID.User = (function() {
       else {
         network.addressInfo(email, function(info) {
           info.email = email;
-          if(info.type === "primary" ||
-             info.type === "proxyidp") {
+          if(info.type === "primary" || info.type === "proxyidp") {
             User.isUserAuthenticatedToPrimary(email, info, function(authed) {
               info.authed = authed;
               complete(info);

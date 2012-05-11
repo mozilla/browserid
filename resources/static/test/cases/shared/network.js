@@ -563,6 +563,19 @@
       equal(data.type, "primary", "type is primary");
       ok("auth" in data, "auth field exists");
       ok("prov" in data, "prov field exists");
+      equal(data.type, "primary", "type correctly set to primary");
+      start();
+    }, testHelpers.unexpectedXHRFailure);
+  });
+
+  asyncTest("addressInfo with proxyidp email", function() {
+    transport.useResult("proxyidp");
+
+    network.addressInfo(TEST_EMAIL, function onComplete(data) {
+      equal(data.type, "proxyidp", "type is proxyidp");
+      ok("auth" in data, "auth field exists");
+      ok("prov" in data, "prov field exists");
+      equal(data.type, "proxyidp", "type correctly set to proxyidp");
       start();
     }, testHelpers.unexpectedXHRFailure);
   });
