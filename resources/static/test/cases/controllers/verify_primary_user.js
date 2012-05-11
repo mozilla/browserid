@@ -23,6 +23,7 @@
     setup: function() {
       testHelpers.setup();
       win = new WindowMock();
+      win.document.location.href = "sign_in";
     },
 
     teardown: function() {
@@ -73,7 +74,6 @@
     });
 
     // Also checking to make sure the NATIVE is stripped out.
-    win.document.location.href = "sign_in";
     win.document.location.hash = "#NATIVE";
 
     controller.submit(function() {
@@ -92,7 +92,6 @@
     });
 
     // Also checking to make sure the NATIVE is stripped out.
-    win.document.location.href = "sign_in";
     win.document.location.hash = "#NATIVE";
 
     controller.submit(function() {
@@ -134,6 +133,23 @@
       equal(testHelpers.isTriggered("cancel_state"), true, "cancel_state is triggered");
       start();
     });
+  });
+
+  test("create with skip_user_verify - verify without user interaction", function() {
+    mediator.subscribe("primary_user_authenticating", function(msg, data) {
+      equal(data.url, "http://testuser.com/sign_in?email=unregistered%40testuser.com&return_to=sign_in%23CREATE_EMAIL%3Dunregistered%40testuser.com");
+      start();
+    });
+
+    createController({
+      window: win,
+      add: false,
+      email: "unregistered@testuser.com",
+      auth_url: "http://testuser.com/sign_in",
+      skip_user_verify: true
+    });
+
+    equal(win.document.location, "http://testuser.com/sign_in?email=unregistered%40testuser.com&return_to=sign_in%23CREATE_EMAIL%3Dunregistered%40testuser.com", "document.location correctly set");
   });
 
 }());

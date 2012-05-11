@@ -16,7 +16,6 @@ BrowserID.Modules.VerifyPrimaryUser = (function() {
       complete = helpers.complete;
 
   function verify(callback) {
-    this.publish("primary_user_authenticating");
 
     // replace any hashes that may be there already.
     var returnTo = win.document.location.href.replace(/#.*$/, "");
@@ -27,6 +26,7 @@ BrowserID.Modules.VerifyPrimaryUser = (function() {
       return_to: returnTo + "#" + type + "=" +email
     });
 
+    this.publish("primary_user_authenticating", { url: url });
     win.document.location = url;
 
     complete(callback);
@@ -47,16 +47,21 @@ BrowserID.Modules.VerifyPrimaryUser = (function() {
       email = data.email;
       auth_url = data.auth_url;
 
-      var templateData = helpers.extend({}, data, {
-        requiredEmail: data.requiredEmail || false,
-        privacy_url: data.privacyURL || null,
-        tos_url: data.tosURL || null
-      });
-      self.renderDialog("verify_primary_user", templateData);
-
-      self.click("#cancel", cancel);
-
       sc.start.call(self, data);
+
+      if (data.skip_user_verify) {
+        verify.call(self);
+      }
+      else {
+        var templateData = helpers.extend({}, data, {
+          requiredEmail: data.requiredEmail || false,
+          privacy_url: data.privacyURL || null,
+          tos_url: data.tosURL || null
+        });
+        self.renderDialog("verify_primary_user", templateData);
+
+        self.click("#cancel", cancel);
+      }
     },
 
     submit: verify

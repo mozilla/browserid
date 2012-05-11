@@ -149,6 +149,7 @@ BrowserID.State = (function() {
         // We don't want to put the provisioning step on the stack, instead when
         // a user cancels this step, they should go back to the step before the
         // provisioning.
+        info.skip_user_verify = info.type === 'proxyidp';
         startAction(false, "doProvisionPrimaryUser", info);
       }
     });

@@ -34,6 +34,15 @@
     }
   }
 
+  function testActionCalled(action, requiredData) {
+    ok(actions.called[action], action + " called");
+
+    for(var key in requiredData) {
+      equal(actions.info[action][key], requiredData[key], key + " value set correctly");
+    }
+
+  }
+
   function createMachine() {
     machine = bid.State.create();
     actions = new ActionsMock();
@@ -179,9 +188,18 @@
     mediator.publish("primary_user", { email: TEST_EMAIL });
   });
 
-  test("primary_user with unprovisioned primary user - call doProvisionPrimaryUser", function() {
+  test("primary_user with unprovisioned normal primary user - call doProvisionPrimaryUser with skip_user_verify = false", function() {
     mediator.publish("primary_user", { email: TEST_EMAIL });
-    ok(actions.called.doProvisionPrimaryUser, "doPrimaryUserProvisioned called");
+    testActionCalled("doProvisionPrimaryUser", {
+       skip_user_verify: false
+    });
+  });
+
+  test("primary_user with unprovisioned proxy primary user - call doProvisionPrimaryUser with skip_user_verify = true", function() {
+    mediator.publish("primary_user", { email: TEST_EMAIL, type: "proxyidp" });
+    testActionCalled("doProvisionPrimaryUser", {
+       skip_user_verify: true
+    });
   });
 
   test("primary_user_provisioned - call doEmailChosen", function() {
