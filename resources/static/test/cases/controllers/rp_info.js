@@ -41,10 +41,10 @@
     controller.start(options || {});
   }
 
-  test("neither name nor logo specified - use site's rp_hostname as sitename", function() {
+  test("neither name nor logo specified - use site's rp_hostname as name", function() {
     createController();
-    equal($("#rp_hostname").text(), RP_HOSTNAME, "rp_hostname filled in");
-    ok(!$("#rp_name").text(), "rp_name empty");
+    equal($("#rp_hostname").html(), RP_HOSTNAME, "rp_hostname filled in");
+    ok(!$("#rp_name").html(), "rp_name empty");
     ok(!$("#rp_logo").attr("src"), "rp logo not shown");
   });
 
@@ -53,8 +53,8 @@
       name: RP_NAME,
     });
 
-    equal($("#rp_hostname").text(), RP_HOSTNAME, "rp_hostname filled in");
-    equal($("#rp_name").text(), RP_NAME, "rp_hostname filled in");
+    equal($("#rp_hostname").html(), RP_HOSTNAME, "rp_hostname filled in");
+    equal($("#rp_name").html(), RP_NAME, "rp_name filled in");
     ok(!$("#rp_logo").attr("src"), "rp logo not shown");
   });
 
@@ -68,8 +68,8 @@
     });
 
     equal($("#rp_logo").attr("src"), RP_HTTP_LOGO, "rp logo shown");
-    equal($("#rp_hostname").text(), RP_HOSTNAME, "rp_hostname filled in");
-    ok(!$("#rp_name").text(), "rp_name empty");
+    equal($("#rp_hostname").html(), RP_HOSTNAME, "rp_hostname filled in");
+    ok(!$("#rp_name").html(), "rp_name empty");
   });
 
   test("if document is http, https logoURLs are allowed", function() {
@@ -82,8 +82,8 @@
     });
 
     equal($("#rp_logo").attr("src"), RP_HTTPS_LOGO, "rp logo shown");
-    equal($("#rp_hostname").text(), RP_HOSTNAME, "rp_hostname filled in");
-    ok(!$("#rp_name").text(), "rp_name empty");
+    equal($("#rp_hostname").html(), RP_HOSTNAME, "rp_hostname filled in");
+    ok(!$("#rp_name").html(), "rp_name empty");
   });
 
   test("if document is https, http logoURLs not allowed", function() {
@@ -118,12 +118,56 @@
     testHelpers.testErrorVisible();
   });
 
-  test("logoURL with data-uris not allowed", function() {
+  test("logoURL with data-uri not allowed", function() {
     createController({
       logoURL: "data:image/png;base64,somefakedata"
     });
 
     testHelpers.testErrorVisible();
+  });
+
+  test("logoURL that attempts to break out of src attribute using \' not allowed", function() {
+    window.scriptRun = false;
+    createController({
+      logoURL: "' onerror='javascript:window.scriptRun=true;'"
+    });
+
+    testHelpers.testErrorVisible();
+    equal(window.scriptRun, false, "script was not run");
+    window.scriptRun = null;
+  });
+
+  test("logoURL that attempts to break out of src attribute using \" not allowed", function() {
+    window.scriptRun = false;
+    createController({
+      logoURL: '" onerror="javascript:window.scriptRun=true;"'
+    });
+
+    testHelpers.testErrorVisible();
+    equal(window.scriptRun, false, "script was not run");
+    window.scriptRun = null;
+  });
+
+  test("logoURL with javascript URI not allowed", function() {
+    window.scriptRun = false;
+    createController({
+      logoURL: "javascript:window.scriptRun=true;"
+    });
+
+    testHelpers.testErrorVisible();
+    equal(window.scriptRun, false, "script was not run");
+    window.scriptRun = null;
+  });
+
+  test("logoURL with javascript URI without `javascript:` protocol not allowed", function() {
+    window.scriptRun = false;
+    createController({
+      logoURL: "window.scriptRun=true;"
+    });
+
+    testHelpers.testErrorVisible();
+    equal(window.scriptRun, false, "script was not run");
+    window.scriptRun = null;
   });
 
   test("both name and logo specified - show name, logo and rp_hostname", function() {
@@ -132,17 +176,84 @@
       logoURL: RP_HTTPS_LOGO
     });
 
-    equal($("#rp_hostname").text(), RP_HOSTNAME, "rp_hostname filled in");
-    equal($("#rp_name").text(), RP_NAME, "rp_hostname filled in");
+    equal($("#rp_hostname").html(), RP_HOSTNAME, "rp_hostname filled in");
+    equal($("#rp_name").html(), RP_NAME, "rp_name filled in");
     equal($("#rp_logo").attr("src"), RP_HTTPS_LOGO, "rp logo shown");
   });
 
-  test("html stripped from name", function() {
+  test("name containing SCRIPT specified - script is not run", function() {
+    window.scriptRun = false;
     createController({
-      name: "<div id='badjiji' onmouseover='alert(\"You have been owned\")')>" + RP_NAME + "</div>"
+      name: '<script type="text/javascript">window.scriptRun=true;</script>'
     });
 
-    equal($("#rp_name").text(), RP_NAME, "rp_hostname filled in");
+    equal(window.scriptRun, false, "script was not run");
+    window.scriptRun = null;
+  });
+
+  test("name containing SCRIPT across multiple lines specified - script is not run", function() {
+    window.scriptRun = false;
+    createController({
+      name: '<script\n' +
+            'type="text/javascript">window.scriptRun=true;</script>'
+    });
+
+    equal(window.scriptRun, false, "script was not run");
+    window.scriptRun = null;
+  });
+
+  test("name containing async SCRIPT specified - script is not run", function() {
+    window.scriptRun = false;
+    createController({
+      name: '<script async="true" type="text/javascript">window.scriptRun=true;</script>'
+    });
+
+    equal(window.scriptRun, false, "script was not run");
+    window.scriptRun = null;
+  });
+
+  test("name containing deferred SCRIPT specified - script is not run", function() {
+    window.scriptRun = false;
+    createController({
+      name: '<script defer="true" type="text/javascript">window.scriptRun=true;</script>'
+    });
+
+    equal(window.scriptRun, false, "script was not run");
+    window.scriptRun = null;
+  });
+
+  test("name containing deferred async SCRIPT specified - script is not run", function() {
+    window.scriptRun = false;
+    createController({
+      name: '<script defer="true" async="true" type="text/javascript">window.scriptRun=true;</script>'
+    });
+
+    equal(window.scriptRun, false, "script was not run");
+    window.scriptRun = null;
+  });
+
+  test("attempting to close h2 tag has no effect - tag characters converted to HTML entities", function() {
+    createController({
+      name: "</h2>" + RP_NAME
+    });
+
+    equal($("#rp_name").html(), "&lt;/h2&gt;" + RP_NAME, "rp_name filled in");
+  });
+
+  test("name containing & allowed", function() {
+    createController({
+      name: 'Johnson & Johnson'
+    });
+
+    equal($("#rp_name").html(), "Johnson &amp; Johnson", "rp_name filled in");
+  });
+
+  test("name containing / allowed", function() {
+    createController({
+      name: 'Johnson / Johnson'
+    });
+
+    equal($("#rp_name").html(), "Johnson / Johnson", "rp_name filled in");
   });
 
 }());

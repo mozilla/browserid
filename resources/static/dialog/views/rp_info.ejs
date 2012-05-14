@@ -7,21 +7,20 @@
    using Javascript methods so that adding DOM Event handlers is mitigated.
 -->
 
-<% if(logoURL) { %>
+<% if(hasLogo) { %>
   <img id="rp_logo" src="" />
 <% } %>
 
 
-<% if(name) { %>
+<% if(hasName) { %>
   <h2 id="rp_name"></h2>
 <% } %>
 
-<!-- hostname is generated internally and is trusted -->
-<% if(hostname) { %>
-  <% if(name) { %>
-    <h3 id="rp_hostname"><%= hostname %></h3>
+<% if(hasHostname) { %>
+  <% if(hasName) { %>
+    <h3 id="rp_hostname"></h3>
   <% } else { %>
-    <h2 id="rp_hostname"><%= hostname %></h2>
+    <h2 id="rp_hostname"></h2>
   <% } %>
 <% } %>
 

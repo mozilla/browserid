@@ -18,16 +18,27 @@ BrowserID.Modules.RPInfo = (function() {
       doc = document,
       sc;
 
-  function stripHTML(strToClean) {
-    if (!strToClean) return;
+  function encodeForHTML(strToEncode) {
+    if (!strToEncode) return;
 
-    var tmp = document.createElement("div");
-    tmp.innerHTML = strToClean;
-    // The intent here is to strip out any HTML so that it is not possible to
-    // add HTML with event handlers which would open the user to an XSS attack.
-    // We are depending on the browsers to do this properly - they have well
-    // vetted whitelists and regexps for doing this.
-    return tmp.textContent || tmp.innerText;
+    // The original approach of creating a div, setting the html, and
+    // getting the div's innerText/textContent still runs scripts in IE9 if
+    // the script being inserted has the defer="true" attribute.  Because of
+    // this, sensitive characters are manually converted to use their HTML
+    // encoded equivalents.
+
+    // List of entities to replace with HTML encoded versions obtained from:
+    // https://www.owasp.org/index.php/XSS_Prevention_Cheat_Sheet#RULE_.231_-_HTML_Escape_Before_Inserting_Untrusted_Data_into_HTML_Element_Content
+    var cleaned = strToEncode.replace(/&/gm, '&amp;')
+                             .replace(/</gm, "&lt;")
+                             .replace(/>/gm, "&gt;")
+                             .replace(/'/gm, '&#x27;')
+                             .replace(/"/gm, '&quot;')
+                             // when getting innerHTML, this is always
+                             // converted back to a normal /
+                             .replace(/\//gm, '&#x2F;');
+
+    return cleaned;
   }
 
   function validLogoURL(logoURL) {
@@ -64,27 +75,29 @@ BrowserID.Modules.RPInfo = (function() {
       }
 
 
-      // use stripHTML to make sure that no HTML or Javascript get through to
-      // the user, we don't want to open the user up to being XSSed wby
-      // some goon inserting JS that steals the user's credentials.
-      var data = {
-        hostname: stripHTML(options.hostname) || null,
-        name: stripHTML(options.name) || null,
-        logoURL: options.logoURL ? encodeURI(options.logoURL) : null
-      };
+      renderer.render("#rp_info", "rp_info", {
+        hasHostname: !!options.hostname,
+        hasName: !!options.name,
+        hasLogo: !!options.logoURL
+      });
 
-      renderer.render("#rp_info", "rp_info", data);
 
-      // Because name and logoURL come from user content, they cannot fully be
+      // Because name and logoURL come from user content, they cannot be
       // trusted. To avoid even the remote possibility of an XSS attack, we
-      // write the src and rp_name using Javascript methods so that adding DOM
-      // Event handlers is mitigated.
-      if (data.logoURL) {
-        dom.setAttr("#rp_logo", "src", data.logoURL);
+      // write the src and rp_name and rp_hostname using Javascript methods
+      // after cleansing the text so that adding scripts using these vectors
+      // is mitigated.
+
+      if (options.logoURL) {
+        dom.setAttr("#rp_logo", "src", options.logoURL);
       }
 
-      if (data.name) {
-        dom.setInner("#rp_name", data.name);
+      if (options.hostname) {
+        dom.setInner("#rp_hostname", encodeForHTML(options.hostname));
+      }
+
+      if (options.name) {
+        dom.setInner("#rp_name", encodeForHTML(options.name));
       }
 
       sc.start.call(this, options);
