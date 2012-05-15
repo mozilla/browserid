@@ -24,7 +24,7 @@ BrowserID.Modules.VerifyPrimaryUser = (function() {
   // yahoo resizes themselves
   var RESIZE_TABLE = {
     "gmail.com$": { w: 900, h: 600 },
-    "hotmail.com$": { w: 700, h: 400 }
+    "hotmail.com$": { w: 700, h: 488 }
   };
 
   function resizeWindow(email) {
