@@ -13,6 +13,5 @@
   "email_to_console": true,
   "kpi_backend_sample_rate": 1.0,
   "bigtent_domains": ["gmail.com", "yahoo.com", "hotmail.com"],
-  "bigtent_url": "https://dev.bigtent.mozilla.org",
   "env": "local"
 }
