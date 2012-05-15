@@ -1,5 +1,5 @@
-/*jshint browser:true, jQuery: true, forin: true, laxbreak:true */
-/*global BrowserID: true */
+/*jshint browser:true, jquery: true, forin: true, laxbreak:true, laxcomma:true */
+/*global BrowserID: true, WinChan: true, URLParse: true */
 /* This Source Code Form is subject to the terms of the Mozilla Public
  * License, v. 2.0. If a copy of the MPL was not distributed with this
  * file, You can obtain one at http://mozilla.org/MPL/2.0/. */
@@ -191,7 +191,10 @@ BrowserID.Modules.Dialog = (function() {
           user.setReturnTo(returnTo);
         }
 
-
+        // If an address started out as "proxyidp", when the user is returned to
+        // the dialog, the address is treated as a primary email. This is
+        // a simplification because all emails are stored in localStorage as
+        // either primary or secondary.
         if (hash.indexOf("#CREATE_EMAIL=") === 0) {
           var email = hash.replace(/#CREATE_EMAIL=/, "");
           if (!bid.verifyEmail(email))

@@ -108,7 +108,7 @@ BrowserID.signUp = (function() {
           }
           else {
             user.addressInfo(email, function(info) {
-              if(info.type === "primary") {
+              if(info.IdPEnabled) {
                 createPrimaryUser.call(self, info, oncomplete);
               }
               else {

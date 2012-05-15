@@ -105,7 +105,7 @@
     }
     else {
       user.addressInfo(email, function(info) {
-        if (info.type === "primary") {
+        if (info.IdPEnabled) {
           var info = _.extend(info, { email: email, add: true });
           self.publish("primary_user", info, info);
           complete(callback, true);

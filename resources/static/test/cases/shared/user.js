@@ -1112,6 +1112,7 @@ var jwcrypto = require("./lib/jwcrypto");
       "registered@testuser.com",
       function(info) {
         equal(info.type, "primary", "correct type");
+        equal(info.IdPEnabled, true, "a primary user is IdPEnabled");
         equal(info.email, "registered@testuser.com", "correct email");
         equal(info.authed, true, "user is authenticated with IdP");
         start();
@@ -1142,6 +1143,7 @@ var jwcrypto = require("./lib/jwcrypto");
       "registered@testuser.com",
       function(info) {
         equal(info.type, "proxyidp", "correct type");
+        equal(info.IdPEnabled, true, "a primary user is IdPEnabled");
         equal(info.email, "registered@testuser.com", "correct email");
         equal(info.authed, true, "user is authenticated with IdP");
         start();

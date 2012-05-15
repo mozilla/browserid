@@ -788,7 +788,12 @@ BrowserID.User = (function() {
       else {
         network.addressInfo(email, function(info) {
           info.email = email;
+          // Note - even though addressInfo may return an email of type
+          // primary, proxyidp or secondary, emails are only stored in
+          // localStorage as primary or secondary.  proxyidp is stored as primary.
           if(info.type === "primary" || info.type === "proxyidp") {
+            info.IdPEnabled = true;
+
             User.isUserAuthenticatedToPrimary(email, info, function(authed) {
               info.authed = authed;
               complete(info);

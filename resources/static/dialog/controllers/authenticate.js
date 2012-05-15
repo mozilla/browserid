@@ -40,7 +40,6 @@ BrowserID.Modules.Authenticate = (function() {
   function checkEmail(info) {
     var email = getEmail(),
         self = this;
-    console.log('AOK authenticate.js checkEmail info=', info);
     if (!email) return;
 
     if(info && info.type) {
@@ -54,9 +53,7 @@ BrowserID.Modules.Authenticate = (function() {
 
     function onAddressInfo(info) {
       addressInfo = info;
-      console.info('AOK authenticate.js onaddressInfo info=', info);
-      if(info.type === "primary" || info.type === "proxyidp") {
-        console.info('AOK authenticate.js closing with primary_user');
+      if(info.IdPEnabled) {
         self.close("primary_user", info, info);
       } else if(info.known) {
         enterPasswordState.call(self);
@@ -149,7 +146,6 @@ BrowserID.Modules.Authenticate = (function() {
   var Module = bid.Modules.PageModule.extend({
     start: function(options) {
       options = options || {};
-      console.info('AOK authenticate.js module extend start called');
       addressInfo = null;
       lastEmail = options.email || "";
 
