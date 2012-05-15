@@ -8,6 +8,7 @@
 
   var bid = BrowserID,
       user = bid.User,
+      xhr = bid.Mocks.xhr,
       controller,
       el,
       testHelpers = bid.TestHelpers,
@@ -53,8 +54,7 @@
   });
 
   asyncTest("doVerifyPrimaryUser - start the verify_primary_user service", function() {
-    testActionStartsModule("doVerifyPrimaryUser", {},
-      "verify_primary_user");
+    testActionStartsModule("doVerifyPrimaryUser", {}, "verify_primary_user");
   });
 
   asyncTest("doCannotVerifyRequiredPrimary - show the error screen", function() {

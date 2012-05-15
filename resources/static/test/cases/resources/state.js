@@ -188,17 +188,10 @@
     mediator.publish("primary_user", { email: TEST_EMAIL });
   });
 
-  test("primary_user with unprovisioned normal primary user - call doProvisionPrimaryUser with skip_user_verify = false", function() {
+  test("primary_user with unprovisioned user - call doProvisionPrimaryUser", function() {
     mediator.publish("primary_user", { email: TEST_EMAIL });
     testActionCalled("doProvisionPrimaryUser", {
-       skip_user_verify: false
-    });
-  });
-
-  test("primary_user with unprovisioned proxy primary user - call doProvisionPrimaryUser with skip_user_verify = true", function() {
-    mediator.publish("primary_user", { email: TEST_EMAIL, type: "proxyidp" });
-    testActionCalled("doProvisionPrimaryUser", {
-       skip_user_verify: true
+       email: TEST_EMAIL
     });
   });
 
@@ -207,10 +200,18 @@
     ok(actions.called.doPrimaryUserProvisioned, "doPrimaryUserProvisioned called");
   });
 
-  test("primary_user_unauthenticated before verification - call doVerifyPrimaryUser", function() {
+  asyncTest("primary_user_unauthenticated with primary user before verification - call doVerifyPrimaryUser", function() {
+    xhr.useResult("primary");
+
     mediator.publish("start");
-    mediator.publish("primary_user_unauthenticated");
-    ok(actions.called.doVerifyPrimaryUser, "doVerifyPrimaryUser called");
+    mediator.publish("primary_user", { email: TEST_EMAIL });
+    mediator.publish("primary_user_unauthenticated", { complete: function() {
+      testActionCalled("doVerifyPrimaryUser", {
+         email: TEST_EMAIL,
+         type: "primary"
+      });
+      start();
+    }});
   });
 
   test("primary_user_unauthenticated after required email - call doCannotVerifyRequiredPrimary", function() {

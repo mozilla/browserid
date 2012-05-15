@@ -1,9 +1,11 @@
-/*jshint browser:true, jQuery: true, forin: true, laxbreak:true */
+/*jshint browser:true, jquery: true, forin: true, laxbreak:true */
 /*global BrowserID: true */
 /* This Source Code Form is subject to the terms of the Mozilla Public
  * License, v. 2.0. If a copy of the MPL was not distributed with this
  * file, You can obtain one at http://mozilla.org/MPL/2.0/. */
 BrowserID.State = (function() {
+  "use strict";
+
   var bid = BrowserID,
       storage = bid.Storage,
       network = bid.Network,
@@ -11,12 +13,7 @@ BrowserID.State = (function() {
       helpers = bid.Helpers,
       user = bid.User,
       moduleManager = bid.module,
-      complete = bid.Helpers.complete,
-      controller,
-      addPrimaryUser = false,
-      email,
-      requiredEmail,
-      primaryVerificationInfo;
+      complete = bid.Helpers.complete;
 
   function startStateMachine() {
     var self = this,
@@ -35,7 +32,7 @@ BrowserID.State = (function() {
             save = true;
           }
 
-          var func = controller[msg].bind(controller);
+          var func = self.controller[msg].bind(self.controller);
           self.gotoState(save, func, options);
         },
         cancelState = self.popState.bind(self);
@@ -44,12 +41,12 @@ BrowserID.State = (function() {
       self.hostname = info.hostname;
       self.privacyURL = info.privacyURL;
       self.tosURL = info.tosURL;
-      requiredEmail = info.requiredEmail;
+      var requiredEmail = self.requiredEmail = info.requiredEmail;
 
       startAction(false, "doRPInfo", info);
 
       if (info.email && info.type === "primary") {
-        primaryVerificationInfo = info;
+        self.primaryVerificationInfo = info;
         redirectToState("primary_user", info);
       }
       else {
@@ -71,7 +68,8 @@ BrowserID.State = (function() {
     });
 
     handleState("authentication_checked", function(msg, info) {
-      var authenticated = info.authenticated;
+      var authenticated = info.authenticated,
+          requiredEmail = self.requiredEmail;
 
       if (requiredEmail) {
         self.email = requiredEmail;
@@ -99,7 +97,7 @@ BrowserID.State = (function() {
 
       // cancel is disabled if the user is doing the initial password set
       // for a requiredEmail.
-      info.cancelable = !requiredEmail;
+      info.cancelable = !self.requiredEmail;
       startAction(false, "doSetPassword", info);
     });
 
@@ -128,7 +126,7 @@ BrowserID.State = (function() {
 
     handleState("user_staged", function(msg, info) {
       self.stagedEmail = info.email;
-      info.required = !!requiredEmail;
+      info.required = !!self.requiredEmail;
       startAction("doConfirmUser", info);
     });
 
@@ -138,43 +136,44 @@ BrowserID.State = (function() {
     });
 
     handleState("primary_user", function(msg, info) {
-      addPrimaryUser = !!info.add;
-      email = info.email;
-
-      var idInfo = storage.getEmail(email);
-      if (idInfo && idInfo.cert) {
+      self.addPrimaryUser = !!info.add;
+      var email = self.email = info.email,
+          idInfo = storage.getEmail(email);
+      if(idInfo && idInfo.cert) {
         redirectToState("primary_user_ready", info);
       }
       else {
         // We don't want to put the provisioning step on the stack, instead when
         // a user cancels this step, they should go back to the step before the
         // provisioning.
-        info.skip_user_verify = info.type === 'proxyidp';
         startAction(false, "doProvisionPrimaryUser", info);
       }
     });
 
     handleState("primary_user_provisioned", function(msg, info) {
-      info.add = !!addPrimaryUser;
       // The user is is authenticated with their IdP. Two possibilities exist
       // for the email - 1) create a new account or 2) add address to the
       // existing account. If the user is authenticated with BrowserID, #2
       // will happen. If not, #1.
+      info = info || {};
+      info.add = !!self.addPrimaryUser;
       startAction("doPrimaryUserProvisioned", info);
     });
 
     handleState("primary_user_unauthenticated", function(msg, info) {
-      info = helpers.extend(info, {
-        add: !!addPrimaryUser,
-        email: email,
+      var requiredEmail = self.requiredEmail;
+
+      info = helpers.extend(info || {}, {
+        add: !!self.addPrimaryUser,
+        email: self.email,
         requiredEmail: !!requiredEmail,
         privacyURL: self.privacyURL,
         tosURL: self.tosURL
       });
 
-      if (primaryVerificationInfo) {
-        primaryVerificationInfo = null;
-        if (requiredEmail) {
+      if(self.primaryVerificationInfo) {
+        self.primaryVerificationInfo = null;
+        if(requiredEmail) {
           startAction("doCannotVerifyRequiredPrimary", info);
         }
         else if (info.add) {
@@ -188,7 +187,15 @@ BrowserID.State = (function() {
         }
       }
       else {
-        startAction("doVerifyPrimaryUser", info);
+        // The full address info is needed to figure out whether the user is
+        // a normal user or a proxy idp user.  Proxy idp users are not shown
+        // the "you will be redirected" screen.
+
+        // XXX addressInfo should have a failure mode.
+        user.addressInfo(info.email, function(addressInfo) {
+          startAction("doVerifyPrimaryUser", helpers.extend(info, addressInfo));
+          complete(info.complete);
+        });
       }
     });
 
@@ -360,7 +367,7 @@ BrowserID.State = (function() {
           self.addEmailEmail = info.email;
           // cancel is disabled if the user is doing the initial password set
           // for a requiredEmail.
-          info.cancelable = !requiredEmail;
+          info.cancelable = !self.requiredEmail;
           startAction(false, "doSetPassword", info);
         }
         else {
@@ -373,7 +380,7 @@ BrowserID.State = (function() {
 
     handleState("email_staged", function(msg, info) {
       self.stagedEmail = info.email;
-      info.required = !!requiredEmail;
+      info.required = !!self.requiredEmail;
       startAction("doConfirmEmail", info);
     });
 
@@ -389,18 +396,17 @@ BrowserID.State = (function() {
 
   var State = BrowserID.StateMachine.extend({
     start: function(options) {
+      var self=this;
+
       options = options || {};
 
-      controller = options.controller;
-      if (!controller) {
+      self.controller = options.controller;
+      if (!self.controller) {
         throw "start: controller must be specified";
       }
 
-      addPrimaryUser = false;
-      email = requiredEmail = null;
-
-      State.sc.start.call(this, options);
-      startStateMachine.call(this);
+      State.sc.start.call(self, options);
+      startStateMachine.call(self);
     }
   });
 
