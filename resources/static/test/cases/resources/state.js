@@ -200,16 +200,11 @@
     ok(actions.called.doPrimaryUserProvisioned, "doPrimaryUserProvisioned called");
   });
 
-  asyncTest("primary_user_unauthenticated with primary user before verification - call doVerifyPrimaryUser", function() {
-    xhr.useResult("primary");
-
+  asyncTest("primary_user_unauthenticated before IdP authentication - call doVerifyPrimaryUser", function() {
     mediator.publish("start");
     mediator.publish("primary_user", { email: TEST_EMAIL });
     mediator.publish("primary_user_unauthenticated", { complete: function() {
-      testActionCalled("doVerifyPrimaryUser", {
-         email: TEST_EMAIL,
-         type: "primary"
-      });
+      testActionCalled("doVerifyPrimaryUser", { email: TEST_EMAIL });
       start();
     }});
   });

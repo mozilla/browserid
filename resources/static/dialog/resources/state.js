@@ -187,15 +187,8 @@ BrowserID.State = (function() {
         }
       }
       else {
-        // The full address info is needed to figure out whether the user is
-        // a normal user or a proxy idp user.  Proxy idp users are not shown
-        // the "you will be redirected" screen.
-
-        // XXX addressInfo should have a failure mode.
-        user.addressInfo(info.email, function(addressInfo) {
-          startAction("doVerifyPrimaryUser", helpers.extend(info, addressInfo));
-          complete(info.complete);
-        });
+        startAction("doVerifyPrimaryUser", info);
+        complete(info.complete);
       }
     });
 

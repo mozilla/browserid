@@ -140,7 +140,6 @@ BrowserID.Modules.Actions = (function() {
     },
 
     doVerifyPrimaryUser: function(info) {
-      info.skip_user_verify = info.type === "proxyidp";
       startService("verify_primary_user", info);
     },
 

@@ -19,7 +19,14 @@ BrowserID.Mocks.WindowMock = (function() {
   WindowMock.prototype = {
     open: function(url, name, options) {
       this.open_url = url;
-    }
+    },
+
+    resizeTo: function(width, height) {
+      this.width = width;
+      this.height = height;
+    },
+    width: 0,
+    height: 0
   };
 
   return WindowMock;
