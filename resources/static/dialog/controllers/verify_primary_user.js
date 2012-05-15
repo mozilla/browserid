@@ -21,9 +21,9 @@ BrowserID.Modules.VerifyPrimaryUser = (function() {
       delayScreenTimeout,
       isProxyIdP;
 
+  // yahoo resizes themselves
   var RESIZE_TABLE = {
     "gmail.com$": { w: 900, h: 600 },
-    "yahoo.com$": { w: 500, h: 700 },
     "hotmail.com$": { w: 700, h: 400 }
   };
 
