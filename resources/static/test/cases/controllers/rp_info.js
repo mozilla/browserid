@@ -181,7 +181,7 @@
     equal($("#rp_logo").attr("src"), RP_HTTPS_LOGO, "rp logo shown");
   });
 
-  test("name containing SCRIPT specified - script is not run", function() {
+  test("name containing script specified - script is not run", function() {
     window.scriptRun = false;
     createController({
       name: '<script type="text/javascript">window.scriptRun=true;</script>'
@@ -191,7 +191,7 @@
     window.scriptRun = null;
   });
 
-  test("name containing SCRIPT across multiple lines specified - script is not run", function() {
+  test("name containing script across multiple lines specified - script is not run", function() {
     window.scriptRun = false;
     createController({
       name: '<script\n' +
@@ -202,7 +202,7 @@
     window.scriptRun = null;
   });
 
-  test("name containing async SCRIPT specified - script is not run", function() {
+  test("name containing async script specified - script is not run", function() {
     window.scriptRun = false;
     createController({
       name: '<script async="true" type="text/javascript">window.scriptRun=true;</script>'
@@ -212,7 +212,7 @@
     window.scriptRun = null;
   });
 
-  test("name containing deferred SCRIPT specified - script is not run", function() {
+  test("name containing deferred script specified - script is not run", function() {
     window.scriptRun = false;
     createController({
       name: '<script defer="true" type="text/javascript">window.scriptRun=true;</script>'
@@ -222,7 +222,7 @@
     window.scriptRun = null;
   });
 
-  test("name containing deferred async SCRIPT specified - script is not run", function() {
+  test("name containing deferred async script specified - script is not run", function() {
     window.scriptRun = false;
     createController({
       name: '<script defer="true" async="true" type="text/javascript">window.scriptRun=true;</script>'

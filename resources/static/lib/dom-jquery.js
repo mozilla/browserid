@@ -159,6 +159,42 @@ BrowserID.DOM = ( function() {
         },
 
         /**
+        * Set the inner text of an element.  Any HTML characters will be
+        * converted to their text equivalents.
+        * @method setInnerText
+        * @param {selector || element} element - element to set
+        * @param {string} value - value to set
+        */
+        setInnerText: function( element, value ) {
+            var target = jQuery( element );
+            if( isValBased( target ) ) {
+                target.val( value );
+            }
+            else {
+                target.text( value );
+            }
+        },
+
+        /**
+        * Get the inner text of an element, including input elements
+        * @method getInnerText
+        * @param {selector || element} element
+        * @return {string} inner text of the element
+        */
+        getInnerText: function( element ) {
+            var target = jQuery( element );
+            var retval = '';
+
+            if( isValBased( target ) ) {
+                retval = target.val();
+            }
+            else {
+                retval = target.text();
+            }
+            return retval;
+        },
+
+        /**
         * Set an element's attribute.
         * @method setAttr
         * @param {selector || element} element
