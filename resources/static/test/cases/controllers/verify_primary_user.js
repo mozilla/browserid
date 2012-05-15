@@ -187,20 +187,6 @@
     });
   });
 
-  asyncTest("submit for proxied yahoo - window gets resized", function() {
-    xhr.useResult("proxyidp");
-
-    createController({
-      add: false,
-      email: "testuser@yahoo.com",
-      ready: function() {
-        ok(win.width, "width set");
-        ok(win.height, "height set");
-        start();
-      }
-    });
-  });
-
   asyncTest("submit for proxied hotmail - window gets resized", function() {
     xhr.useResult("proxyidp");
 
