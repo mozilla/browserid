@@ -110,15 +110,15 @@ BrowserID.State = (function() {
        */
       info = _.extend({ email: self.newUserEmail || self.addEmailEmail || self.resetPasswordEmail }, info);
 
-      if(self.newUserEmail) {
+      if (self.newUserEmail) {
         self.newUserEmail = null;
         startAction(false, "doStageUser", info);
       }
-      else if(self.addEmailEmail) {
+      else if (self.addEmailEmail) {
         self.addEmailEmail = null;
         startAction(false, "doStageEmail", info);
       }
-      else if(self.resetPasswordEmail) {
+      else if (self.resetPasswordEmail) {
         self.resetPasswordEmail = null;
         startAction(false, "doResetPassword", info);
       }
@@ -139,7 +139,7 @@ BrowserID.State = (function() {
       self.addPrimaryUser = !!info.add;
       var email = self.email = info.email,
           idInfo = storage.getEmail(email);
-      if(idInfo && idInfo.cert) {
+      if (idInfo && idInfo.cert) {
         redirectToState("primary_user_ready", info);
       }
       else {
@@ -153,7 +153,7 @@ BrowserID.State = (function() {
     handleState("primary_user_provisioned", function(msg, info) {
       // The user is is authenticated with their IdP. Two possibilities exist
       // for the email - 1) create a new account or 2) add address to the
-      // existing account. If the user is authenticated with BrowserID, #2
+      // existing account. If the user is authenticated with Persona, #2
       // will happen. If not, #1.
       info = info || {};
       info.add = !!self.addPrimaryUser;
@@ -171,9 +171,9 @@ BrowserID.State = (function() {
         tosURL: self.tosURL
       });
 
-      if(self.primaryVerificationInfo) {
+      if (self.primaryVerificationInfo) {
         self.primaryVerificationInfo = null;
-        if(requiredEmail) {
+        if (requiredEmail) {
           startAction("doCannotVerifyRequiredPrimary", info);
         }
         else if (info.add) {
@@ -363,7 +363,7 @@ BrowserID.State = (function() {
 
     handleState("stage_email", function(msg, info) {
       user.passwordNeededToAddSecondaryEmail(function(passwordNeeded) {
-        if(passwordNeeded) {
+        if (passwordNeeded) {
           self.addEmailEmail = info.email;
           // cancel is disabled if the user is doing the initial password set
           // for a requiredEmail.
