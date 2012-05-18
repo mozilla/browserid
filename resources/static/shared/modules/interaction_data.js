@@ -23,16 +23,30 @@
 //    listen for events via the mediator?
 
 BrowserID.Modules.InteractionData = (function() {
-  var bid = BrowserID,
+  var self = this,
+      bid = BrowserID,
       storage = bid.Storage.interactionData,
       network = bid.Network,
       complete = bid.Helpers.complete,
       dom = bid.DOM,
       sc;
 
-  function onSessionContext(msg, result) {
-    var self=this;
+  function attachContextData(blob) {
+    // Modify blob in place to add core metadata fields
+    blob.sample_rate = self.sampleRate;
+    blob.local_timestamp = self.startTime.toString();
+    blob.lang = dom.getAttr('html', 'lang') || null;
 
+    if (window.screen) {
+      blob.screen_size = {
+        width: window.screen.width,
+        height: window.screen.height
+      };
+    }
+
+  }
+
+  function onSessionContext(msg, result) {
     // defend against onSessionContext being called multiple times
     if (self.sessionContextHandled) return;
     self.sessionContextHandled = true;
@@ -41,17 +55,21 @@ BrowserID.Modules.InteractionData = (function() {
     // session data must be published independently of whether the current
     // dialog session is allowed to sample data. This is because the original
     // dialog session has already decided whether to collect data.
+    //
+    // Fire and forget on publishStored().  We could do the rest of this
+    // function in a callback, but that could introduce performance issues
+    // if the request takes a long time or never completes.
     publishStored();
 
     // set the sample rate as defined by the server.  It's a value
     // between 0..1, integer or float, and it specifies the percentage
     // of the time that we should capture
-    var sampleRate = result.data_sample_rate || 0;
+    self.sampleRate = result.data_sample_rate || 0;
 
-    if (typeof self.samplingEnabled === "undefined") {
+    if (typeof self.samplingEnabled !== false) {
       // now that we've got sample rate, let's smash it into a boolean
       // probalistically
-      self.samplingEnabled = Math.random() <= sampleRate;
+      self.samplingEnabled = Math.random() <= self.sampleRate;
     }
 
     // if we're not going to sample, kick out early.
@@ -59,28 +77,17 @@ BrowserID.Modules.InteractionData = (function() {
       return;
     }
 
-    var currentData = {
-      event_stream: self.initialEventStream,
-      sample_rate: sampleRate,
-      timestamp: result.server_time,
-      local_timestamp: self.startTime.toString(),
-      lang: dom.getAttr('html', 'lang') || null,
-    };
-
-    if (window.screen) {
-      currentData.screen_size = {
-        width: window.screen.width,
-        height: window.screen.height
-      };
-    }
-
-    // cool.  now let's persist the initial data.  This data will be published
-    // as soon as the first session_context completes for the next dialog
-    // session.  Use a push because old data *may not* have been correctly
-    // published to a down server or erroring web service.
+    // Make a new KPI blob and persist it.
+    //
+    // This data will be published as soon as the first session_context
+    // completes for the next dialog session.  Use a push because old data
+    // *may not* have been correctly published to a down server or erroring
+    // web service.
+    var currentData = {event_stream: self.initialEventStream};
+    attachContextData(currentData);
     storage.push(currentData);
 
-    self.initialEventStream = null;
+    self.initialEventStream = [];
 
     self.samplesBeingStored = true;
   }
@@ -120,14 +127,22 @@ BrowserID.Modules.InteractionData = (function() {
 
 
   function addEvent(eventName) {
-    var self=this;
-
     if (self.samplingEnabled === false) return;
 
     var eventData = [ eventName, new Date() - self.startTime ];
     if (self.samplesBeingStored) {
       var d = storage.current() || {};
-      if (!d.event_stream) d.event_stream = [];
+
+      // If this is a new event stream, persist the KPI blob and its 
+      // event stream.
+      //
+      // This data will be published as soon as the first session_context
+      // completes for the next dialog session.
+      if (!d.event_stream) { 
+        d.event_stream = [];
+        attachContextData(d);
+      }
+
       d.event_stream.push(eventData);
       storage.setCurrent(d);
     } else {
@@ -138,8 +153,6 @@ BrowserID.Modules.InteractionData = (function() {
   var Module = bid.Modules.PageModule.extend({
     start: function(options) {
       options = options || {};
-
-      var self = this;
 
       // options.samplingEnabled is used for testing purposes.
       //
