@@ -1,0 +1,26 @@
+<% /* This Source Code Form is subject to the terms of the Mozilla Public
+      License, v. 2.0. If a copy of the MPL was not distributed with this
+      file, You can obtain one at http://mozilla.org/MPL/2.0/. */ %>
+
+<!-- Because name and logoURL come from user content, they cannot fully be trusted.
+   To avoid even the remote possibility of an XSS attack, we write the src and rp_name
+   using Javascript methods so that adding DOM Event handlers is mitigated.
+-->
+
+<% if(hasLogo) { %>
+  <img id="rp_logo" src="" />
+<% } %>
+
+
+<% if(hasName) { %>
+  <h2 id="rp_name"></h2>
+<% } %>
+
+<% if(hasHostname) { %>
+  <% if(hasName) { %>
+    <h3 id="rp_hostname"></h3>
+  <% } else { %>
+    <h2 id="rp_hostname"></h2>
+  <% } %>
+<% } %>
+

@@ -9,7 +9,8 @@ BrowserID.Mocks.WindowMock = (function() {
   function DocumentMock() {
     this.location = {
       href: document.location.href,
-      hash: document.location.hash
+      hash: document.location.hash,
+      protocol: document.location.protocol
     };
   }
 
