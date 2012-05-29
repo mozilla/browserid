@@ -47,7 +47,6 @@ function makeBatch(site, user) {
         pass: user.password,
       }),
       "is 200 OK": function(err, r) {
-        if (err) console.log(err);
         assert.strictEqual(r.code, 200);
       },
       "and a token": {
