@@ -7,14 +7,14 @@
 	<head>
     <meta charset="utf-8">
 		<link rel="stylesheet" type="text/css" href="qunit/qunit.css" />
-		<title>BrowserID QUnit Test</title>
+		<title>Persona QUnit Test</title>
   <!--[if lt IE 9]>
     <script src="/lib/html5shim.js"></script>
   <![endif]-->
 	</head>
 	<body>
 
-		<h1 id="qunit-header">BrowserID Test Suite</h1>
+		<h1 id="qunit-header">Persona Test Suite</h1>
 		<h2 id="qunit-banner"></h2>
 		<div id="qunit-testrunner-toolbar"></div>
 		<h2 id="qunit-userAgent"></h2>
@@ -64,7 +64,7 @@
     <script src="qunit/qunit.js"></script>
     <script src="/include.js"></script>
     <script src="/lib/jquery-1.7.1.min.js"></script>
-    <script src="/lib/underscore-min.js"></script>
+    <script src="/lib/underscore.js"></script>
     <script src="/lib/ejs.js"></script>
     <script src="/i18n/en_US/client.json"></script>
     <script src="/shared/javascript-extensions.js"></script>
@@ -76,6 +76,7 @@
     <script src="/lib/hub.js"></script>
     <script src="/lib/module.js"></script>
     <script src="/lib/jschannel.js"></script>
+    <script src="/lib/urlparse.js"></script>
     <script src="mocks/mocks.js"></script>
     <script src="mocks/xhr.js"></script>
     <script src="mocks/templates.js"></script>
@@ -103,6 +104,9 @@
     <script src="/shared/command.js"></script>
     <script src="/shared/history.js"></script>
     <script src="/shared/state_machine.js"></script>
+
+    <script src="/shared/models/models.js"></script>
+    <script src="/shared/models/interaction_data.js"></script>
 
     <script src="/shared/modules/page_module.js"></script>
     <script src="/shared/modules/xhr_delay.js"></script>
@@ -154,6 +158,8 @@
     <script src="cases/shared/command.js"></script>
     <script src="cases/shared/history.js"></script>
     <script src="cases/shared/state_machine.js"></script>
+
+    <script src="cases/shared/models/interaction_data.js"></script>
 
     <script src="cases/shared/modules/page_module.js"></script>
     <script src="cases/shared/modules/xhr_delay.js"></script>

@@ -24,11 +24,48 @@
 
 BrowserID.Modules.InteractionData = (function() {
   var bid = BrowserID,
-      storage = bid.Storage.interactionData,
+      model = bid.Models.InteractionData,
       network = bid.Network,
       complete = bid.Helpers.complete,
       dom = bid.DOM,
       sc;
+
+  /**
+   * This is a translation table from a message on the mediator to a KPI name.
+   * Names can be modified or added to the KPI storage directly.
+   * A name can be translated by using either a string or a function.
+   *
+   * value side contains - purpose
+   * null - no translation, use mediator name for KPI name.
+   * string - translate from mediator name to string.
+   * function - function takes two arguments, msg and data.  These come
+   *   directly from the mediator.  Function returns a value.  If no value is
+   *   returned, field will not be saved to KPI data set.
+   */
+  var MediatorToKPINameTable = {
+    service: function(msg, data) { return "screen." + data.name; },
+    cancel_state: "screen.cancel",
+    primary_user_authenticating: "window.redirect_to_primary",
+    window_unload: "window.unload",
+    generate_assertion: null,
+    assertion_generated: null,
+    emails_displayed: function(msg, data) { return "user.email_count:" + data.count; },
+    user_staged: "user.user_staged",
+    user_confirmed: "user.user_confirmed",
+    email_staged: "user.email_staged",
+    email_confirmed: "user.email_confrimed",
+    notme: "user.logout",
+  };
+
+  function getKPIName(msg, data) {
+    var self=this,
+        kpiInfo = self.mediatorToKPINameTable[msg];
+
+    var type = typeof kpiInfo;
+    if(kpiInfo === null) return msg;
+    if(type === "string") return kpiInfo;
+    if(type === "function") return kpiInfo(msg, data);
+  }
 
   function onSessionContext(msg, result) {
     var self=this;
@@ -41,7 +78,9 @@ BrowserID.Modules.InteractionData = (function() {
     // session data must be published independently of whether the current
     // dialog session is allowed to sample data. This is because the original
     // dialog session has already decided whether to collect data.
-    publishStored();
+
+    model.stageCurrent();
+    publishStored.call(self);
 
     // set the sample rate as defined by the server.  It's a value
     // between 0..1, integer or float, and it specifies the percentage
@@ -78,60 +117,63 @@ BrowserID.Modules.InteractionData = (function() {
     // as soon as the first session_context completes for the next dialog
     // session.  Use a push because old data *may not* have been correctly
     // published to a down server or erroring web service.
-    storage.push(currentData);
+    model.push(currentData);
 
     self.initialEventStream = null;
 
     self.samplesBeingStored = true;
   }
 
-  // At every load, after session_context returns, we'll try to publish
-  // past interaction data to the server if it exists.  The psuedo
-  // transactional model employed here is to attempt to post, and only
-  // once we receive a server response do we purge data.  We don't
-  // care if the post is a success or failure as this data is not
-  // critical to the functioning of the system (and some failure scenarios
-  // simply won't resolve with retries - like corrupt data, or too much
-  // data)
+  // At every load, after session_context returns, try to publish the previous
+  // data.  We have to wait until session_context completes so that we have
+  // a csrf token to send.
   function publishStored(oncomplete) {
-    var data = storage.get();
+    var self=this;
 
-    // XXX: should we even try to post data if it's larger than some reasonable
-    // threshold?
-    if (data && data.length !== 0) {
-      network.sendInteractionData(data, function() {
-        storage.clear();
-        complete(oncomplete, true);
-      }, function(status) {
-        // if the server returns a 413 error, (too much data posted), then
-        // let's clear our local storage and move on.  This does mean we
-        // loose some interaction data, but it shouldn't be statistically
-        // significant.
-        if (status && status.network && status.network.status === 413) {
-          storage.clear();
-        }
-        complete(oncomplete, false);
-      });
-    }
-    else {
-      complete(oncomplete, false);
-    }
+    model.publishStaged(function(status) {
+      var msg = status ? "interaction_data_send_complete" : "interaction_data_send_error";
+      self.publish(msg);
+      complete(oncomplete, status);
+    });
   }
 
 
-  function addEvent(eventName) {
+  function addEvent(msg, data) {
     var self=this;
-
     if (self.samplingEnabled === false) return;
+
+    var eventName = getKPIName.call(self, msg, data);
+    if (!eventName) return;
 
     var eventData = [ eventName, new Date() - self.startTime ];
     if (self.samplesBeingStored) {
-      var d = storage.current() || {};
+      var d = model.getCurrent() || {};
       if (!d.event_stream) d.event_stream = [];
       d.event_stream.push(eventData);
-      storage.setCurrent(d);
+      model.setCurrent(d);
     } else {
       self.initialEventStream.push(eventData);
+    }
+  }
+
+  function getCurrent() {
+    var self=this;
+    if(self.samplingEnabled === false) return;
+
+    if (self.samplesBeingStored) {
+      return model.getCurrent();
+    }
+  }
+
+  function getCurrentEventStream() {
+    var self=this;
+    if(self.samplingEnabled === false) return;
+
+    if (self.samplesBeingStored) {
+      return model.getCurrent().event_stream;
+    }
+    else {
+      return self.initialEventStream;
     }
   }
 
@@ -140,6 +182,7 @@ BrowserID.Modules.InteractionData = (function() {
       options = options || {};
 
       var self = this;
+      self.mediatorToKPINameTable = MediatorToKPINameTable;
 
       // options.samplingEnabled is used for testing purposes.
       //
@@ -147,29 +190,28 @@ BrowserID.Modules.InteractionData = (function() {
       // a continuation, samplingEnabled will be decided on the first "
       // context_info" event, which corresponds to the first time
       // 'session_context' returns from the server.
+      // samplingEnabled flag ignored for a continuation.
       self.samplingEnabled = options.samplingEnabled;
 
       // continuation means the users dialog session is continuing, probably
       // due to a redirect to an IdP and then a return after authentication.
       if (options.continuation) {
-        var previousData = storage.current();
-
-        var samplingEnabled = self.samplingEnabled = !!previousData.event_stream;
-        if (samplingEnabled) {
+        // There will be no current data if the previous session was not
+        // allowed to save.
+        var previousData = model.getCurrent();
+        if (previousData) {
           self.startTime = Date.parse(previousData.local_timestamp);
 
-          if (typeof self.samplingEnabled === "undefined") {
-            self.samplingEnabled = samplingEnabled;
-          }
 
           // instead of waiting for session_context to start appending data to
           // localStorage, start saving into localStorage now.
-          self.samplesBeingStored = true;
+          self.samplingEnabled = self.samplesBeingStored = true;
         }
         else {
-          // If there was no previous event stream, that means data collection
+          // If there was no previous data, that means data collection
           // was not allowed for the previous session.  Return with no further
           // action, data collection is not allowed for this session either.
+          self.samplingEnabled = false;
           return;
         }
       }
@@ -179,7 +221,7 @@ BrowserID.Modules.InteractionData = (function() {
         // The initialEventStream is used to store events until onSessionContext
         // is called.  Once onSessionContext is called and it is known whether
         // the user's data will be saved, initialEventStream will either be
-        // discarded or added to the data set that is saved to localStorage.
+        // discarded or added to the data set that is saved to localmodel.
         self.initialEventStream = [];
         self.samplesBeingStored = false;
 
@@ -194,17 +236,16 @@ BrowserID.Modules.InteractionData = (function() {
     },
 
     addEvent: addEvent,
-
-    getCurrentStoredData: function() {
-      var und;
-      return this.samplesBeingStored ? storage.current() : und;
-    },
-
-    getEventStream: function() {
-      return this.samplesBeingStored ? storage.current().event_stream : this.initialEventStream || [];
-    },
-
+    getCurrent: getCurrent,
+    getCurrentEventStream: getCurrentEventStream,
     publishStored: publishStored
+
+    // BEGIN TEST API
+    ,
+    setNameTable: function(table) {
+      this.mediatorToKPINameTable = table;
+    }
+    // END TEST API
   });
 
   sc = Module.sc;

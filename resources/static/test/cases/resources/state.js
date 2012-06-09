@@ -87,10 +87,23 @@
     equal(error, "start: controller must be specified", "creating a state machine without a controller fails");
   });
 
-  test("new_user - call doSetPassword with correct email", function() {
+  test("new_user - call doSetPassword with correct email, cancelable set to true", function() {
     mediator.publish("new_user", { email: TEST_EMAIL });
 
-    equal(actions.info.doSetPassword.email, TEST_EMAIL, "correct email sent to doSetPassword");
+    testHelpers.testObjectValuesEqual(actions.info.doSetPassword, {
+      email: TEST_EMAIL,
+      cancelable: true
+    });
+  });
+
+  test("new_user with requiredEmail - call doSetPassword with correct email, cancelable set to false", function() {
+    mediator.publish("start", { requiredEmail: TEST_EMAIL });
+    mediator.publish("new_user", { email: TEST_EMAIL });
+
+    testHelpers.testObjectValuesEqual(actions.info.doSetPassword, {
+      email: TEST_EMAIL,
+      cancelable: false
+    });
   });
 
   test("cancel new user password_set flow - go back to the authentication screen", function() {
@@ -110,7 +123,7 @@
   });
 
   test("password_set for add secondary email - call doStageEmail with correct email", function() {
-    mediator.publish("add_email_submit_with_secondary", { email: TEST_EMAIL });
+    mediator.publish("stage_email", { email: TEST_EMAIL });
     mediator.publish("password_set");
 
     equal(actions.info.doStageEmail.email, TEST_EMAIL, "correct email sent to doStageEmail");
@@ -390,28 +403,6 @@
     equal(actions.called.doCheckAuth, true, "checking auth on start");
   });
 
-  test("start with invalid requiredEmail - print error screen", function() {
-    mediator.publish("start", {
-      requiredEmail: "bademail"
-    });
-
-    equal(actions.called.doError, true, "error screen is shown");
-  });
-
-  test("start with empty requiredEmail - prints error screen", function() {
-    mediator.publish("start", {
-      requiredEmail: ""
-    });
-
-    equal(actions.called.doError, true, "error screen is shown");
-  });
-
-  test("start with valid requiredEmail - go to doCheckAuth", function() {
-    mediator.publish("start", { requiredEmail: TEST_EMAIL });
-
-    equal(actions.called.doCheckAuth, true, "checking auth on start");
-  });
-
   asyncTest("start to complete successful primary email verification - goto 'primary_user'", function() {
     mediator.subscribe("primary_user", function(msg, info) {
       equal(info.email, TEST_EMAIL, "correct email given");
@@ -500,34 +491,46 @@
   });
 
   test("add_email - call doAddEmail", function() {
-    mediator.publish("add_email", {
+    mediator.publish("add_email");
+
+    equal(actions.called.doAddEmail, true, "doAddEmail called");
+  });
+
+  asyncTest("stage_email - first secondary email - call doSetPassword with cancelable=true", function() {
+    mediator.publish("stage_email", {
       complete: function() {
-        equal(actions.called.doAddEmail, true, "doAddEmail called");
+        testHelpers.testObjectValuesEqual(actions.info.doSetPassword, {
+          cancelable: true
+        });
         start();
       }
     });
   });
 
-  test("add_email_submit_with_secondary - first secondary email - call doSetPassword", function() {
-    mediator.publish("add_email", {
-      complete: function() {
-        equal(actions.called.doSetPassword, true, "doSetPassword called");
-        start();
-      }
-    });
-  });
 
-
-  test("add_email_submit_with_secondary - second secondary email - call doStageEmail", function() {
+  asyncTest("stage_email - second secondary email - call doStageEmail", function() {
     storage.addSecondaryEmail("testuser@testuser.com");
 
-    mediator.publish("add_email", {
+    mediator.publish("stage_email", {
       complete: function() {
         equal(actions.called.doStageEmail, true, "doStageEmail called");
         start();
       }
     });
   });
+
+  asyncTest("stage_email first secondary requiredEmail - call doSetPassword with cancelable=false", function() {
+    mediator.publish("start", { requiredEmail: TEST_EMAIL });
+    mediator.publish("stage_email", {
+      complete: function() {
+        testHelpers.testObjectValuesEqual(actions.info.doSetPassword, {
+          cancelable: false
+        });
+        start();
+      }
+    });
+  });
+
 
 
 }());

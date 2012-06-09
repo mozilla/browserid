@@ -15,8 +15,10 @@ BrowserID.verifySecondaryAddress = (function() {
       helpers = bid.Helpers,
       complete = helpers.complete,
       validation = bid.Validation,
+      tooltip = bid.Tooltip,
       token,
       sc,
+      needsPassword,
       mustAuth,
       verifyFunction;
 
@@ -36,7 +38,11 @@ BrowserID.verifySecondaryAddress = (function() {
 
   function submit(oncomplete) {
     var pass = dom.getInner("#password") || undefined,
-        valid = !mustAuth || validation.password(pass);
+        vpass = dom.getInner("#vpassword") || undefined,
+        valid = (!needsPassword ||
+                    validation.passwordAndValidationPassword(pass, vpass))
+             && (!mustAuth ||
+                    validation.password(pass));
 
     if (valid) {
       user[verifyFunction](token, pass, function(info) {
@@ -44,7 +50,15 @@ BrowserID.verifySecondaryAddress = (function() {
 
         var selector = info.valid ? "#congrats" : "#cannotcomplete";
         pageHelpers.replaceFormWithNotice(selector, complete.curry(oncomplete, info.valid));
-      }, pageHelpers.getFailure(errors.verifyEmail, oncomplete));
+      }, function(info) {
+        if (info.network && info.network.status === 401) {
+          tooltip.showTooltip("#cannot_authenticate");
+          complete(oncomplete, false);
+        }
+        else {
+          pageHelpers.showFailure(errors.verifyEmail, info, oncomplete);
+        }
+      });
     }
     else {
       complete(oncomplete, false);
@@ -56,13 +70,25 @@ BrowserID.verifySecondaryAddress = (function() {
       if(info) {
         showRegistrationInfo(info);
 
+        needsPassword = info.needs_password;
         mustAuth = info.must_auth;
 
-        if (mustAuth) {
+        if (needsPassword) {
+          // This is a fix for legacy users who started the user creation
+          // process without setting their password in the dialog.  If the user
+          // needs a password, they must set it now.  Once all legacy users are
+          // verified or their links invalidated, this flow can be removed.
+          dom.addClass("body", "enter_password");
+          dom.addClass("body", "enter_verify_password");
+          complete(oncomplete, true);
+        }
+        else if (mustAuth) {
+          // These are users who have set their passwords inside of the dialog.
           dom.addClass("body", "enter_password");
           complete(oncomplete, true);
         }
         else {
+          // These are users who do not have to set their passwords at all.
           submit(oncomplete);
         }
       }

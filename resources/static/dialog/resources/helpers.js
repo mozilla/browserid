@@ -15,12 +15,19 @@
 
   function animateClose(callback) {
     var body = $("body"),
-        doAnimation = $("#signIn").length && body.innerWidth() > 640;
+        bodyWidth = body.innerWidth(),
+        doAnimation = $("#signIn").length && bodyWidth > 640;
 
     if (doAnimation) {
-      $("#signIn").animate({"width" : "95%"}, 750, function () {
-         body.delay(500).animate({ "opacity" : "0.5"}, 500);
-      });
+      var endWidth = bodyWidth - 10;
+
+      body.addClass("completing");
+      /**
+       * CSS transitions are used to do the slide effect.  jQuery has a bug
+       * where it does not do transitions correctly if the box-sizing is set to
+       * border-box and the element has a padding
+       */
+      $("#signIn").css("width", endWidth + "px");
 
       // Call setTimeout here because on Android default browser, sometimes the
       // callback is not correctly called, it seems as if jQuery does not know
@@ -104,19 +111,19 @@
           complete(callback, true);
         }
         else {
-          self.publish("add_email_submit_with_secondary", { email: email });
+          self.publish("stage_email", { email: email });
           complete(callback, true);
         }
       }, self.getErrorDialog(errors.addressInfo, callback));
     }
   }
 
-  function addSecondaryEmailWithPassword(email, password, callback) {
+  function addSecondaryEmail(email, password, callback) {
     var self=this;
 
     user.addEmail(email, password, function(added) {
       if (added) {
-        var info = { email: email };
+        var info = { email: email, password: password };
         self.publish("email_staged", info, info );
       }
       else {
@@ -133,7 +140,7 @@
     authenticateUser: authenticateUser,
     createUser: createUser,
     addEmail: addEmail,
-    addSecondaryEmailWithPassword: addSecondaryEmailWithPassword,
+    addSecondaryEmail: addSecondaryEmail,
     resetPassword: resetPassword,
     cancelEvent: helpers.cancelEvent,
     animateClose: animateClose

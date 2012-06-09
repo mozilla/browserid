@@ -127,6 +127,10 @@ BrowserID.TestHelpers = (function() {
       equal(TestHelpers.errorVisible(), true, "error screen is visible");
     },
 
+    testErrorNotVisible: function() {
+      equal(TestHelpers.errorVisible(), false, "error screen is not visible");
+    },
+
     waitVisible: function() {
       return screens.wait.visible;
     },
@@ -181,7 +185,7 @@ BrowserID.TestHelpers = (function() {
         start();
       });
 
-      if(transport.resultType === "valid") {
+      if(transport.responseName === "valid") {
         transport.useResult("ajaxError");
       }
 
@@ -200,6 +204,11 @@ BrowserID.TestHelpers = (function() {
     },
 
     testKeysInObject: function(objToTest, expected, msg) {
+      if (!objToTest) {
+        ok(false, "Missing object to test against");
+        return;
+      }
+
       for(var i=0, key; key=expected[i]; ++i) {
         ok(key in objToTest, msg || ("object contains " + key));
       }
@@ -207,7 +216,7 @@ BrowserID.TestHelpers = (function() {
 
     testObjectValuesEqual: function(objToTest, expected, msg) {
       for(var key in expected) {
-        equal(objToTest[key], expected[key], key + " set to: " + expected[key] + (msg ? " - " + msg : ""));
+        deepEqual(objToTest[key], expected[key], key + " set to: " + expected[key] + (msg ? " - " + msg : ""));
       }
     },
 
