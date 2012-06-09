@@ -518,9 +518,9 @@ BrowserID.Network = (function() {
      * @param {string} email - Email address to check.
      * @param {function} [onComplete] - Called with an object on success,
      *   containing these properties:
-     *     type: <secondary|primaryj|proxyidp>
+     *     type: <secondary|primary|proxyidp>
      *     known: boolean, present - present if type is secondary
-     *     auth: string - url to send users for auth - present if type is primary (or proxyidp ??? AOK)
+     *     auth: string - url to send users for auth
      *     prov: string - url to embed for silent provisioning
      * @param {function} [onFailure] - Called on XHR failure.
      */
