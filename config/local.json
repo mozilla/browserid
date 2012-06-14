@@ -12,6 +12,10 @@
   "express_log_format": "dev_bid",
   "email_to_console": true,
   "kpi_backend_sample_rate": 1.0,
-  "bigtent_domains": ["gmail.com", "yahoo.com", "hotmail.com"],
+  "bigtent": {
+    "gmail.com":   "https://dev.bigtent.mozilla.org",
+    "yahoo.com":   "https://dev.bigtent.mozilla.org",
+    "hotmail.com": "https://dev.bigtent.mozilla.org"
+  },
   "env": "local"
 }
