@@ -13,12 +13,7 @@ BrowserID.State = (function() {
       helpers = bid.Helpers,
       user = bid.User,
       moduleManager = bid.module,
-      complete = bid.Helpers.complete,
-      controller,
-      addPrimaryUser = false,
-      email,
-      requiredEmail,
-      primaryVerificationInfo;
+      complete = bid.Helpers.complete;
 
   function startStateMachine() {
     var self = this,
