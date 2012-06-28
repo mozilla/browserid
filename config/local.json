@@ -17,5 +17,5 @@
     "yahoo.com":   "https://dev.bigtent.mozilla.org",
     "hotmail.com": "https://dev.bigtent.mozilla.org"
   },
-  "env": "local"
+  "enable_development_menu": true
 }

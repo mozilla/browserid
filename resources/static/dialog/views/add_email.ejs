@@ -8,8 +8,8 @@
 
       <ul class="inputs">
           <li>
-              <label for="newEmail" class="serif"><%= gettext('New email address') %></label>
-              <input id="newEmail" name="newEmail" type="email" class="sans" autocapitalize="off" autocorrect="off" maxlength="254" <% if (typeof email !== "undefined") { %> value="<%= email %>" <% } %>/>
+              <label for="newEmail"><%= gettext('New email address') %></label>
+              <input id="newEmail" name="newEmail" type="email" autocapitalize="off" autocorrect="off" maxlength="254" <% if (typeof email !== "undefined") { %> value="<%= email %>" <% } %>/>
 
               <div id="email_format" class="tooltip" for="newEmail">
                 <%= gettext('This field must be an email address.') %>
@@ -26,6 +26,10 @@
               <div id="already_own_address" class="tooltip" for="newEmail">
                 <%= gettext('That address is already added to your account!') %>
               </div>
+          </li>
+
+          <li id="hint_section" class="addressInfo">
+              <%= gettext("Please hold on while we get information about your email provider.") %>
           </li>
       </ul>
 

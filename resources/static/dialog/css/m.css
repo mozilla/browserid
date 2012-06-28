@@ -2,6 +2,9 @@
  * License, v. 2.0. If a copy of the MPL was not distributed with this
  * file, You can obtain one at http://mozilla.org/MPL/2.0/. */
 
+/* If the max-width changes, the size given in screen_size_hacks.js must be
+ * updated as well.
+ */
 @media screen and (max-width: 640px) {
 
   header, footer {
@@ -157,14 +160,6 @@
   .submit #cancel, #signIn .submit #cancel {
     font-size: 18px;
     line-height: 40px;
-  }
-
-  #error {
-    position: static;
-  }
-
-  #error .vertical, #delay .vertical, #wait .vertical {
-    height: 250px;
   }
 
   #error .vertical {

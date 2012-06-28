@@ -188,11 +188,13 @@
     mediator.publish("primary_user", { email: TEST_EMAIL });
   });
 
-  test("primary_user with unprovisioned user - call doProvisionPrimaryUser", function() {
-    mediator.publish("primary_user", { email: TEST_EMAIL });
-    testActionCalled("doProvisionPrimaryUser", {
-       email: TEST_EMAIL
+  asyncTest("primary_user with unprovisioned, unregistered primary user - trigger kpi_data, call doProvisionPrimaryUser", function() {
+    mediator.subscribe("kpi_data", function(msg, data) {
+      equal(data.new_account, true, "new_account kpi added for new primary user");
+      ok(actions.called.doProvisionPrimaryUser, "doPrimaryUserProvisioned called");
+      start();
     });
+    mediator.publish("primary_user", { email: "unregistered@testuser.com" });
   });
 
   test("primary_user_provisioned - call doEmailChosen", function() {
@@ -529,6 +531,17 @@
         start();
       }
     });
+  });
+
+  asyncTest("window_unload - set the final KPIs", function() {
+    mediator.subscribe("kpi_data", function(msg, data) {
+      testHelpers.testKeysInObject(data, [
+        'number_emails', 'sites_signed_in', 'sites_visited', 'orphaned'
+      ]);
+      start();
+    });
+
+    mediator.publish("window_unload");
   });
 
 

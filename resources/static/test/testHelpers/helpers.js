@@ -204,10 +204,8 @@ BrowserID.TestHelpers = (function() {
     },
 
     testKeysInObject: function(objToTest, expected, msg) {
-      if (!objToTest) {
-        ok(false, "Missing object to test against");
-        return;
-      }
+      if (!objToTest) ok(false, "missing objToTest");
+      if (!expected) ok(false, "missing objToTest");
 
       for(var i=0, key; key=expected[i]; ++i) {
         ok(key in objToTest, msg || ("object contains " + key));
@@ -215,14 +213,16 @@ BrowserID.TestHelpers = (function() {
     },
 
     testObjectValuesEqual: function(objToTest, expected, msg) {
+      if (!objToTest) ok(false, "missing objToTest");
+      if (!expected) ok(false, "missing objToTest");
+
       for(var key in expected) {
         deepEqual(objToTest[key], expected[key], key + " set to: " + expected[key] + (msg ? " - " + msg : ""));
       }
     },
 
     testHasClass: function(selector, className, msg) {
-      ok($(selector).hasClass(className),
-          selector + " has className " + className + " - " + msg);
+      ok($(selector).hasClass(className), msg || selector + " has className: " + className);
     },
 
     testUndefined: function(toTest, msg) {
@@ -231,6 +231,10 @@ BrowserID.TestHelpers = (function() {
 
     testNotUndefined: function(toTest, msg) {
       notEqual(typeof toTest, "undefined", msg || "object is defined");
+    },
+
+    testVisible: function(selector, msg) {
+      ok($(selector).is(":visible"), msg || selector + " should be visible");
     }
 
   };
