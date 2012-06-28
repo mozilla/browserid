@@ -1,10 +1,12 @@
-/*jshint browsers:true, forin: true, laxbreak: true */
+/*jshint browser:true, forin: true, laxbreak: true */
 /*global start: true, stop: true, module: true, ok: true, equal: true, BrowserID: true */
 /* This Source Code Form is subject to the terms of the Mozilla Public
  * License, v. 2.0. If a copy of the MPL was not distributed with this
  * file, You can obtain one at http://mozilla.org/MPL/2.0/. */
 
 BrowserID.Mocks.xhr = (function() {
+  "use strict";
+
   var delay = 0,
       contextInfo = {
       server_time: new Date().getTime(),
@@ -17,7 +19,13 @@ BrowserID.Mocks.xhr = (function() {
       data_sample_rate: 1
     },
     AUTH_URL = "https://auth_url",
-    PROV_URL = "https://prov_url";
+    PROV_URL = "https://prov_url",
+    PROXY_AUTH_URL = "https://bigtent.mozilla.org/auth",
+    PROXY_PROV_URL = "https://bigtent.mozilla.org/prov",
+    DEV_PROXY_AUTH_URL = "https://dev.bigtent.mozilla.org/auth",
+    DEV_PROXY_PROV_URL = "https://dev.bigtent.mozilla.org/prov",
+    INVALID_PROXY_AUTH_URL = "https://devbigtent.mozilla.org/auth",
+    CHEATING_PROXY_AUTH_URL = "https://auth.org/bigtent.mozilla.org/auth";
 
   // this cert is meaningless, but it has the right format
   var random_cert = "eyJhbGciOiJSUzEyOCJ9.eyJpc3MiOiJpc3N1ZXIuY29tIiwiZXhwIjoxMzE2Njk1MzY3NzA3LCJwdWJsaWMta2V5Ijp7ImFsZ29yaXRobSI6IlJTIiwibiI6IjU2MDYzMDI4MDcwNDMyOTgyMzIyMDg3NDE4MTc2ODc2NzQ4MDcyMDM1NDgyODk4MzM0ODExMzY4NDA4NTI1NTk2MTk4MjUyNTE5MjY3MTA4MTMyNjA0MTk4MDA0NzkyODQ5MDc3ODY4OTUxOTA2MTcwODEyNTQwNzEzOTgyOTU0NjUzODEwNTM5OTQ5Mzg0NzEyNzczMzkwMjAwNzkxOTQ5NTY1OTAzNDM5NTIxNDI0OTA5NTc2ODMyNDE4ODkwODE5MjA0MzU0NzI5MjE3MjA3MzYwMTA1OTA2MDM5MDIzMjk5NTYxMzc0MDk4OTQyNzg5OTk2NzgwMTAyMDczMDcxNzYwODUyODQxMDY4OTg5ODYwNDAzNDMxNzM3NDgwMTgyNzI1ODUzODk5NzMzNzA2MDY5IiwiZSI6IjY1NTM3In0sInByaW5jaXBhbCI6eyJlbWFpbCI6InRlc3R1c2VyQHRlc3R1c2VyLmNvbSJ9fQ.aVIO470S_DkcaddQgFUXciGwq2F_MTdYOJtVnEYShni7I6mqBwK3fkdWShPEgLFWUSlVUtcy61FkDnq2G-6ikSx1fUZY7iBeSCOKYlh6Kj9v43JX-uhctRSB2pI17g09EUtvmb845EHUJuoowdBLmLa4DSTdZE-h4xUQ9MsY7Ik";
@@ -121,18 +129,19 @@ BrowserID.Mocks.xhr = (function() {
       "get /wsapi/address_info?email=registered%40testuser.com known_secondary": { type: "secondary", known: true },
       "get /wsapi/address_info?email=registered%40testuser.com primary": { type: "primary", auth: AUTH_URL, prov: PROV_URL },
       "get /wsapi/address_info?email=unregistered%40testuser.com primary": { type: "primary", auth: AUTH_URL, prov: PROV_URL },
-      "get /wsapi/address_info?email=registered%40testuser.com proxyidp": { type: "proxyidp", auth: AUTH_URL, prov: PROV_URL },
-      "get /wsapi/address_info?email=unregistered%40testuser.com proxyidp": { type: "proxyidp", auth: AUTH_URL, prov: PROV_URL },
+      "get /wsapi/address_info?email=registered%40testuser.com proxyidp": { type: "primary", auth: PROXY_AUTH_URL, prov: PROXY_PROV_URL },
+      "get /wsapi/address_info?email=registered%40testuser.com devproxyidp": { type: "primary", auth: DEV_PROXY_AUTH_URL, prov: DEV_PROXY_PROV_URL },
+      "get /wsapi/address_info?email=registered%40testuser.com invalidproxyidp": { type: "primary", auth: INVALID_PROXY_AUTH_URL, prov: PROXY_PROV_URL },
+      "get /wsapi/address_info?email=registered%40testuser.com cheatproxyidp": { type: "primary", auth: CHEATING_PROXY_AUTH_URL, prov: PROXY_PROV_URL },
+      "get /wsapi/address_info?email=registered%40gmail.com proxyidp": { type: "primary", auth: PROXY_AUTH_URL, prov: PROXY_PROV_URL },
+      "get /wsapi/address_info?email=registered%40hotmail.com proxyidp": { type: "primary", auth: PROXY_AUTH_URL, prov: PROXY_PROV_URL },
+      "get /wsapi/address_info?email=registered%40yahoo.com proxyidp": { type: "primary", auth: PROXY_AUTH_URL, prov: PROXY_PROV_URL },
       "get /wsapi/address_info?email=testuser%40testuser.com unknown_secondary": { type: "secondary", known: false },
       "get /wsapi/address_info?email=testuser%40testuser.com known_secondary": { type: "secondary", known: true },
       "get /wsapi/address_info?email=registered%40testuser.com mustAuth": { type: "secondary", known: true },
       "get /wsapi/address_info?email=testuser%40testuser.com primary": { type: "primary", auth: AUTH_URL, prov: PROV_URL },
-      "get /wsapi/address_info?email=testuser%40testuser.com proxyidp": { type: "proxyidp", auth: AUTH_URL, prov: PROV_URL },
       "get /wsapi/address_info?email=testuser%40testuser.com ajaxError": undefined,
       "get /wsapi/address_info?email=testuser%40gmail.com primary": { type: "primary", auth: AUTH_URL, prov: PROV_URL },
-      "get /wsapi/address_info?email=testuser%40gmail.com proxyidp": { type: "proxyidp", auth: AUTH_URL, prov: PROV_URL },
-      "get /wsapi/address_info?email=testuser%40yahoo.com proxyidp": { type: "proxyidp", auth: AUTH_URL, prov: PROV_URL },
-      "get /wsapi/address_info?email=testuser%40hotmail.com proxyidp": { type: "proxyidp", auth: AUTH_URL, prov: PROV_URL },
       "post /wsapi/add_email_with_assertion invalid": { success: false },
       "post /wsapi/add_email_with_assertion valid": { success: true },
       "post /wsapi/prolong_session valid": { success: true },

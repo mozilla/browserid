@@ -513,12 +513,12 @@ BrowserID.Network = (function() {
 
     /**
      * Get information about an email address.  Who vouches for it?
-     * (is it a primary, proxyidp or a secondary)
+     * (is it a primary or a secondary)
      * @method addressInfo
      * @param {string} email - Email address to check.
      * @param {function} [onComplete] - Called with an object on success,
      *   containing these properties:
-     *     type: <secondary|primary|proxyidp>
+     *     type: <secondary|primary>
      *     known: boolean, present - present if type is secondary
      *     auth: string - url to send users for auth
      *     prov: string - url to embed for silent provisioning

@@ -160,21 +160,6 @@
     controller.checkEmail();
   });
 
-  asyncTest("checkEmail with email that has proxy IdP support, expect 'primary_user' message", function() {
-    $("#email").val("unregistered@testuser.com");
-    xhr.useResult("proxyidp");
-
-    register("primary_user", function(msg, info) {
-      equal(info.email, "unregistered@testuser.com", "email correctly passed");
-      equal(info.auth, "https://auth_url", "IdP authentication URL passed");
-      equal(info.prov, "https://prov_url", "IdP provisioning URL passed");
-      equal(info.type, "proxyidp", "correct IdP type set");
-      start();
-    });
-
-    controller.checkEmail();
-  });
-
   function testAuthenticated() {
     register("authenticated", function() {
       ok(true, "user authenticated as expected");

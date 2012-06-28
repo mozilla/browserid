@@ -196,10 +196,6 @@ BrowserID.Modules.Dialog = (function() {
           user.setReturnTo(returnTo);
         }
 
-        // If an address started out as "proxyidp", when the user is returned to
-        // the dialog, the address is treated as a primary email. This is
-        // a simplification because all emails are stored in localStorage as
-        // either primary or secondary.
         if (hash.indexOf("#CREATE_EMAIL=") === 0) {
           var email = hash.replace(/#CREATE_EMAIL=/, "");
           if (!bid.verifyEmail(email))

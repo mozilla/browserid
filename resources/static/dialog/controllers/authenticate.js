@@ -56,7 +56,7 @@ BrowserID.Modules.Authenticate = (function() {
       addressInfo = info;
       dom.removeAttr('#email', 'disabled');
 
-      if(info.IdPEnabled) {
+      if(info.type === "primary") {
         self.close("primary_user", info, info);
       } else if(info.known) {
         enterPasswordState.call(self);

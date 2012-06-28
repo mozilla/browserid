@@ -110,7 +110,7 @@ BrowserID.signUp = (function() {
           else {
             user.addressInfo(email, function(info) {
               dom.removeAttr('#email', 'disabled');
-              if(info.IdPEnabled) {
+              if(info.type === "primary") {
                 createPrimaryUser.call(self, info, oncomplete);
               }
               else {

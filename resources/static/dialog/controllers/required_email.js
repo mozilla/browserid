@@ -140,16 +140,16 @@ BrowserID.Modules.RequiredEmail = (function() {
           // 2) Authenticated user who does not control address.
           // 3) Unauthenticated user.
           user.addressInfo(email, function(info) {
-            if(info.IdPEnabled) primaryInfo = info;
+            if(info.type === "primary") primaryInfo = info;
 
-            if(info.IdPEnabled && info.authed) {
+            if(info.type === "primary" && info.authed) {
               // this is a primary user who is authenticated with their IdP.
               // We know the user has control of this address, give them
               // a chance to hit "sign in" before we kick them off to the
               // primary flow account.
               showTemplate({ signin: true, primary: true });
             }
-            else if(info.IdPEnabled && !info.authed) {
+            else if(info.type === "primary" && !info.authed) {
               // This is a primary user who has control of the address, but
               // whose cert is expired and the user is not authenticated with
               // their IdP.

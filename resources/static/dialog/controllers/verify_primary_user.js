@@ -1,4 +1,4 @@
-/*jshint browser:true, jQuery: true, forin: false, laxbreak:true */
+/*jshint browser:true, jquery: true, forin: false, laxbreak:true */
 /*global _: true, BrowserID: true */
 
 /* This Source Code Form is subject to the terms of the Mozilla Public
@@ -15,11 +15,14 @@ BrowserID.Modules.VerifyPrimaryUser = (function() {
       win,
       add,
       email,
-      auth_url,
+      addressInfo,
       helpers = bid.Helpers,
       complete = helpers.complete,
-      delayScreenTimeout,
-      isProxyIdP;
+      delayScreenTimeout;
+
+  function isProxyIdP(addressInfo) {
+    return addressInfo.proxied;
+  }
 
   // yahoo resizes themselves
   var RESIZE_TABLE = {
@@ -28,7 +31,7 @@ BrowserID.Modules.VerifyPrimaryUser = (function() {
   };
 
   function resizeWindow(email) {
-    for(var key in RESIZE_TABLE) {
+    for (var key in RESIZE_TABLE) {
       var regExp = new RegExp(key);
       if (regExp.test(email)) {
         var dimensions = RESIZE_TABLE[key];
@@ -40,11 +43,12 @@ BrowserID.Modules.VerifyPrimaryUser = (function() {
 
 
   function verify(callback) {
+    /*jshint validthis: true */
     var self = this,
         // replace any hashes that may be there already.
         returnTo = win.document.location.href.replace(/#.*$/, ""),
         type = add ? "ADD_EMAIL" : "CREATE_EMAIL",
-        url = helpers.toURL(auth_url, {
+        url = helpers.toURL(addressInfo.auth, {
           email: email,
           return_to: returnTo + "#" + type + "=" +email
         });
@@ -59,9 +63,9 @@ BrowserID.Modules.VerifyPrimaryUser = (function() {
     // document's location is redirected before the screen is displayed, the
     // user never sees it and it looks pretty ugly.
     setTimeout(function() {
-      // only resize the window if redirecting to a proxyIdP.  All other IdPs
-      // should abide by our rules of 700x400 default.
-      if (isProxyIdP) resizeWindow(email);
+      // only resize the window if redirecting to a Big Tent IdP.  All other
+      // IdPs should abide by our rules of 700x400 default.
+      if (isProxyIdP(addressInfo)) resizeWindow(email);
       win.document.location = url;
 
       complete(callback);
@@ -69,6 +73,7 @@ BrowserID.Modules.VerifyPrimaryUser = (function() {
   }
 
   function cancel(callback) {
+    /*jshint validthis: true */
     this.close("cancel_state");
     complete(callback);
   }
@@ -85,14 +90,13 @@ BrowserID.Modules.VerifyPrimaryUser = (function() {
 
       sc.start.call(self, options);
 
-      user.addressInfo(email, function(addressInfo) {
-        auth_url = addressInfo.auth;
-        isProxyIdP = addressInfo.type === "proxyidp";
+      user.addressInfo(email, function(info) {
+        addressInfo = info;
 
         // immediately call verify if the user is being shuffled off to a proxy
         // idp.  This skips the verification screen that normal IdP users see.
         // Inconsistent - yet.  Perhaps we will change this universally.
-        if (isProxyIdP) {
+        if (isProxyIdP(addressInfo)) {
           verify.call(self, options.ready);
         }
         else {

@@ -1134,7 +1134,6 @@ var jwcrypto = require("./lib/jwcrypto");
       "registered@testuser.com",
       function(info) {
         equal(info.type, "primary", "correct type");
-        equal(info.IdPEnabled, true, "a primary user is IdPEnabled");
         equal(info.email, "registered@testuser.com", "correct email");
         equal(info.authed, true, "user is authenticated with IdP");
         start();
@@ -1149,40 +1148,68 @@ var jwcrypto = require("./lib/jwcrypto");
     lib.addressInfo(
       "registered@testuser.com",
       function(info) {
-        equal(info.type, "primary", "correct type");
-        equal(info.email, "registered@testuser.com", "correct email");
-        equal(info.authed, false, "user is not authenticated with IdP");
+        testHelpers.testObjectValuesEqual(info, {
+          type: "primary",
+          proxied: false,
+          email: "registered@testuser.com",
+          authed: false
+        });
         start();
       },
       testHelpers.unexpectedFailure
     );
   });
 
-  asyncTest("addressInfo with proxy IdP authenticated user", function() {
+  asyncTest("addressInfo with proxied primary user - type set to primary, proxied set to true", function() {
     xhr.useResult("proxyidp");
-    provisioning.setStatus(provisioning.AUTHENTICATED);
-    lib.addressInfo(
-      "registered@testuser.com",
+    lib.addressInfo("registered@testuser.com",
       function(info) {
-        equal(info.type, "proxyidp", "correct type");
-        equal(info.IdPEnabled, true, "a primary user is IdPEnabled");
-        equal(info.email, "registered@testuser.com", "correct email");
-        equal(info.authed, true, "user is authenticated with IdP");
+        testHelpers.testObjectValuesEqual(info, {
+          type: "primary",
+          proxied: true
+        });
         start();
       },
       testHelpers.unexpectedFailure
     );
   });
 
-  asyncTest("addressInfo with proxy IdP unauthenticated user", function() {
-    xhr.useResult("proxyidp");
-    provisioning.setStatus(provisioning.NOT_AUTHENTICATED);
-    lib.addressInfo(
-      "registered@testuser.com",
+  asyncTest("addressInfo with proxied primary user using dev server - type set to primary, proxied set to true", function() {
+    xhr.useResult("devproxyidp");
+    lib.addressInfo("registered@testuser.com",
       function(info) {
-        equal(info.type, "proxyidp", "correct type");
-        equal(info.email, "registered@testuser.com", "correct email");
-        equal(info.authed, false, "user is not authenticated with IdP");
+        testHelpers.testObjectValuesEqual(info, {
+          type: "primary",
+          proxied: true
+        });
+        start();
+      },
+      testHelpers.unexpectedFailure
+    );
+  });
+
+  asyncTest("addressInfo with invalid proxied primary user using dev server - type set to primary, proxied set to false", function() {
+    xhr.useResult("invalidproxyidp");
+    lib.addressInfo("registered@testuser.com",
+      function(info) {
+        testHelpers.testObjectValuesEqual(info, {
+          type: "primary",
+          proxied: false
+        }, "info.auth: " + info.auth);
+        start();
+      },
+      testHelpers.unexpectedFailure
+    );
+  });
+
+  asyncTest("addressInfo with cheating proxied primary user using dev server - type set to primary, proxied set to false", function() {
+    xhr.useResult("cheatproxyidp");
+    lib.addressInfo("registered@testuser.com",
+      function(info) {
+        testHelpers.testObjectValuesEqual(info, {
+          type: "primary",
+          proxied: false
+        }, "info.auth: " + info.auth);
         start();
       },
       testHelpers.unexpectedFailure

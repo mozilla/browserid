@@ -13,6 +13,7 @@
       xhr = bid.Mocks.xhr,
       WindowMock = bid.Mocks.WindowMock,
       AUTH_URL = "https://auth_url",
+      PROXY_AUTH_URL = "https://bigtent.mozilla.org/auth",
       win,
       mediator = bid.Mediator;
 
@@ -143,14 +144,14 @@
     xhr.useResult("proxyidp");
 
     mediator.subscribe("primary_user_authenticating", function(msg, data) {
-      equal(data.url, AUTH_URL + "?email=unregistered%40testuser.com&return_to=sign_in%23CREATE_EMAIL%3Dunregistered%40testuser.com");
+      equal(data.url, PROXY_AUTH_URL + "?email=registered%40testuser.com&return_to=sign_in%23CREATE_EMAIL%3Dregistered%40testuser.com");
     });
 
     createController({
       add: false,
-      email: "unregistered@testuser.com",
+      email: "registered@testuser.com",
       ready: function() {
-        equal(win.document.location, AUTH_URL + "?email=unregistered%40testuser.com&return_to=sign_in%23CREATE_EMAIL%3Dunregistered%40testuser.com", "document.location correctly set");
+        equal(win.document.location, PROXY_AUTH_URL + "?email=registered%40testuser.com&return_to=sign_in%23CREATE_EMAIL%3Dregistered%40testuser.com", "document.location correctly set");
         start();
       }
     });
@@ -176,7 +177,7 @@
 
     createController({
       add: false,
-      email: "testuser@gmail.com",
+      email: "registered@gmail.com",
       ready: function() {
         // Do not need to call submit in this case, it should be done
         // automatically.
@@ -192,7 +193,7 @@
 
     createController({
       add: false,
-      email: "testuser@yahoo.com",
+      email: "registered@yahoo.com",
       ready: function() {
         // Do not need to call submit in this case, it should be done
         // automatically.
@@ -208,7 +209,7 @@
 
     createController({
       add: false,
-      email: "testuser@hotmail.com",
+      email: "registered@hotmail.com",
       ready: function() {
         ok(win.width, "width set");
         ok(win.height, "height set");

@@ -16,7 +16,21 @@ BrowserID.User = (function() {
       addressCache = {},
       primaryAuthCache = {},
       complete = bid.Helpers.complete,
-      registrationComplete = false;
+      registrationComplete = false,
+      PROXY_IDP_WHITELIST = [
+        // allow only bigtent and bigtent subdomains. A way of making
+        // this configurable would be useful so that the list is not hard coded
+        // into the code.  Perhaps something coming across in session_context?
+        /^https:\/\/([^\/]+\.)?bigtent\.mozilla\.org\/*/
+      ];
+
+  function isIdPProxied(addressInfo) {
+    for(var i=0, proxiedRegEx; proxiedRegEx = PROXY_IDP_WHITELIST[i]; ++i) {
+      if (addressInfo.auth.search(proxiedRegEx) > -1) return true;
+    };
+
+    return false;
+  }
 
   function prepareDeps() {
     if (!jwcrypto) {
@@ -784,18 +798,18 @@ BrowserID.User = (function() {
 
     /**
      * Get information about an email address.  Who vouches for it?
-     * (is it a primary, proxyidp or a secondary)
+     * (is it a primary or a secondary)
      * @method addressInfo
      * @param {string} email - Email address to check.
      * @param {function} [onComplete] - Called with an object on success,
      *   containing these properties:
-     *     type: <secondary|primary|proxyidp>
+     *     type: <secondary|primary>
      *     known: boolean, present if type is secondary.  True if email
      *        address is registered with BrowserID.
-     *     authed: boolean, present if type is primary or proxyidp - whether the user
+     *     authed: boolean, present if type is primary - whether the user
      *        is authenticated to the IdP as this user.
      *     auth: string - url to send users for auth - present if type is
-     *        primary or proxyidp.
+     *        primary.
      *     prov: string - url to embed for silent provisioning
      * @param {function} [onFailure] - Called on XHR failure.
      */
@@ -813,11 +827,8 @@ BrowserID.User = (function() {
       else {
         network.addressInfo(email, function(info) {
           info.email = email;
-          // Note - even though addressInfo may return an email of type
-          // primary, proxyidp or secondary, emails are only stored in
-          // localStorage as primary or secondary.  proxyidp is stored as primary.
-          if(info.type === "primary" || info.type === "proxyidp") {
-            info.IdPEnabled = true;
+          if(info.type === "primary") {
+            info.proxied = isIdPProxied(info);
 
             User.isUserAuthenticatedToPrimary(email, info, function(authed) {
               info.authed = authed;

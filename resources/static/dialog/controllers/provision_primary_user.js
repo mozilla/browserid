@@ -56,9 +56,9 @@ BrowserID.Modules.ProvisionPrimaryUser = (function() {
       }
 
       if(!(auth && prov)) {
-        user.addressInfo(email, function(status) {
-          if(status.IdPEnabled) {
-            provisionPrimaryUser.call(self, email, status.auth, status.prov);
+        user.addressInfo(email, function(addressInfo) {
+          if(addressInfo.type === "primary") {
+            provisionPrimaryUser.call(self, email, addressInfo.auth, addressInfo.prov);
           }
           else {
             self.renderError("error", { action: errors.provisioningBadPrimary });
