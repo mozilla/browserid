@@ -69,7 +69,7 @@
     });
   });
 
-  asyncTest("submit with `add: false` option opens a new tab with CREATE_EMAIL URL", function() {
+  asyncTest("submit with `add: false` option opens a new tab with proper URL (updated for sessionStorage)", function() {
     var messageTriggered = false;
     createController({
       add: false,
@@ -83,7 +83,7 @@
         win.document.location.hash = "#NATIVE";
 
         controller.submit(function() {
-          equal(win.document.location, AUTH_URL + "?email=unregistered%40testuser.com&return_to=sign_in%23CREATE_EMAIL%3Dunregistered%40testuser.com");
+          equal(win.document.location, AUTH_URL + "?email=unregistered%40testuser.com");
           equal(messageTriggered, true, "primary_user_authenticating triggered");
           start();
         });
@@ -91,36 +91,18 @@
     });
   });
 
-  asyncTest("submit with `add: true` option opens a new tab with ADD_EMAIL URL", function() {
-    createController({
-      add: true,
-      email: "unregistered@testuser.com"
-    });
-
-    // Also checking to make sure the NATIVE is stripped out.
-    win.document.location.hash = "#NATIVE";
-
-    controller.submit(function() {
-      equal(win.document.location, AUTH_URL + "?email=unregistered%40testuser.com&return_to=sign_in%23ADD_EMAIL%3Dunregistered%40testuser.com");
-      start();
-    });
-  });
-
-  asyncTest("submit with no callback", function() {
+  asyncTest("submit with `add: true` option opens a new tab with proper URL (updated for sessionStorage)", function() {
     createController({
       add: true,
       email: "unregistered@testuser.com",
       ready: function() {
-        var error;
-        try {
-          controller.submit();
-        }
-        catch(e) {
-          error = e;
-        }
+        // Also checking to make sure the NATIVE is stripped out.
+        win.document.location.hash = "#NATIVE";
 
-        equal(typeof error, "undefined", "error is undefined");
-        start();
+        controller.submit(function() {
+          equal(win.document.location, "https://auth_url?email=unregistered%40testuser.com");
+          start();
+        });
       }
     });
   });
@@ -144,14 +126,14 @@
     xhr.useResult("proxyidp");
 
     mediator.subscribe("primary_user_authenticating", function(msg, data) {
-      equal(data.url, PROXY_AUTH_URL + "?email=registered%40testuser.com&return_to=sign_in%23CREATE_EMAIL%3Dregistered%40testuser.com");
+      equal(data.url, PROXY_AUTH_URL + "?email=registered%40testuser.com");
     });
 
     createController({
       add: false,
       email: "registered@testuser.com",
       ready: function() {
-        equal(win.document.location, PROXY_AUTH_URL + "?email=registered%40testuser.com&return_to=sign_in%23CREATE_EMAIL%3Dregistered%40testuser.com", "document.location correctly set");
+        equal(win.document.location, PROXY_AUTH_URL + "?email=registered%40testuser.com", "document.location correctly set");
         start();
       }
     });

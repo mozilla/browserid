@@ -41,17 +41,12 @@ BrowserID.Modules.VerifyPrimaryUser = (function() {
     }
   }
 
-
   function verify(callback) {
     /*jshint validthis: true */
     var self = this,
         // replace any hashes that may be there already.
         returnTo = win.document.location.href.replace(/#.*$/, ""),
-        type = add ? "ADD_EMAIL" : "CREATE_EMAIL",
-        url = helpers.toURL(addressInfo.auth, {
-          email: email,
-          return_to: returnTo + "#" + type + "=" +email
-        });
+        url = helpers.toURL(addressInfo.auth, {email: email});
 
     // primary_user_authenticating must be published before the wait
     // screen is rendered or else the wait screen is taken away when all the
@@ -66,6 +61,15 @@ BrowserID.Modules.VerifyPrimaryUser = (function() {
       // only resize the window if redirecting to a Big Tent IdP.  All other
       // IdPs should abide by our rules of 700x400 default.
       if (isProxyIdP(addressInfo)) resizeWindow(email);
+
+      // Save a bit of state for when the user returns from the IdP
+      // authentication flow.  Used in dialog.js to re-start the dialog at the
+      // correct state.
+      win.sessionStorage.primaryVerificationFlow = JSON.stringify({
+        add: add,
+        email: email
+      });
+
       win.document.location = url;
 
       complete(callback);
