@@ -4,7 +4,9 @@
  * License, v. 2.0. If a copy of the MPL was not distributed with this
  * file, You can obtain one at http://mozilla.org/MPL/2.0/. */
 (function() {
-  var storage = BrowserID.Storage,
+  var bid = BrowserID,
+      storage = bid.Storage,
+      testHelpers = bid.TestHelpers,
       TEST_ORIGIN = "http://test.domain";
 
   module("common/js/storage", {
@@ -16,6 +18,13 @@
       storage.clear();
     }
   });
+
+  function testInvalidatedEmail(address) {
+    var id = storage.getEmail(address);
+    ok(id && !("priv" in id), "private key was removed");
+    ok(id && !("pub" in id), "public key was removed");
+    ok(id && !("cert" in id), "cert was removed");
+  }
 
   test("getEmails, getEmailCount with no emails", function() {
     var emails = storage.getEmails();
@@ -90,10 +99,7 @@
     storage.addEmail("testuser@testuser.com", {priv: "key", pub: "pub", cert: "cert"});
 
     storage.invalidateEmail("testuser@testuser.com");
-    var id = storage.getEmail("testuser@testuser.com");
-    ok(id && !("priv" in id), "private key was removed");
-    ok(id && !("pub" in id), "public key was removed");
-    ok(id && !("cert" in id), "cert was removed");
+    testInvalidatedEmail("testuser@testuser.com");
   });
 
   test("invalidateEmail with invalid email address", function() {
@@ -105,6 +111,20 @@
       error = e;
     }
     equal(error.toString(), "unknown email address", "Invalidating an unknown email address");
+  });
+
+  test("invalidateAllEmails invalidates all available email addresses", function() {
+    var emails = ["testuser@testuser.com", "testuser2@testuser.com"];
+
+    _.each(emails, function(address) {
+      storage.addPrimaryEmail(address, {priv: "key", pub: "pub", cert: "cert"});
+    });
+
+    storage.invalidateAllEmails();
+
+    _.each(emails, function(address) {
+      testInvalidatedEmail(address);
+    });
   });
 
   test("site.set/site.get/site.remove/site.count, happy case", function() {
@@ -183,11 +203,16 @@
 
   test("setLoggedIn, getLoggedIn, loggedInCount", function() {
     var email = "testuser@testuser.com";
+    storage.addSecondaryEmail(email);
     storage.setLoggedIn(TEST_ORIGIN, email);
     equal(storage.getLoggedIn(TEST_ORIGIN), email, "correct email");
 
     storage.setLoggedIn("http://another.domain", email);
     equal(storage.loggedInCount(), 2, "correct logged in count");
+
+    storage.removeEmail(email);
+    equal(storage.loggedInCount(), 0, "after email removed, not logged in anywhere");
+    testHelpers.testUndefined(storage.getLoggedIn(TEST_ORIGIN), "sites with email no longer logged in");
   });
 
 }());

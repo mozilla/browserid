@@ -12,6 +12,7 @@ BrowserID.Modules.Development = (function() {
       renderer = bid.Renderer,
       storage = bid.Storage,
       network = bid.Network,
+      xhr = bid.XHR,
       clickCount = 0;
 
 
@@ -29,6 +30,7 @@ BrowserID.Modules.Development = (function() {
         this.click("#clearLocalStorage", clearLocalStorage);
         this.click("#clearEmailsForSites", clearEmailsForSites);
         this.click("#forceIsThisYourComputer", forceIsThisYourComputer);
+        this.click("#expireSession", expireSession);
         this.click("#closeDevelopment", close);
       }
 
@@ -81,6 +83,12 @@ BrowserID.Modules.Development = (function() {
 
   function forceIsThisYourComputer() {
     storage.usersComputer.forceAsk(network.userid());
+  }
+
+  function expireSession() {
+    xhr.post({
+      url: "/wsapi/logout"
+    });
   }
 
   function close() {
