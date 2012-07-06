@@ -20,7 +20,7 @@ BrowserID.TestHelpers = (function() {
       tooltip = bid.Tooltip,
       registrations = [],
       calls = {},
-      testOrigin = "https://browserid.org";
+      testOrigin = "https://login.persona.org";
 
   function register(message, cb) {
     registrations.push(mediator.subscribe(message, function(msg, info) {
@@ -68,7 +68,7 @@ BrowserID.TestHelpers = (function() {
       transport.setContextInfo("cookies_enabled", true);
       transport.useResult("valid");
 
-      network.init();
+      network.init({ forceCookieStatus: undefined });
       clearStorage();
 
       $("body").stop().show();
@@ -204,10 +204,8 @@ BrowserID.TestHelpers = (function() {
     },
 
     testKeysInObject: function(objToTest, expected, msg) {
-      if (!objToTest) {
-        ok(false, "Missing object to test against");
-        return;
-      }
+      if (!objToTest) ok(false, "missing objToTest");
+      if (!expected) ok(false, "missing objToTest");
 
       for(var i=0, key; key=expected[i]; ++i) {
         ok(key in objToTest, msg || ("object contains " + key));
@@ -215,16 +213,51 @@ BrowserID.TestHelpers = (function() {
     },
 
     testObjectValuesEqual: function(objToTest, expected, msg) {
+      if (!objToTest) ok(false, "missing objToTest");
+      if (!expected) ok(false, "missing objToTest");
+
       for(var key in expected) {
-        equal(objToTest[key], expected[key], key + " set to: " + expected[key] + (msg ? " - " + msg : ""));
+        deepEqual(objToTest[key], expected[key], key + " set to: " + expected[key] + (msg ? " - " + msg : ""));
       }
+    },
+
+    testUndefined: function(toTest, msg) {
+      equal(typeof toTest, "undefined", msg || "object is undefined");
+    },
+
+    testNotUndefined: function(toTest, msg) {
+      notEqual(typeof toTest, "undefined", msg || "object is defined");
+    },
+
+    testVisible: function(selector, msg) {
+      ok($(selector).is(":visible"), msg || selector + " should be visible");
     },
 
     testHasClass: function(selector, className, msg) {
       ok($(selector).hasClass(className),
-          selector + " has className " + className + " - " + msg);
-    }
+          msg || (selector + " has className " + className));
+    },
 
+    testNotHasClass: function(selector, className, msg) {
+      ok(!$(selector).hasClass(className),
+          msg || (selector + " does not have className " + className));
+    },
+
+    testElementExists: function(selector, msg) {
+      ok($(selector).length, msg || ("element '" + selector + "' exists"));
+    },
+
+    testElementDoesNotExist: function(selector, msg) {
+      ok(!$(selector).length, msg || ("element '" + selector + "' does not exist"));
+    },
+
+    testRPTosPPShown: function(msg) {
+      TestHelpers.testHasClass("body", "rptospp", msg || "RP TOS/PP shown");
+    },
+
+    testRPTosPPNotShown: function(msg) {
+      TestHelpers.testNotHasClass("body", "rptospp", msg || "RP TOS/PP not shown");
+    }
   };
 
   return TestHelpers;

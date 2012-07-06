@@ -56,7 +56,7 @@ process.env['VERIFIER_URL'] = 'http://' + HOST + ":10000/verify";
 process.env['KEYSIGNER_URL'] = 'http://' + HOST + ":10003";
 process.env['ROUTER_URL'] = 'http://' + HOST + ":10002";
 
-process.env['URL'] = process.env['ROUTER_URL'];
+process.env['PUBLIC_URL'] = process.env['ROUTER_URL'];
 
 // if the environment is a 'test_' environment, then we'll use an
 // ephemeral database
@@ -112,11 +112,19 @@ function runDaemon(daemon, cb) {
   });
 };
 
+// start all daemons except the router in parallel
 var daemonNames = Object.keys(daemonsToRun);
-function runNextDaemon() {
-  if (daemonNames.length) runDaemon(daemonNames.shift(), runNextDaemon);
-}
-runNextDaemon();
+daemonNames.splice(daemonNames.indexOf('router'), 1);
+
+var numDaemonsRun = 0;
+daemonNames.forEach(function(dn) {
+  runDaemon(dn, function() {
+    if (++numDaemonsRun === daemonNames.length) {
+      // after all daemons are up and running, start the router
+      runDaemon('router', function() { });
+    }
+  });
+});
 
 process.on('SIGINT', function () {
   console.log('\nSIGINT recieved! trying to shut down gracefully...');

@@ -1,7 +1,7 @@
 %define _rootdir /opt/browserid
 
 Name:          browserid-server
-Version:       0.2012.06.08
+Version:       0.2012.07.06
 Release:       1%{?dist}_%{svnrev}
 Summary:       BrowserID server
 Packager:      Pete Fritchman <petef@mozilla.com>
@@ -15,7 +15,7 @@ Requires:      openssl nodejs
 BuildRequires: gcc-c++ git jre make npm openssl-devel expat-devel
 
 %description
-browserid server & web home for browserid.org
+persona server & web home for persona.org
 
 %prep
 %setup -q -c -n browserid

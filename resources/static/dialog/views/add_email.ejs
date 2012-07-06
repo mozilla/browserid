@@ -8,8 +8,8 @@
 
       <ul class="inputs">
           <li>
-              <label for="newEmail" class="serif"><%= gettext('New email address') %></label>
-              <input id="newEmail" name="newEmail" type="email" class="sans" autocapitalize="off" autocorrect="off" maxlength="254" <% if (typeof email !== "undefined") { %> value="<%= email %>" <% } %>/>
+              <label for="newEmail"><%= gettext('New email address') %></label>
+              <input id="newEmail" name="newEmail" type="email" autocapitalize="off" autocorrect="off" maxlength="254" <% if (typeof email !== "undefined") { %> value="<%= email %>" <% } %>/>
 
               <div id="email_format" class="tooltip" for="newEmail">
                 <%= gettext('This field must be an email address.') %>
@@ -27,25 +27,15 @@
                 <%= gettext('That address is already added to your account!') %>
               </div>
           </li>
+
+          <li id="hint_section" class="addressInfo">
+              <%= gettext("Please hold on while we get information about your email provider.") %>
+          </li>
       </ul>
 
       <div class="submit cf">
-        <% if (privacy_url && tos_url) { %>
-          <p class="tospp">
-            <%= format(
-                  gettext('By clicking %s, you confirm that you accept this site\'s <a %s>Terms of Use</a> and <a %s>Privacy Policy</a>.'),
-                       [ gettext('add'),
-                         format(' href="%s" target="_new"', [tos_url]),
-                         format(' href="%s" target="_new"', [privacy_url])
-                       ]) %>
-          </p>
-          <p>
-        <% } %>
           <button id="addNewEmail"><%= gettext('add') %></button>
           <a href="#" id="cancel" class="action"><%= gettext('cancel') %></a>
-        <% if (privacy_url && tos_url) { %>
-          </p>
-        <% } %>
       </div>
 
   </div>
