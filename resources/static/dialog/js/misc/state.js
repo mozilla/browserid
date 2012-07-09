@@ -1,5 +1,5 @@
 /*jshint browser:true, jquery: true, forin: true, laxbreak:true */
-/*global BrowserID: true */
+/*global BrowserID: true, URLParse: true */
 /* This Source Code Form is subject to the terms of the Mozilla Public
  * License, v. 2.0. If a copy of the MPL was not distributed with this
  * file, You can obtain one at http://mozilla.org/MPL/2.0/. */
@@ -16,6 +16,7 @@ BrowserID.State = (function() {
       complete = bid.Helpers.complete;
 
   function startStateMachine() {
+    /*jshint validthis: true*/
     var self = this,
         handleState = function(msg, callback) {
           self.subscribe(msg, function(msg, info) {
@@ -39,9 +40,10 @@ BrowserID.State = (function() {
 
     handleState("start", function(msg, info) {
       self.hostname = info.hostname;
-      self.privacyURL = info.privacyURL;
-      self.tosURL = info.tosURL;
-      var requiredEmail = self.requiredEmail = info.requiredEmail;
+      self.siteName = info.siteName || info.hostname;
+      self.siteTOSPP = !!(info.privacyPolicy && info.termsOfService);
+
+      self.requiredEmail = info.requiredEmail;
 
       startAction(false, "doRPInfo", info);
 
@@ -78,8 +80,10 @@ BrowserID.State = (function() {
         self.email = requiredEmail;
         startAction("doAuthenticateWithRequiredEmail", {
           email: requiredEmail,
-          privacyURL: self.privacyURL,
-          tosURL: self.tosURL
+          // New users are handled by either the "new_user" flow or the
+          // "primary_user" flow. The Persona TOS/PP will be shown to users in
+          // these stages.
+          siteTOSPP: self.siteTOSPP && !user.getOriginEmail()
         });
       }
       else if (authenticated) {
@@ -90,8 +94,11 @@ BrowserID.State = (function() {
     });
 
     handleState("authenticate", function(msg, info) {
-      info.privacyURL = self.privacyURL;
-      info.tosURL = self.tosURL;
+      _.extend(info, {
+        siteName: self.siteName,
+        siteTOSPP: self.siteTOSPP
+      });
+
       startAction("doAuthenticate", info);
     });
 
@@ -105,6 +112,7 @@ BrowserID.State = (function() {
       // cancel is disabled if the user is doing the initial password set
       // for a requiredEmail.
       info.cancelable = !self.requiredEmail;
+
       startAction(false, "doSetPassword", info);
     });
 
@@ -133,7 +141,12 @@ BrowserID.State = (function() {
 
     handleState("user_staged", function(msg, info) {
       self.stagedEmail = info.email;
-      info.required = !!self.requiredEmail;
+
+      _.extend(info, {
+        required: !!self.requiredEmail,
+        siteName: self.siteName
+      });
+
       startAction("doConfirmUser", info);
     });
 
@@ -176,12 +189,24 @@ BrowserID.State = (function() {
     handleState("primary_user_unauthenticated", function(msg, info) {
       var requiredEmail = self.requiredEmail;
 
-      info = helpers.extend(info || {}, {
+      _.extend(info, {
         add: !!self.addPrimaryUser,
         email: self.email,
         requiredEmail: !!requiredEmail,
-        privacyURL: self.privacyURL,
-        tosURL: self.tosURL
+
+        // In the requiredEmail flow, a user who is not authenticated with
+        // their primary will be sent directly to the "you must verify
+        // with your IdP" screen.
+        //
+        // Show the siteTOSPP to all requiredEmail users who have never visited
+        // the site before.
+        siteTOSPP: requiredEmail && self.siteTOSPP && !user.getOriginEmail(),
+
+        // Show the persona TOS/PP only to requiredEmail users who are creating
+        // a new account.
+        personaTOSPP: requiredEmail && !self.addPrimaryUser,
+        siteName: self.siteName,
+        idpName: info.idpName || URLParse(info.auth_url).host
       });
 
       if (self.primaryVerificationInfo) {
@@ -219,8 +244,7 @@ BrowserID.State = (function() {
     handleState("pick_email", function() {
       startAction("doPickEmail", {
         origin: self.hostname,
-        privacyURL: self.privacyURL,
-        tosURL: self.tosURL
+        siteTOSPP: self.siteTOSPP && !user.getOriginEmail()
       });
     });
 
@@ -261,8 +285,12 @@ BrowserID.State = (function() {
               startAction("doAuthenticateWithRequiredEmail", {
                 email: email,
                 secondary_auth: true,
-                privacyURL: self.privacyURL,
-                tosURL: self.tosURL
+
+                // This is a user is already authenticated to the assertion
+                // level who has chosen a secondary email address from the
+                // pick_email screen. They would have been shown the
+                // siteTOSPP there.
+                siteTOSPP: false
               });
             }
             else {
@@ -360,12 +388,26 @@ BrowserID.State = (function() {
       redirectToState("email_chosen", info);
     });
 
-    handleState("add_email", function(msg, info) {
-      info = helpers.extend(info, {
-        privacyURL: self.privacyURL,
-        tosURL: self.tosURL
-      });
+    handleState("reset_password", function(msg, info) {
+      info = info || {};
+      // reset_password says the user has confirmed that they want to
+      // reset their password.  doResetPassword will attempt to invoke
+      // the create_user wsapi.  If the wsapi call is successful,
+      // the user will be shown the "go verify your account" message.
 
+      // We have to save the staged email address here for when the user
+      // verifies their account and user_confirmed is called.
+      self.stagedEmail = info.email;
+      startAction(false, "doResetPassword", info);
+    });
+
+    handleState("add_email", function(msg, info) {
+      // add_email indicates the user wishes to add an email to the account,
+      // the add_email screen must be displayed.  After the user enters the
+      // email address they wish to add, add_email will trigger
+      // either 1) primary_user or 2) email_staged. #1 occurs if the email
+      // address is a primary address, #2 occurs if the address is a secondary
+      // and the verification email has been sent.
       startAction("doAddEmail", info);
     });
 
@@ -388,7 +430,10 @@ BrowserID.State = (function() {
 
     handleState("email_staged", function(msg, info) {
       self.stagedEmail = info.email;
-      info.required = !!self.requiredEmail;
+      _.extend(info, {
+        required: !!self.requiredEmail,
+        siteName: self.siteName
+      });
       startAction("doConfirmEmail", info);
     });
 

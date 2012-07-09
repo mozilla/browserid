@@ -1,4 +1,4 @@
-/*jshint browser:true, jQuery: true, forin: true, laxbreak:true */
+/*jshint browser:true, jquery: true, forin: true, laxbreak:true */
 /*global BrowserID: true, PageController: true */
 /* This Source Code Form is subject to the terms of the Mozilla Public
  * License, v. 2.0. If a copy of the MPL was not distributed with this
@@ -15,9 +15,14 @@ BrowserID.Modules.CheckRegistration = (function() {
     start: function(options) {
       var self=this;
       options = options || {};
-      options.required = !!options.required;
 
-      self.renderWait("confirm_email", options);
+      self.checkRequired(options, "email", "siteName");
+      var templateData = {
+        email: options.email,
+        required: options.required,
+        siteName: options.siteName
+      };
+      self.renderWait("confirm_email", templateData);
 
       self.email = options.email;
       self.verifier = options.verifier;

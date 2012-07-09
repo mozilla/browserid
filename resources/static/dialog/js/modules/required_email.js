@@ -19,6 +19,7 @@ BrowserID.Modules.RequiredEmail = (function() {
       secondaryAuth;
 
   function closePrimaryUser(callback) {
+    /*jshint validthis: true*/
     this.close("primary_user", helpers.extend(primaryInfo, {
       email: email,
       requiredEmail: true,
@@ -29,6 +30,7 @@ BrowserID.Modules.RequiredEmail = (function() {
   }
 
   function signIn(callback) {
+    /*jshint validthis: true*/
     var self = this;
 
     function getAssertion() {
@@ -64,6 +66,8 @@ BrowserID.Modules.RequiredEmail = (function() {
   }
 
   function verifyAddress() {
+    /*jshint validthis: true*/
+
     // By being in the verifyAddress, we know that the current user has not
     // been shown the password box and we have to do a verification of some
     // sort.  This will be either an add email to the current account or a new
@@ -84,12 +88,14 @@ BrowserID.Modules.RequiredEmail = (function() {
   }
 
   function forgotPassword() {
+    /*jshint validthis: true*/
     var self=this;
     self.close("forgot_password", { email: email, requiredEmail: true });
   }
 
 
   function cancel() {
+    /*jshint validthis: true*/
     // The cancel button is only shown to a user who has to enter their
     // password to go from "assertion" authentication to "password"
     // authentication.
@@ -147,7 +153,13 @@ BrowserID.Modules.RequiredEmail = (function() {
               // We know the user has control of this address, give them
               // a chance to hit "sign in" before we kick them off to the
               // primary flow account.
-              showTemplate({ signin: true, primary: true });
+
+              // Show the Persona TOS/PP to any primary user who is authed with
+              // their IdP but not with Persona.  Unfortunately, addressInfo
+              // does not tell us whether a primary address already has an
+              // account, so we have to show the personaTOSPP to any user who
+              // is not authenticated.
+              showTemplate({ signin: true, primary: true, personaTOSPP: !auth_level });
             }
             else if(info.type === "primary" && !info.authed) {
               // This is a primary user who has control of the address, but
@@ -217,11 +229,14 @@ BrowserID.Modules.RequiredEmail = (function() {
           password: false,
           secondary_auth: false,
           primary: false,
-          privacy_url: options.privacyURL || null,
-          tos_url: options.tosURL || null
+          personaTOSPP: false
         }, templateData);
 
         self.renderDialog("required_email", templateData);
+
+        if (options.siteTOSPP) {
+          dialogHelpers.showRPTosPP.call(self);
+        }
 
         self.click("#sign_in", signIn);
         self.click("#verify_address", verifyAddress);

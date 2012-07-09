@@ -36,6 +36,7 @@ BrowserID.Modules.Dialog = (function() {
   }
 
   function startChannel() {
+    /*jshint validthis: true*/
     var self = this,
         hash = win.location.hash;
 
@@ -74,11 +75,8 @@ BrowserID.Modules.Dialog = (function() {
     channel && channel.detach();
   }
 
-  function setOrigin(origin) {
-    user.setOrigin(origin);
-  }
-
   function onWindowUnload() {
+    /*jshint validthis: true*/
     this.publish("window_unload");
   }
 
@@ -140,7 +138,7 @@ BrowserID.Modules.Dialog = (function() {
       var self=this,
           hash = win.location.hash;
 
-      setOrigin(origin_url);
+      user.setOrigin(origin_url);
 
 
       if (startExternalDependencies) {
@@ -168,8 +166,8 @@ BrowserID.Modules.Dialog = (function() {
         if (paramsFromRP.privacyURL) paramsFromRP.privacyPolicy = paramsFromRP.privacyURL;
 
         if (paramsFromRP.termsOfService && paramsFromRP.privacyPolicy) {
-          params.tosURL = fixupURL(origin_url, paramsFromRP.termsOfService);
-          params.privacyURL = fixupURL(origin_url, paramsFromRP.privacyPolicy);
+          params.termsOfService = fixupURL(origin_url, paramsFromRP.termsOfService);
+          params.privacyPolicy = fixupURL(origin_url, paramsFromRP.privacyPolicy);
         }
 
         if (paramsFromRP.siteLogo) {

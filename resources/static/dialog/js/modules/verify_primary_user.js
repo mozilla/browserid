@@ -1,6 +1,5 @@
 /*jshint browser:true, jquery: true, forin: false, laxbreak:true */
 /*global _: true, BrowserID: true */
-
 /* This Source Code Form is subject to the terms of the Mozilla Public
  * License, v. 2.0. If a copy of the MPL was not distributed with this
  * file, You can obtain one at http://mozilla.org/MPL/2.0/. */
@@ -17,6 +16,7 @@ BrowserID.Modules.VerifyPrimaryUser = (function() {
       email,
       addressInfo,
       helpers = bid.Helpers,
+      dialogHelpers = helpers.Dialog,
       complete = helpers.complete,
       delayScreenTimeout;
 
@@ -44,8 +44,6 @@ BrowserID.Modules.VerifyPrimaryUser = (function() {
   function verify(callback) {
     /*jshint validthis: true */
     var self = this,
-        // replace any hashes that may be there already.
-        returnTo = win.document.location.href.replace(/#.*$/, ""),
         url = helpers.toURL(addressInfo.auth, {email: email});
 
     // primary_user_authenticating must be published before the wait
@@ -106,11 +104,15 @@ BrowserID.Modules.VerifyPrimaryUser = (function() {
         else {
           var templateData = helpers.extend({}, options, {
             auth_url: addressInfo.auth || null,
-            requiredEmail: options.requiredEmail || false,
-            privacy_url: options.privacyURL || null,
-            tos_url: options.tosURL || null
+            personaTOSPP: options.personaTOSPP,
+            siteName: options.siteName,
+            idpName: options.idpName
           });
           self.renderDialog("verify_primary_user", templateData);
+
+          if (options.siteTOSPP) {
+            dialogHelpers.showRPTosPP.call(self);
+          }
 
           self.click("#cancel", cancel);
           complete(options.ready);

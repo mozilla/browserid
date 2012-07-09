@@ -1,4 +1,4 @@
-/*jshint browser:true, jQuery: true, forin: true, laxbreak:true */
+/*jshint browser:true, jquery: true, forin: true, laxbreak:true */
 /*global BrowserID:true, PageController: true */
 /* This Source Code Form is subject to the terms of the Mozilla Public
  * License, v. 2.0. If a copy of the MPL was not distributed with this
@@ -11,6 +11,7 @@ BrowserID.Modules.ProvisionPrimaryUser = (function() {
       errors = bid.Errors;
 
   function provisionPrimaryUser(email, auth, prov, oncomplete) {
+    /*jshint validthis: true*/
     var self=this;
 
     function complete(status) {
@@ -29,7 +30,9 @@ BrowserID.Modules.ProvisionPrimaryUser = (function() {
         case "primary.verify":
           self.close("primary_user_unauthenticated", {
             email: email,
-            auth_url: auth
+            auth_url: auth,
+            // XXX use self.addressInfo universally.
+            idpName: self.addressInfo.idpName
           });
           complete(true);
           break;
@@ -55,20 +58,15 @@ BrowserID.Modules.ProvisionPrimaryUser = (function() {
         throw "missing config option: email";
       }
 
-      if(!(auth && prov)) {
-        user.addressInfo(email, function(addressInfo) {
-          if(addressInfo.type === "primary") {
-            provisionPrimaryUser.call(self, email, addressInfo.auth, addressInfo.prov);
-          }
-          else {
-            self.renderError("error", { action: errors.provisioningBadPrimary });
-          }
-        }, self.getErrorDialog(errors.isEmailRegistered));
-      }
-      else {
-        provisionPrimaryUser.call(self, email, auth, prov);
-      }
-
+      user.addressInfo(email, function(status) {
+        self.addressInfo = status;
+        if(status.type === "primary") {
+          provisionPrimaryUser.call(self, email, status.auth, status.prov);
+        }
+        else {
+          self.renderError("error", { action: errors.provisioningBadPrimary });
+        }
+      }, self.getErrorDialog(errors.isEmailRegistered));
 
       ProvisionPrimaryUser.sc.start.call(self, options);
     }

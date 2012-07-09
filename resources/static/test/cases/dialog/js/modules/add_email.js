@@ -1,4 +1,4 @@
-/*jshint browsers:true, forin: true, laxbreak: true */
+/*jshint browser: true, forin: true, laxbreak: true */
 /*global test: true, start: true, stop: true, module: true, ok: true, equal: true, BrowserID:true */
 /* This Source Code Form is subject to the terms of the Mozilla Public
  * License, v. 2.0. If a copy of the MPL was not distributed with this
@@ -40,16 +40,6 @@
     controller = modules.AddEmail.create();
     controller.start(options || {});
   }
-
-  test("privacyURL and tosURL specified - show TOS/PP", function() {
-    equal($(".tospp").length, 0, "tospp has not yet been added to the DOM");
-    createController({
-      privacyURL: "http://testuser.com/priv.html",
-      tosURL: "http://testuser.com/tos.html",
-    });
-
-    equal($(".tospp").length, 1, "tospp has been added to the DOM");
-  });
 
   test("addEmail with specified email address - fill in email", function() {
     createController({ email: "testuser@testuser.com" });

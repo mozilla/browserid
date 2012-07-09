@@ -1,4 +1,4 @@
-/*jshint browsers:true, forin: true, laxbreak: true */
+/*jshint browser: true, forin: true, laxbreak: true */
 /*global asyncTest: true, test: true, start: true, stop: true, module: true, ok: true, equal: true, BrowserID:true */
 /* This Source Code Form is subject to the terms of the Mozilla Public
  * License, v. 2.0. If a copy of the MPL was not distributed with this
@@ -11,6 +11,8 @@
       el,
       testHelpers = bid.TestHelpers,
       xhr = bid.Mocks.xhr,
+      testElementExists = testHelpers.testElementExists,
+      testElementNotExists = testHelpers.testElementDoesNotExist,
       WindowMock = bid.Mocks.WindowMock,
       AUTH_URL = "https://auth_url",
       PROXY_AUTH_URL = "https://bigtent.mozilla.org/auth",
@@ -26,7 +28,7 @@
     controller.start(config);
   }
 
-  module("controllers/verify_primary_user", {
+  module("dialog/js/modules/verify_primary_user", {
     setup: function() {
       testHelpers.setup();
       win = new WindowMock();
@@ -42,34 +44,35 @@
     }
   });
 
-  asyncTest("create with privacyURL and tosURL defined - show TOS/PP", function() {
+  asyncTest("personaTOSPP true - show TOS/PP", function() {
     createController({
       add: false,
       email: "unregistered@testuser.com",
-      privacyURL: "http://testuser.com/priv.html",
-      tosURL: "http://testuser.com/tos.html",
+      personaTOSPP: true,
       ready: function() {
-        equal($(".tospp").length, 1, "tospp has been added to the DOM");
+        testElementExists("#persona_tospp");
+
         start();
       }
     });
   });
 
-  asyncTest("create with requiredEmail, privacyURL and tosURL defined - show TOS/PP", function() {
+
+  asyncTest("personaTOSPP false - do not show TOS/PP", function() {
     createController({
       add: false,
-      requiredEmail: "unregistered@testuser.com",
       email: "unregistered@testuser.com",
-      privacyURL: "http://testuser.com/priv.html",
-      tosURL: "http://testuser.com/tos.html",
+      personaTOSPP: false,
       ready: function() {
-        equal($(".tospp").length, 1, "tospp has been added to the DOM");
+        testElementNotExists("#persona_tospp");
         start();
       }
     });
+
   });
 
-  asyncTest("submit with `add: false` option opens a new tab with proper URL (updated for sessionStorage)", function() {
+
+  asyncTest("submit opens a new tab with proper URL (updated for sessionStorage)", function() {
     var messageTriggered = false;
     createController({
       add: false,
@@ -79,28 +82,9 @@
           messageTriggered = true;
         });
 
-        // Also checking to make sure the NATIVE is stripped out.
-        win.document.location.hash = "#NATIVE";
-
         controller.submit(function() {
           equal(win.document.location, AUTH_URL + "?email=unregistered%40testuser.com");
           equal(messageTriggered, true, "primary_user_authenticating triggered");
-          start();
-        });
-      }
-    });
-  });
-
-  asyncTest("submit with `add: true` option opens a new tab with proper URL (updated for sessionStorage)", function() {
-    createController({
-      add: true,
-      email: "unregistered@testuser.com",
-      ready: function() {
-        // Also checking to make sure the NATIVE is stripped out.
-        win.document.location.hash = "#NATIVE";
-
-        controller.submit(function() {
-          equal(win.document.location, "https://auth_url?email=unregistered%40testuser.com");
           start();
         });
       }

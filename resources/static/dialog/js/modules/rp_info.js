@@ -1,4 +1,4 @@
-/*jshint browser:true, jQuery: true, forin: true, laxbreak:true */
+/*jshint browser:true, jquery: true, forin: true, laxbreak:true */
 /*global _: true, BrowserID: true, PageController: true */
 /* This Source Code Form is subject to the terms of the Mozilla Public
  * License, v. 2.0. If a copy of the MPL was not distributed with this
@@ -7,7 +7,8 @@
 
 /**
  * Purpose:
- *  Display to the user RP related data such as hostname, name, and logo.
+ *  Display to the user RP related data such as hostname, sitename, logo,
+ *  TOS/PP, etc.
  */
 BrowserID.Modules.RPInfo = (function() {
   "use strict";
@@ -32,7 +33,9 @@ BrowserID.Modules.RPInfo = (function() {
       renderer.render("#rp_info", "rp_info", {
         hostname: options.hostname,
         siteName: options.siteName,
-        siteLogo: options.siteLogo
+        siteLogo: options.siteLogo,
+        privacyPolicy: options.privacyPolicy,
+        termsOfService: options.termsOfService
       });
 
       sc.start.call(this, options);

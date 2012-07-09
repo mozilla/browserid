@@ -1,4 +1,4 @@
-/*jshint browser:true, jQuery: true, forin: true, laxbreak:true */
+/*jshint browser:true, jquery: true, forin: true, laxbreak:true */
 /*global _: true, BrowserID: true, PageController: true */
 /* This Source Code Form is subject to the terms of the Mozilla Public
  * License, v. 2.0. If a copy of the MPL was not distributed with this
@@ -93,10 +93,13 @@ BrowserID.Modules.PickEmail = (function() {
 
       self.renderDialog("pick_email", {
         identities: identities,
-        siteemail: storage.site.get(origin, "email"),
-        privacy_url: options.privacyURL,
-        tos_url: options.tosURL
+        siteEmail: user.getOriginEmail()
       });
+
+      if (options.siteTOSPP) {
+        dialogHelpers.showRPTosPP.call(self);
+      }
+
       dom.getElements("body").css("opacity", "1");
       if (dom.getElements("#selectEmail input[type=radio]:visible").length === 0) {
         // If there is only one email address, the radio button is never shown,

@@ -174,6 +174,10 @@ BrowserID.User = (function() {
       throw "invalid email type (should be 'secondary' or 'primary'): " + type;
   }
 
+  function getIdPName(addressInfo) {
+    return addressInfo.email.replace(/.*@/, "");
+  }
+
   /**
    * Persist an address and key pair locally.
    * @method persistEmailKeypair
@@ -276,6 +280,14 @@ BrowserID.User = (function() {
      */
     getOrigin: function() {
       return origin;
+    },
+
+    setOriginEmail: function(email) {
+      storage.site.set(origin, "email", email);
+    },
+
+    getOriginEmail: function() {
+      return storage.site.get(origin, "email");
     },
 
     /**
@@ -832,6 +844,7 @@ BrowserID.User = (function() {
 
             User.isUserAuthenticatedToPrimary(email, info, function(authed) {
               info.authed = authed;
+              info.idpName = getIdPName(info);
               complete(info);
             }, onFailure);
           }
@@ -967,8 +980,14 @@ BrowserID.User = (function() {
      */
     syncEmailKeypair: function(email, onComplete, onFailure) {
       prepareDeps();
-      jwcrypto.generateKeypair({algorithm: "DS", keysize: bid.KEY_LENGTH}, function(err, keypair) {
-        certifyEmailKeypair(email, keypair, onComplete, onFailure);
+      // jwcrypto depends on a random seed being set to generate a keypair.
+      // The seed is set with a call to network.withContext.  Ensure the
+      // random seed is set before continuing or else the seed may not be set,
+      // the key never created, and the onComplete callback never called.
+      network.withContext(function() {
+        jwcrypto.generateKeypair({algorithm: "DS", keysize: bid.KEY_LENGTH}, function(err, keypair) {
+          certifyEmailKeypair(email, keypair, onComplete, onFailure);
+        });
       });
     },
 
@@ -1231,8 +1250,6 @@ BrowserID.User = (function() {
       } else {
         complete(onFailure, "user is not authenticated");
       }
-
-      return shouldAsk;
     }
 
   };

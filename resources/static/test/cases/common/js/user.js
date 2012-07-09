@@ -1,4 +1,4 @@
-/*jshint browsers:true, forin: true, laxbreak: true */
+/*jshint browser: true, forin: true, laxbreak: true */
 /*global test: true, start: true, module: true, ok: true, equal: true, strictEqual: true, BrowserID: true */
 /* This Source Code Form is subject to the terms of the Mozilla Public
  * License, v. 2.0. If a copy of the MPL was not distributed with this
@@ -92,6 +92,22 @@ var jwcrypto = require("./lib/jwcrypto");
     equal(lib.getReturnTo(), returnTo, "get/setReturnTo work as expected");
   });
 
+  test("setOriginEmail/getOriginEmail", function() {
+    storage.addEmail("testuser@testuser.com", { type: "primary" });
+    storage.addEmail("testuser2@testuser.com", { type: "primary" });
+
+    lib.setOrigin("http://testdomain.org");
+
+    lib.setOriginEmail("testuser@testuser.com");
+    equal(lib.getOriginEmail(), "testuser@testuser.com", "correct email");
+
+    lib.setOrigin("http://othertestdomain.org");
+    lib.setOriginEmail("testuser2@testuser.com");
+
+    lib.setOrigin("http://testdomain.org");
+    equal(lib.getOriginEmail(), "testuser@testuser.com", "correct email");
+  });
+
   test("getStoredEmailKeypairs without key - return all identities", function() {
     var identities = lib.getStoredEmailKeypairs();
     equal("object", typeof identities, "object returned");
@@ -159,15 +175,14 @@ var jwcrypto = require("./lib/jwcrypto");
 
   asyncTest("createPrimaryUser with primary, user verified with primary - expect 'primary.verified'", function() {
     xhr.useResult("primary");
-    provisioning.setStatus(provisioning.AUTHENTICATED, function() {
-      lib.createPrimaryUser({email: "unregistered@testuser.com"}, function(status) {
-        equal(status, "primary.verified", "primary user is already verified, correct status");
-        network.checkAuth(function(authenticated) {
-          equal(authenticated, "assertion", "after provisioning user, user should be automatically authenticated to Persona");
-          start();
-        });
-      }, testHelpers.unexpectedXHRFailure);
-    });
+    provisioning.setStatus(provisioning.AUTHENTICATED);
+    lib.createPrimaryUser({email: "unregistered@testuser.com"}, function(status) {
+      equal(status, "primary.verified", "primary user is already verified, correct status");
+      network.checkAuth(function(authenticated) {
+        equal(authenticated, "assertion", "after provisioning user, user should be automatically authenticated to Persona");
+        start();
+      });
+    }, testHelpers.unexpectedXHRFailure);
   });
 
   asyncTest("createPrimaryUser with primary, user must authenticate with primary - expect 'primary.verify'", function() {
@@ -1136,6 +1151,7 @@ var jwcrypto = require("./lib/jwcrypto");
         equal(info.type, "primary", "correct type");
         equal(info.email, "registered@testuser.com", "correct email");
         equal(info.authed, true, "user is authenticated with IdP");
+        equal(info.idpName, "testuser.com", "unknown IdP, use email host portion for name");
         start();
       },
       testHelpers.unexpectedFailure

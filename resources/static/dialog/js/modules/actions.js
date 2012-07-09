@@ -1,4 +1,4 @@
-/*jshint browser:true, jQuery: true, forin: true, laxbreak:true */
+/*jshint browser:true, jquery: true, forin: true, laxbreak:true */
 /*global _: true, BrowserID: true, PageController: true */
 /* This Source Code Form is subject to the terms of the Mozilla Public
  * License, v. 2.0. If a copy of the MPL was not distributed with this
@@ -34,11 +34,11 @@ BrowserID.Modules.Actions = (function() {
 
   function startRegCheckService(options, verifier, message, password) {
     var controller = startService("check_registration", {
-      email: options.email,
-      required: options.required,
       verifier: verifier,
       verificationMessage: message,
-      password: password
+      password: password,
+      siteName: options.siteName,
+      email: options.email
     });
     controller.startCheck();
   }
@@ -55,10 +55,6 @@ BrowserID.Modules.Actions = (function() {
       sc.start.call(self, data);
 
       if(data.ready) _.defer(data.ready);
-    },
-
-    doRPInfo: function(info) {
-      startService("rp_info", info);
     },
 
     doCancel: function() {
@@ -156,6 +152,10 @@ BrowserID.Modules.Actions = (function() {
 
     doGenerateAssertion: function(info) {
       startService("generate_assertion", info);
+    },
+
+    doRPInfo: function(info) {
+      startService("rp_info", info);
     }
   });
 

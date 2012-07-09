@@ -1,4 +1,4 @@
-/*jshint browsers:true, forin: true, laxbreak: true */
+/*jshint browser: true, forin: true, laxbreak: true */
 /*global test: true, start: true, stop: true, module: true, ok: true, equal: true, BrowserID:true */
 /* This Source Code Form is subject to the terms of the Mozilla Public
  * License, v. 2.0. If a copy of the MPL was not distributed with this
@@ -75,19 +75,18 @@
   });
 
   asyncTest("doConfirmUser - start the check_registration service", function() {
-    testActionStartsModule("doConfirmUser", {email: TEST_EMAIL},
+    testActionStartsModule("doConfirmUser", {email: TEST_EMAIL, siteName: "Unit Test Site"},
       "check_registration");
   });
 
   asyncTest("doConfirmEmail - start the check_registration service", function() {
-    testActionStartsModule("doConfirmEmail", {email: TEST_EMAIL},
+    testActionStartsModule("doConfirmEmail", {email: TEST_EMAIL, siteName: "Unit Test Site"},
       "check_registration");
   });
 
   asyncTest("doGenerateAssertion - start the generate_assertion service", function() {
     testActionStartsModule('doGenerateAssertion', { email: TEST_EMAIL }, "generate_assertion");
   });
-
 
   asyncTest("doStageUser with successful creation - trigger user_staged", function() {
     createController({
@@ -108,6 +107,22 @@
 
   asyncTest("doForgotPassword - call the set_password controller with reset_password true", function() {
     testActionStartsModule('doForgotPassword', { email: TEST_EMAIL }, "set_password");
+  });
+
+  asyncTest("doRPInfo - start the rp_info service", function() {
+    createController({
+      ready: function() {
+        var error;
+        try {
+          controller.doRPInfo({ name: "browserid.org" });
+        } catch(e) {
+          error = e;
+        }
+
+        equal(error, "module not registered for rp_info", "correct service started");
+        start();
+      }
+    });
   });
 }());
 
