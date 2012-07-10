@@ -526,6 +526,11 @@ BrowserID.Network = (function() {
       get({
         url: "/wsapi/address_info?email=" + encodeURIComponent(email),
         success: function(data, textStatus, xhr) {
+          // BEGIN TRANSITION CODE
+          // the backend returns proxyidp for BigTent addresses. As soon as it
+          // returns primary again, remove this.
+          if (data && data.type === "proxyidp") data.type = "primary";
+          // END TRANSITION CODE
           complete(onComplete, data);
         },
         error: onFailure
