@@ -1,5 +1,5 @@
 /*jshint browser:true, jquery: true, forin: true, laxbreak:true */
-/*global BrowserID: true, URLParse: true */
+/*global BrowserID: true */
 /* This Source Code Form is subject to the terms of the Mozilla Public
  * License, v. 2.0. If a copy of the MPL was not distributed with this
  * file, You can obtain one at http://mozilla.org/MPL/2.0/. */
@@ -13,7 +13,12 @@ BrowserID.State = (function() {
       helpers = bid.Helpers,
       user = bid.User,
       moduleManager = bid.module,
-      complete = bid.Helpers.complete;
+      complete = bid.Helpers.complete,
+      controller,
+      addPrimaryUser = false,
+      email,
+      requiredEmail,
+      primaryVerificationInfo;
 
   function startStateMachine() {
     /*jshint validthis: true*/
@@ -33,7 +38,7 @@ BrowserID.State = (function() {
             save = true;
           }
 
-          var func = self.controller[msg].bind(self.controller);
+          var func = controller[msg].bind(controller);
           self.gotoState(save, func, options);
         },
         cancelState = self.popState.bind(self);
@@ -43,12 +48,12 @@ BrowserID.State = (function() {
       self.siteName = info.siteName || info.hostname;
       self.siteTOSPP = !!(info.privacyPolicy && info.termsOfService);
 
-      self.requiredEmail = info.requiredEmail;
+      requiredEmail = info.requiredEmail;
 
       startAction(false, "doRPInfo", info);
 
       if (info.email && info.type === "primary") {
-        self.primaryVerificationInfo = info;
+        primaryVerificationInfo = info;
         redirectToState("primary_user", info);
       }
       else {
@@ -73,8 +78,7 @@ BrowserID.State = (function() {
     });
 
     handleState("authentication_checked", function(msg, info) {
-      var authenticated = info.authenticated,
-          requiredEmail = self.requiredEmail;
+      var authenticated = info.authenticated;
 
       if (requiredEmail) {
         self.email = requiredEmail;
@@ -109,9 +113,22 @@ BrowserID.State = (function() {
       // know when we are losing users due to the email verification.
       mediator.publish("kpi_data", { new_account: true });
 
-      // cancel is disabled if the user is doing the initial password set
-      // for a requiredEmail.
-      info.cancelable = !self.requiredEmail;
+      _.extend(info, {
+        // cancel is disabled if the user is doing the initial password set
+        // for a requiredEmail.
+        cancelable: !requiredEmail,
+
+        // New users in the requiredEmail flow are sent directly to the
+        // set_password screen.  If this happens, they have not yet seen the
+        // TOS/PP agreement.
+
+        // Always show the Persona TOS/PP to new requiredEmail users.
+        personaTOSPP: !!requiredEmail,
+
+        // The site TOS/PP must be shown to new requiredEmail users if there is
+        // a site TOS/PP
+        siteTOSPP: !!requiredEmail && self.siteTOSPP
+      });
 
       startAction(false, "doSetPassword", info);
     });
@@ -125,15 +142,15 @@ BrowserID.State = (function() {
        */
       info = _.extend({ email: self.newUserEmail || self.addEmailEmail || self.resetPasswordEmail }, info);
 
-      if (self.newUserEmail) {
+      if(self.newUserEmail) {
         self.newUserEmail = null;
         startAction(false, "doStageUser", info);
       }
-      else if (self.addEmailEmail) {
+      else if(self.addEmailEmail) {
         self.addEmailEmail = null;
         startAction(false, "doStageEmail", info);
       }
-      else if (self.resetPasswordEmail) {
+      else if(self.resetPasswordEmail) {
         self.resetPasswordEmail = null;
         startAction(false, "doResetPassword", info);
       }
@@ -143,7 +160,7 @@ BrowserID.State = (function() {
       self.stagedEmail = info.email;
 
       _.extend(info, {
-        required: !!self.requiredEmail,
+        required: !!requiredEmail,
         siteName: self.siteName
       });
 
@@ -156,9 +173,10 @@ BrowserID.State = (function() {
     });
 
     handleState("primary_user", function(msg, info) {
-      self.addPrimaryUser = !!info.add;
-      var email = self.email = info.email,
-          idInfo = storage.getEmail(email);
+      addPrimaryUser = !!info.add;
+      email = info.email;
+
+      var idInfo = storage.getEmail(email);
       if (idInfo && idInfo.cert) {
         redirectToState("primary_user_ready", info);
       }
@@ -177,21 +195,20 @@ BrowserID.State = (function() {
     });
 
     handleState("primary_user_provisioned", function(msg, info) {
+      info.add = !!addPrimaryUser;
       // The user is is authenticated with their IdP. Two possibilities exist
       // for the email - 1) create a new account or 2) add address to the
-      // existing account. If the user is authenticated with Persona, #2
+      // existing account. If the user is authenticated with BrowserID, #2
       // will happen. If not, #1.
-      info = info || {};
-      info.add = !!self.addPrimaryUser;
       startAction("doPrimaryUserProvisioned", info);
     });
 
     handleState("primary_user_unauthenticated", function(msg, info) {
-      var requiredEmail = self.requiredEmail;
-
+      // a user who lands here is not authenticated with their identity
+      // provider.
       _.extend(info, {
-        add: !!self.addPrimaryUser,
-        email: self.email,
+        add: !!addPrimaryUser,
+        email: email,
         requiredEmail: !!requiredEmail,
 
         // In the requiredEmail flow, a user who is not authenticated with
@@ -204,13 +221,13 @@ BrowserID.State = (function() {
 
         // Show the persona TOS/PP only to requiredEmail users who are creating
         // a new account.
-        personaTOSPP: requiredEmail && !self.addPrimaryUser,
+        personaTOSPP: requiredEmail && !addPrimaryUser,
         siteName: self.siteName,
         idpName: info.idpName || URLParse(info.auth_url).host
       });
 
-      if (self.primaryVerificationInfo) {
-        self.primaryVerificationInfo = null;
+      if (primaryVerificationInfo) {
+        primaryVerificationInfo = null;
         if (requiredEmail) {
           startAction("doCannotVerifyRequiredPrimary", info);
         }
@@ -413,11 +430,28 @@ BrowserID.State = (function() {
 
     handleState("stage_email", function(msg, info) {
       user.passwordNeededToAddSecondaryEmail(function(passwordNeeded) {
-        if (passwordNeeded) {
+        if(passwordNeeded) {
           self.addEmailEmail = info.email;
-          // cancel is disabled if the user is doing the initial password set
-          // for a requiredEmail.
-          info.cancelable = !self.requiredEmail;
+
+          _.extend(info, {
+            // cancel is disabled if the user is doing the initial password set
+            // for a requiredEmail.
+            cancelable: !requiredEmail,
+
+            // stage_email is called to add an email to an already existing
+            // account.  Since it is an already existing account, the
+            // personaTOSPP does not need to be shown.
+            personaTOSPP: false,
+
+            // requiredEmail users who are adding an email but must set their
+            // password will be redirected here without seeing any other
+            // screens. non-requiredEmail users will have already seen the site
+            // TOS/PP in the pick-email screen if it was necessary.  Since
+            // requiredEmail users may not have seen the screen before, show it
+            // here if there is no originEmail.
+            siteTOSPP: self.siteTOSPP && requiredEmail && !user.getOriginEmail()
+          });
+
           startAction(false, "doSetPassword", info);
         }
         else {
@@ -431,7 +465,7 @@ BrowserID.State = (function() {
     handleState("email_staged", function(msg, info) {
       self.stagedEmail = info.email;
       _.extend(info, {
-        required: !!self.requiredEmail,
+        required: !!requiredEmail,
         siteName: self.siteName
       });
       startAction("doConfirmEmail", info);
@@ -449,17 +483,18 @@ BrowserID.State = (function() {
 
   var State = BrowserID.StateMachine.extend({
     start: function(options) {
-      var self=this;
-
       options = options || {};
 
-      self.controller = options.controller;
-      if (!self.controller) {
+      controller = options.controller;
+      if (!controller) {
         throw "start: controller must be specified";
       }
 
-      State.sc.start.call(self, options);
-      startStateMachine.call(self);
+      addPrimaryUser = false;
+      email = requiredEmail = null;
+
+      State.sc.start.call(this, options);
+      startStateMachine.call(this);
     }
   });
 
