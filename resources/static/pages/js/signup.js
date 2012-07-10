@@ -110,12 +110,12 @@ BrowserID.signUp = (function() {
           else {
             user.addressInfo(email, function(info) {
               dom.removeAttr('#email', 'disabled');
-              if(info.type === "primary") {
-                createPrimaryUser.call(self, info, oncomplete);
-              }
-              else {
+              if(info.type === "secondary") {
                 enterPasswordState.call(self, info);
                 oncomplete && oncomplete(!isRegistered);
+              }
+              else {
+                createPrimaryUser.call(self, info, oncomplete);
               }
             }, pageHelpers.getFailure(errors.addressInfo, oncomplete));
           }

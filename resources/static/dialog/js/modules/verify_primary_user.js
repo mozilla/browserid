@@ -18,28 +18,8 @@ BrowserID.Modules.VerifyPrimaryUser = (function() {
       helpers = bid.Helpers,
       dialogHelpers = helpers.Dialog,
       complete = helpers.complete,
-      delayScreenTimeout;
-
-  function isProxyIdP(addressInfo) {
-    return addressInfo.proxied;
-  }
-
-  // yahoo resizes themselves
-  var RESIZE_TABLE = {
-    "gmail.com$": { w: 900, h: 600 },
-    "hotmail.com$": { w: 700, h: 488 }
-  };
-
-  function resizeWindow(email) {
-    for (var key in RESIZE_TABLE) {
-      var regExp = new RegExp(key);
-      if (regExp.test(email)) {
-        var dimensions = RESIZE_TABLE[key];
-        win.resizeTo(dimensions.w, dimensions.h);
-        return;
-      }
-    }
-  }
+      delayScreenTimeout,
+      proxyIdP = bid.ProxyIdP;
 
   function verify(callback) {
     /*jshint validthis: true */
@@ -56,9 +36,11 @@ BrowserID.Modules.VerifyPrimaryUser = (function() {
     // document's location is redirected before the screen is displayed, the
     // user never sees it and it looks pretty ugly.
     setTimeout(function() {
-      // only resize the window if redirecting to a Big Tent IdP.  All other
-      // IdPs should abide by our rules of 700x400 default.
-      if (isProxyIdP(addressInfo)) resizeWindow(email);
+      // BigTent IdPs sometimes have odd sizes.  Resize to take care of them.
+      var authWindowSize = proxyIdP.authWindowSize(addressInfo.auth, email);
+      if (authWindowSize) {
+        win.resizeTo(authWindowSize.w, authWindowSize.h);
+      }
 
       // Save a bit of state for when the user returns from the IdP
       // authentication flow.  Used in dialog.js to re-start the dialog at the
@@ -98,7 +80,7 @@ BrowserID.Modules.VerifyPrimaryUser = (function() {
         // immediately call verify if the user is being shuffled off to a proxy
         // idp.  This skips the verification screen that normal IdP users see.
         // Inconsistent - yet.  Perhaps we will change this universally.
-        if (isProxyIdP(addressInfo)) {
+        if (proxyIdP.isProxyIdP(addressInfo.auth)) {
           verify.call(self, options.ready);
         }
         else {

@@ -16,21 +16,7 @@ BrowserID.User = (function() {
       addressCache = {},
       primaryAuthCache = {},
       complete = bid.Helpers.complete,
-      registrationComplete = false,
-      PROXY_IDP_WHITELIST = [
-        // allow only bigtent and bigtent subdomains. A way of making
-        // this configurable would be useful so that the list is not hard coded
-        // into the code.  Perhaps something coming across in session_context?
-        /^https:\/\/([^\/]+\.)?bigtent\.mozilla\.org\/*/
-      ];
-
-  function isIdPProxied(addressInfo) {
-    for(var i=0, proxiedRegEx; proxiedRegEx = PROXY_IDP_WHITELIST[i]; ++i) {
-      if (addressInfo.auth.search(proxiedRegEx) > -1) return true;
-    };
-
-    return false;
-  }
+      registrationComplete = false;
 
   function prepareDeps() {
     if (!jwcrypto) {
@@ -840,8 +826,6 @@ BrowserID.User = (function() {
         network.addressInfo(email, function(info) {
           info.email = email;
           if(info.type === "primary") {
-            info.proxied = isIdPProxied(info);
-
             User.isUserAuthenticatedToPrimary(email, info, function(authed) {
               info.authed = authed;
               info.idpName = getIdPName(info);

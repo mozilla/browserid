@@ -65,7 +65,7 @@ var jwcrypto = require("./lib/jwcrypto");
     });
   }
 
-  module("shared/user", {
+  module("common/js/user", {
     setup: function() {
       testHelpers.setup();
     },
@@ -1167,66 +1167,9 @@ var jwcrypto = require("./lib/jwcrypto");
       function(info) {
         testHelpers.testObjectValuesEqual(info, {
           type: "primary",
-          proxied: false,
           email: "registered@testuser.com",
           authed: false
         });
-        start();
-      },
-      testHelpers.unexpectedFailure
-    );
-  });
-
-  asyncTest("addressInfo with proxied primary user - type set to primary, proxied set to true", function() {
-    xhr.useResult("proxyidp");
-    lib.addressInfo("registered@testuser.com",
-      function(info) {
-        testHelpers.testObjectValuesEqual(info, {
-          type: "primary",
-          proxied: true
-        });
-        start();
-      },
-      testHelpers.unexpectedFailure
-    );
-  });
-
-  asyncTest("addressInfo with proxied primary user using dev server - type set to primary, proxied set to true", function() {
-    xhr.useResult("devproxyidp");
-    lib.addressInfo("registered@testuser.com",
-      function(info) {
-        testHelpers.testObjectValuesEqual(info, {
-          type: "primary",
-          proxied: true
-        });
-        start();
-      },
-      testHelpers.unexpectedFailure
-    );
-  });
-
-  asyncTest("addressInfo with invalid proxied primary user using dev server - type set to primary, proxied set to false", function() {
-    xhr.useResult("invalidproxyidp");
-    lib.addressInfo("registered@testuser.com",
-      function(info) {
-        testHelpers.testObjectValuesEqual(info, {
-          type: "primary",
-          proxied: false
-        }, "info.auth: " + info.auth);
-        start();
-      },
-      testHelpers.unexpectedFailure
-    );
-  });
-
-  asyncTest("addressInfo with cheating proxied primary user using dev server - type set to primary, proxied set to false", function() {
-    xhr.useResult("cheatproxyidp");
-    lib.addressInfo("registered@testuser.com",
-      function(info) {
-        testHelpers.testObjectValuesEqual(info, {
-          type: "primary",
-          proxied: false
-        }, "info.auth: " + info.auth);
         start();
       },
       testHelpers.unexpectedFailure

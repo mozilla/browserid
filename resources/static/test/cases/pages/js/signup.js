@@ -168,6 +168,20 @@
     });
   });
 
+  asyncTest("authWithPrimary to proxied gmail sets gmail sized window", function() {
+    xhr.useResult("proxyidp");
+    $("#email").val("unregistered@gmail.com");
+
+    controller.emailSubmit(function(status) {
+      controller.authWithPrimary(function() {
+        ok(winchan.oncomplete, "winchan set up");
+        equal(winchan.params.window_features, "width=900,height=600");
+        start();
+      });
+    });
+  });
+
+
   asyncTest("primaryAuthComplete with error, expect incorrect status", function() {
     controller.primaryAuthComplete("error", "", function(status) {
       equal(status, false, "correct status for could not complete");
