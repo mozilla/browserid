@@ -20,7 +20,7 @@ BrowserID.Modules.RequiredEmail = (function() {
 
   function closePrimaryUser(callback) {
     /*jshint validthis: true*/
-    this.close("primary_user", helpers.extend(primaryInfo, {
+    this.close("primary_user", _.extend(primaryInfo, {
       email: email,
       requiredEmail: true,
       add: !!auth_level
@@ -222,7 +222,7 @@ BrowserID.Modules.RequiredEmail = (function() {
       }, self.getErrorDialog(errors.checkAuthentication, ready));
 
       function showTemplate(templateData) {
-        templateData = helpers.extend({
+        templateData = _.extend({
           email: email,
           verify: false,
           signin: false,
