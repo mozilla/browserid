@@ -170,6 +170,19 @@
     });
   });
 
+  asyncTest("authWithPrimary to proxied gmail sets gmail sized window", function() {
+    xhr.useResult("proxyidp");
+    $("#email").val("registered@gmail.com");
+
+    controller.emailSubmit(function(status) {
+      controller.authWithPrimary(function() {
+        ok(winchan.oncomplete, "winchan set up");
+        equal(winchan.params.window_features, "width=900,height=600");
+        start();
+      });
+    });
+  });
+
   asyncTest("primaryAuthComplete logs user in", function() {
     xhr.useResult("primary");
     $("#email").val("unregistered@testuser.com");

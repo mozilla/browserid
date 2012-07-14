@@ -10,21 +10,30 @@
       controller,
       el,
       testHelpers = bid.TestHelpers,
+      xhr = bid.Mocks.xhr,
       testElementExists = testHelpers.testElementExists,
       testElementNotExists = testHelpers.testElementDoesNotExist,
       WindowMock = bid.Mocks.WindowMock,
+      AUTH_URL = "https://auth_url",
+      PROXY_AUTH_URL = "https://bigtent.mozilla.org/auth",
       win,
       mediator = bid.Mediator;
 
   function createController(config) {
     controller = BrowserID.Modules.VerifyPrimaryUser.create();
+
+    config.delay_screen_timeout = 0;
+    config.window = win;
+
     controller.start(config);
   }
 
-  module("controllers/verify_primary_user", {
+  module("dialog/js/modules/verify_primary_user", {
     setup: function() {
       testHelpers.setup();
       win = new WindowMock();
+      win.document.location.href = "sign_in";
+      xhr.useResult("primary");
     },
 
     teardown: function() {
@@ -35,112 +44,143 @@
     }
   });
 
-  test("personaTOSPP true, requiredEmail: true - show TOS/PP", function() {
+  asyncTest("personaTOSPP true - show TOS/PP", function() {
     createController({
-      window: win,
       add: false,
       email: "unregistered@testuser.com",
-      auth_url: "http://testuser.com/sign_in",
-      requiredEmail: true,
-      personaTOSPP: false
-    });
+      personaTOSPP: true,
+      ready: function() {
+        testElementExists("#persona_tospp");
 
-    testElementNotExists("#persona_tospp");
+        start();
+      }
+    });
   });
 
-  test("personaTOSPP true, requiredEmail: false - show TOS/PP", function() {
+
+  asyncTest("personaTOSPP false - do not show TOS/PP", function() {
     createController({
-      window: win,
       add: false,
       email: "unregistered@testuser.com",
-      auth_url: "http://testuser.com/sign_in",
-      requiredEmail: false,
-      personaTOSPP: false
+      personaTOSPP: false,
+      ready: function() {
+        testElementNotExists("#persona_tospp");
+        start();
+      }
     });
 
-    testElementNotExists("#persona_tospp");
   });
 
-  asyncTest("submit with `add: false` option opens a new tab with proper URL (updated for sessionStorage)", function() {
+
+  asyncTest("submit opens a new tab with proper URL (updated for sessionStorage)", function() {
     var messageTriggered = false;
     createController({
-      window: win,
       add: false,
       email: "unregistered@testuser.com",
-      auth_url: "http://testuser.com/sign_in",
-      personaTOSPP: true
+      ready: function() {
+        mediator.subscribe("primary_user_authenticating", function() {
+          messageTriggered = true;
+        });
+
+        controller.submit(function() {
+          equal(win.document.location, AUTH_URL + "?email=unregistered%40testuser.com");
+          equal(messageTriggered, true, "primary_user_authenticating triggered");
+          start();
+        });
+      }
     });
-
-    testElementExists("#persona_tospp");
-
-    mediator.subscribe("primary_user_authenticating", function() {
-      messageTriggered = true;
-    });
-
-    // Also checking to make sure the NATIVE is stripped out.
-    win.document.location.href = "sign_in";
-    win.document.location.hash = "#NATIVE";
-
-    controller.submit(function() {
-      equal(win.document.location, "http://testuser.com/sign_in?email=unregistered%40testuser.com");
-      equal(messageTriggered, true, "primary_user_authenticating triggered");
-      start();
-    });
-  });
-
-  asyncTest("submit with `add: true` option opens a new tab with proper URL (updated for sessionStorage)", function() {
-    createController({
-      window: win,
-      add: true,
-      email: "unregistered@testuser.com",
-      auth_url: "http://testuser.com/sign_in",
-      personaTOSPP: true
-    });
-
-    testElementExists("#persona_tospp");
-
-    // Also checking to make sure the NATIVE is stripped out.
-    win.document.location.href = "sign_in";
-    win.document.location.hash = "#NATIVE";
-
-    controller.submit(function() {
-      equal(win.document.location, "http://testuser.com/sign_in?email=unregistered%40testuser.com");
-      start();
-    });
-  });
-
-  test("submit with no callback", function() {
-    createController({
-      window: win,
-      add: true,
-      email: "unregistered@testuser.com",
-      auth_url: "http://testuser.com/sign_in"
-    });
-
-    var error;
-    try {
-      controller.submit();
-    }
-    catch(e) {
-      error = e;
-    }
-
-    equal(typeof error, "undefined", "error is undefined");
   });
 
   asyncTest("cancel triggers the cancel_state", function() {
     createController({
-      window: win,
       add: true,
       email: "unregistered@testuser.com",
-      auth_url: "http://testuser.com/sign_in"
+      ready: function() {
+        testHelpers.register("cancel_state");
+
+        controller.cancel(function() {
+          equal(testHelpers.isTriggered("cancel_state"), true, "cancel_state is triggered");
+          start();
+        });
+      }
+    });
+  });
+
+  asyncTest("create with proxy idp - verify without user interaction", function() {
+    xhr.useResult("proxyidp");
+
+    mediator.subscribe("primary_user_authenticating", function(msg, data) {
+      equal(data.url, PROXY_AUTH_URL + "?email=registered%40testuser.com");
     });
 
-    testHelpers.register("cancel_state");
+    createController({
+      add: false,
+      email: "registered@testuser.com",
+      ready: function() {
+        equal(win.document.location, PROXY_AUTH_URL + "?email=registered%40testuser.com", "document.location correctly set");
+        start();
+      }
+    });
 
-    controller.cancel(function() {
-      equal(testHelpers.isTriggered("cancel_state"), true, "cancel_state is triggered");
-      start();
+  });
+
+  asyncTest("submit for normal gmail - window does not get resized", function() {
+    createController({
+      add: false,
+      email: "testuser@gmail.com",
+      ready: function() {
+        controller.submit(function() {
+          equal(win.width, 0, "width not set");
+          equal(win.height, 0, "height not set");
+          start();
+        });
+      }
+    });
+  });
+
+  asyncTest("submit for proxied gmail - window gets resized", function() {
+    xhr.useResult("proxyidp");
+
+    createController({
+      add: false,
+      email: "registered@gmail.com",
+      ready: function() {
+        // Do not need to call submit in this case, it should be done
+        // automatically.
+        ok(win.width, "width set");
+        ok(win.height, "height set");
+        start();
+      }
+    });
+  });
+
+  asyncTest("submit for proxied yahoo - window does not get resized", function() {
+    xhr.useResult("proxyidp");
+
+    createController({
+      add: false,
+      email: "registered@yahoo.com",
+      ready: function() {
+        // Do not need to call submit in this case, it should be done
+        // automatically.
+        equal(win.width, 0, "width not set");
+        equal(win.height, 0, "height not set");
+        start();
+      }
+    });
+  });
+
+  asyncTest("submit for proxied hotmail - window gets resized", function() {
+    xhr.useResult("proxyidp");
+
+    createController({
+      add: false,
+      email: "registered@hotmail.com",
+      ready: function() {
+        ok(win.width, "width set");
+        ok(win.height, "height set");
+        start();
+      }
     });
   });
 

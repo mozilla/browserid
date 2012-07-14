@@ -145,7 +145,7 @@
     controller.checkEmail();
   });
 
-  asyncTest("checkEmail with email that has IdP support - 'primary_user' message", function() {
+  asyncTest("checkEmail with email that has normal IdP support, expect 'primary_user' message", function() {
     $("#email").val("unregistered@testuser.com");
     xhr.useResult("primary");
 
@@ -153,6 +153,7 @@
       equal(info.email, "unregistered@testuser.com", "email correctly passed");
       equal(info.auth, "https://auth_url", "IdP authentication URL passed");
       equal(info.prov, "https://prov_url", "IdP provisioning URL passed");
+      equal(info.type, "primary", "correct IdP type set");
       start();
     });
 

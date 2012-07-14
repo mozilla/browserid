@@ -1,4 +1,4 @@
-/*jshint browser:true, jquery: true, forin: true, laxbreak:true */
+/*jshint browser:true, jquery: true, forin: true, laxbreak:true, laxcomma:true */
 /*global _: true, BrowserID: true, PageController: true */
 /* This Source Code Form is subject to the terms of the Mozilla Public
  * License, v. 2.0. If a copy of the MPL was not distributed with this
@@ -19,6 +19,7 @@ BrowserID.Modules.RequiredEmail = (function() {
       secondaryAuth;
 
   function closePrimaryUser(callback) {
+    /*jshint validthis: true*/
     this.close("primary_user", _.extend(primaryInfo, {
       email: email,
       requiredEmail: true,
@@ -29,6 +30,7 @@ BrowserID.Modules.RequiredEmail = (function() {
   }
 
   function signIn(callback) {
+    /*jshint validthis: true*/
     var self = this;
 
     function getAssertion() {
@@ -64,6 +66,8 @@ BrowserID.Modules.RequiredEmail = (function() {
   }
 
   function verifyAddress() {
+    /*jshint validthis: true*/
+
     // By being in the verifyAddress, we know that the current user has not
     // been shown the password box and we have to do a verification of some
     // sort.  This will be either an add email to the current account or a new
@@ -84,12 +88,14 @@ BrowserID.Modules.RequiredEmail = (function() {
   }
 
   function forgotPassword() {
+    /*jshint validthis: true*/
     var self=this;
     self.close("forgot_password", { email: email, requiredEmail: true });
   }
 
 
   function cancel() {
+    /*jshint validthis: true*/
     // The cancel button is only shown to a user who has to enter their
     // password to go from "assertion" authentication to "password"
     // authentication.
@@ -142,7 +148,7 @@ BrowserID.Modules.RequiredEmail = (function() {
           user.addressInfo(email, function(info) {
             if(info.type === "primary") primaryInfo = info;
 
-            if (info.type === "primary" && info.authed) {
+            if(info.type === "primary" && info.authed) {
               // this is a primary user who is authenticated with their IdP.
               // We know the user has control of this address, give them
               // a chance to hit "sign in" before we kick them off to the
@@ -156,6 +162,10 @@ BrowserID.Modules.RequiredEmail = (function() {
               showTemplate({ signin: true, primary: true, personaTOSPP: !auth_level });
             }
             else if(info.type === "primary" && !info.authed) {
+              // This is a primary user who has control of the address, but
+              // whose cert is expired and the user is not authenticated with
+              // their IdP.
+              // OR
               // User who does not control a primary address.
 
               // Kick the user down the primary user flow.  User creation and

@@ -11,6 +11,7 @@ BrowserID.Modules.ProvisionPrimaryUser = (function() {
       errors = bid.Errors;
 
   function provisionPrimaryUser(email, auth, prov, oncomplete) {
+    /*jshint validthis: true*/
     var self=this;
 
     function complete(status) {
@@ -66,7 +67,6 @@ BrowserID.Modules.ProvisionPrimaryUser = (function() {
           self.renderError("error", { action: errors.provisioningBadPrimary });
         }
       }, self.getErrorDialog(errors.isEmailRegistered));
-
 
       ProvisionPrimaryUser.sc.start.call(self, options);
     }

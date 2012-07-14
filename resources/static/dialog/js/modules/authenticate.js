@@ -44,7 +44,6 @@ BrowserID.Modules.Authenticate = (function() {
     /*jshint validthis: true*/
     var email = getEmail(),
         self = this;
-
     if (!email) return;
 
     dom.setAttr('#email', 'disabled', 'disabled');
@@ -63,8 +62,7 @@ BrowserID.Modules.Authenticate = (function() {
 
       if(info.type === "primary") {
         self.close("primary_user", info, info);
-      }
-      else if(info.known) {
+      } else if(info.known) {
         enterPasswordState.call(self);
       } else {
         createSecondaryUser.call(self);
@@ -169,7 +167,6 @@ BrowserID.Modules.Authenticate = (function() {
   var Module = bid.Modules.PageModule.extend({
     start: function(options) {
       options = options || {};
-
       addressInfo = null;
       lastEmail = options.email || "";
 

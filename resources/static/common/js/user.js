@@ -901,8 +901,7 @@ BrowserID.User = (function() {
      *        is authenticated to the IdP as this user.
      *     auth: string - url to send users for auth - present if type is
      *        primary.
-     *     prov: string - url to embed for silent provisioning - present
-     *        if type is secondary.
+     *     prov: string - url to embed for silent provisioning
      * @param {function} [onFailure] - Called on XHR failure.
      */
     addressInfo: function(email, onComplete, onFailure) {

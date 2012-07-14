@@ -15,6 +15,11 @@ BrowserID.Wait = (function(){
       message:  gettext("Please wait a few seconds while we sign you into the site.")
     },
 
+    redirectToIdP: {
+      title: gettext("You are being redirected to your email provider"),
+      message: ""
+    },
+
     slowXHR: {
       title:  gettext("We are sorry, this is taking a longer than it should."),
       message:  gettext("If this doesn't resolve itself within a few seconds, please close the window and try again."),

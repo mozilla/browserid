@@ -76,8 +76,7 @@
   });
 
   asyncTest("doVerifyPrimaryUser - start the verify_primary_user service", function() {
-    testActionStartsModule("doVerifyPrimaryUser", {},
-      "verify_primary_user");
+    testActionStartsModule("doVerifyPrimaryUser", {}, "verify_primary_user");
   });
 
   asyncTest("doCannotVerifyRequiredPrimary - show the error screen", function() {

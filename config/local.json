@@ -12,9 +12,11 @@
   },
   "express_log_format": "dev_bid",
   "email_to_console": true,
-  "env": "local",
   "kpi_backend_sample_rate": 1.0,
-
-  // whether to show the development menu.
+  "bigtent": {
+    "gmail.com":   "https://dev.bigtent.mozilla.org",
+    "yahoo.com":   "https://dev.bigtent.mozilla.org",
+    "hotmail.com": "https://dev.bigtent.mozilla.org"
+  },
   "enable_development_menu": true
 }

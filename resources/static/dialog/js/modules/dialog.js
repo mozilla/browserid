@@ -1,5 +1,5 @@
-/*jshint browser:true, jquery: true, forin: true, laxbreak:true */
-/*global BrowserID: true */
+/*jshint browser:true, jquery: true, forin: true, laxbreak:true, laxcomma:true */
+/*global BrowserID: true, WinChan: true, URLParse: true */
 /* This Source Code Form is subject to the terms of the Mozilla Public
  * License, v. 2.0. If a copy of the MPL was not distributed with this
  * file, You can obtain one at http://mozilla.org/MPL/2.0/. */
@@ -36,6 +36,7 @@ BrowserID.Modules.Dialog = (function() {
   }
 
   function startChannel() {
+    /*jshint validthis: true*/
     var self = this,
         hash = win.location.hash;
 
@@ -75,6 +76,7 @@ BrowserID.Modules.Dialog = (function() {
   }
 
   function onWindowUnload() {
+    /*jshint validthis: true*/
     this.publish("window_unload");
   }
 

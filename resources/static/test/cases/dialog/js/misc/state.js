@@ -36,9 +36,10 @@
 
   function testActionStarted(actionName, requiredOptions) {
     ok(actions.called[actionName], actionName + "called");
-    for(var key in requiredOptions) {
-      equal(actions.info[actionName][key], requiredOptions[key],
-          actionName + " called with " + key + "=" + requiredOptions[key]);
+
+    if (requiredOptions) {
+      testHelpers.testObjectValuesEqual(actions.info[actionName],
+        requiredOptions);
     }
   }
 
@@ -210,7 +211,7 @@
     mediator.publish("primary_user", { email: TEST_EMAIL });
   });
 
-  asyncTest("primary_user with unprovisioned, unregistered primary user - call doProvisionPrimaryUser", function() {
+  asyncTest("primary_user with unprovisioned, unregistered primary user - trigger kpi_data, call doProvisionPrimaryUser", function() {
     mediator.subscribe("kpi_data", function(msg, data) {
       equal(data.new_account, true, "new_account kpi added for new primary user");
       ok(actions.called.doProvisionPrimaryUser, "doPrimaryUserProvisioned called");
@@ -224,10 +225,13 @@
     ok(actions.called.doPrimaryUserProvisioned, "doPrimaryUserProvisioned called");
   });
 
-  test("primary_user_unauthenticated before verification - call doVerifyPrimaryUser", function() {
+  asyncTest("primary_user_unauthenticated before IdP authentication - call doVerifyPrimaryUser", function() {
     mediator.publish("start");
-    mediator.publish("primary_user_unauthenticated");
-    ok(actions.called.doVerifyPrimaryUser, "doVerifyPrimaryUser called");
+    mediator.publish("primary_user", { email: TEST_EMAIL });
+    mediator.publish("primary_user_unauthenticated", { complete: function() {
+      testActionStarted("doVerifyPrimaryUser", { email: TEST_EMAIL });
+      start();
+    }});
   });
 
   test("primary_user_unauthenticated after required email - call doCannotVerifyRequiredPrimary", function() {

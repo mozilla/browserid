@@ -564,14 +564,19 @@ BrowserID.Network = (function() {
      *   containing these properties:
      *     type: <secondary|primary>
      *     known: boolean, present - present if type is secondary
-     *     auth: string - url to send users for auth - present if type is primary
-     *     prov: string - url to embed for silent provisioning - present if type is secondary
+     *     auth: string - url to send users for auth
+     *     prov: string - url to embed for silent provisioning
      * @param {function} [onFailure] - Called on XHR failure.
      */
     addressInfo: function(email, onComplete, onFailure) {
       get({
         url: "/wsapi/address_info?email=" + encodeURIComponent(email),
         success: function(data, textStatus, xhr) {
+          // BEGIN TRANSITION CODE
+          // the backend returns proxyidp for BigTent addresses. As soon as it
+          // returns primary again, remove this.
+          if (data && data.type === "proxyidp") data.type = "primary";
+          // END TRANSITION CODE
           complete(onComplete, data);
         },
         error: onFailure

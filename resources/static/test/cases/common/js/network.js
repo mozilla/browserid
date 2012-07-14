@@ -637,6 +637,7 @@
       equal(data.type, "primary", "type is primary");
       ok("auth" in data, "auth field exists");
       ok("prov" in data, "prov field exists");
+      equal(data.type, "primary", "type correctly set to primary");
       start();
     }, testHelpers.unexpectedXHRFailure);
   });

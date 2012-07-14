@@ -1253,7 +1253,7 @@
     );
   });
 
-  asyncTest("addressInfo with primary authenticated user", function() {
+  asyncTest("addressInfo with normal IdP authenticated user", function() {
     xhr.useResult("primary");
     provisioning.setStatus(provisioning.AUTHENTICATED);
     lib.addressInfo(
@@ -1275,9 +1275,11 @@
     lib.addressInfo(
       "registered@testuser.com",
       function(info) {
-        equal(info.type, "primary", "correct type");
-        equal(info.email, "registered@testuser.com", "correct email");
-        equal(info.authed, false, "user is not authenticated with IdP");
+        testHelpers.testObjectValuesEqual(info, {
+          type: "primary",
+          email: "registered@testuser.com",
+          authed: false
+        });
         start();
       },
       testHelpers.unexpectedFailure
