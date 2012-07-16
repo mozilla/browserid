@@ -253,6 +253,7 @@ BrowserID.State = (function() {
       }
       else {
         startAction("doVerifyPrimaryUser", info);
+        complete(info.complete);
       }
     });
 
