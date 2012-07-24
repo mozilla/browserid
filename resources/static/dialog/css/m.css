@@ -7,9 +7,18 @@
  */
 @media screen and (max-width: 640px) {
 
+  html, body{
+    height: auto;
+  }
+
   header, footer {
     position: static;
     padding: 5px 20px;
+    -webkit-text-size-adjust: none;
+  }
+
+  footer{
+    padding: 10px 20px;
   }
 
   button {
@@ -27,8 +36,8 @@
   }
 
   .inputs > li > label {
-    font-size: 18px;
-    margin-bottom: 10px;
+    font-size: 16px;
+    margin-bottom: 5px;
   }
 
   .vertical > strong {
@@ -98,12 +107,18 @@
       width: 100%;
   }
 
+  #signIn .table{
+    padding: 10px 20px 20px;
+    display: block;
+  }
+
   .pickemail #signIn .table {
       padding-top: 0;
   }
 
   #signIn .vertical {
       position: static;
+      display: block;
   }
 
   #signIn form {
@@ -142,6 +157,7 @@
     position: relative;
     top: 0;
     bottom: 0;
+    padding-bottom: 20px;
   }
 
   .form_section,
@@ -156,6 +172,10 @@
     top: 0;
     bottom: 0;
   }
+
+.form_section{
+  -webkit-text-size-adjust: none;
+}
 
   .submit #cancel, #signIn .submit #cancel {
     font-size: 18px;
