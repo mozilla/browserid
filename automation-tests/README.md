@@ -1,9 +1,11 @@
 getting started
 ===============
 
-## how to run selenium tests inside the automation-tests directory against 123done (new API) and myfavoritebeers (old API)
+## how to run selenium tests inside the automation-tests directory against ephemeral, stage, or prod environments
 
 Node bindings don't exist for Selenium 2 API (webdriver), so we're using python bindings instead. This requires some python-centric setup, but it shouldn't take more than 15 minutes or so to get up and running.
+
+These tests currently only hit myfavoritebeers and 123done domains. For example, to test an ephemeral install named foo.personatest.org, you can pass 'foo.123done.org' into the py.test baseurl parameter (this is covered again in the examples section).
 
 ### check system-wide python requirements
 
@@ -40,30 +42,53 @@ Sweet. Your environment is now ready.
 
 Some of the automation tests verify that existing accounts work, so create a test account, and put the info into credentials.yaml.
 
-### run the tests locally
+### run the tests
 
 When you want to run the tests, make sure the virtualenv is active:
 
     . bid_selenium/bin/activate
 
-Then, run the tests by calling py.test on the command line with some options. [Here](https://github.com/davehunt/pytest-mozwebqa) are some options added to py.test by the mozwebqa plugin. [Here](http://pytest.org/latest/usage.html) is the py.test documentation.
+Then, run the tests by calling py.test on the command line with some options. [Here](https://github.com/davehunt/pytest-mozwebqa) is the most relevant documentation: command-line options added to py.test by the mozwebqa plugin, which is awesome. [Here](http://pytest.org/latest/usage.html) is the documentation for the upstream pytest project.
 
-Here's an example incantation to run the 123done tests locally, assuming you have firefox installed:
+#### examples
 
-    py.test --destructive --driver=firefox --baseurl=http://dev.123done.org \
-        --credentials=credentials.yaml -q 123done
+Use local Firefox to run the 123done tests (in the 123done directory) against dev.123done.org:
 
-To run myfavoritebeer tests, switch up the baseurl:
+    py.test --destructive --credentials=credentials.yaml \
+        --baseurl=http://dev.123done.org \
+        --driver=firefox \
+        -q 123done
 
-    py.test --destructive --driver=firefox --baseurl=http://dev.myfavoritebeer.org \
-        --credentials=credentials.yaml -q myfavoritebeer
+Use local Chrome (assuming you've downloaded [Chromedriver](http://code.google.com/p/selenium/wiki/ChromeDriver) to /usr/local/bin/chromedriver) to run just one of the the myfavoritebeer tests against myfavoritebeer.org:
 
-If you want to use Chrome instead of FF, download [Chromedriver](http://code.google.com/p/selenium/wiki/ChromeDriver), put it somewhere, then update a few command-line options:
+    py.test --destructive --credentials=credentials.yaml \
+        --baseurl=http://www.myfavoritebeer.org \
+        --driver=chrome --chromepath=/usr/local/bin/chromedriver \
+        -q myfavoritebeer/tests/test_logout.py
 
-    py.test --destructive --driver=chrome --baseurl=http://dev.myfavoritebeer.org \
-        --chromepath=/usr/local/bin/chromedriver --credentials=credentials.yaml \ 
-        -q myfavoritebeer
+Use Sauce Labs (assuming you've got credentials in saucelabs.yaml) to run IE 8 against an ephemeral instance called 'foo':
+
+    py.test --destructive --credentials=credentials.yaml \
+        --baseurl=http://foo.123done.org \
+        --platform=XP --browsername="internet explorer" --browserver=8 \
+        --saucelabs=saucelabs.yaml \
+        -q 123done
+
+note, your saucelabs.yaml file should be of the form:
+
+        # example sauce_labs.yaml config file
+        username: <username>
+        password: <password>
+        api-key: <api-key>
+
+#### Check out your results
+    
+The tests create a /results directory, which contains an index.html file with test results, screenshots, and videos if you used sauce labs. In case of a failure, you'll also see the backtrace. Totally sweet.
 
 ## writing automation tests
 
-The most important thing to note is that this code is a git subtree pulled from github.com/6a68/BrowserID-Tests.git, which means we can push and pull changes to that repo, and from there, share out to the upstream mozilla/BrowserID-Tests repo. See [git-subtree help file](https://github.com/apenwarr/git-subtree/blob/master/git-subtree.txt) for details on moving patches across repos using git-subtree, which is an awesome tool. See also apenwarr's [blog post](http://apenwarr.ca/log/?m=200904#30).
+TODO: some idioms from the existing test code to help people quickly express "find this" and "click this" idiomatically.
+
+Refer to [mozilla's pytest_mozwebqa](https://github.com/davehunt/pytest-mozwebqa#writing-tests-for-pytest_mozwebqa) documentation on writing tests for the time being.
+
+A note about upstreaming bidpom changes: this codebase contains [mozilla's bidpom](https://github.com/mozilla/bidpom) as [git-subtree](https://github.com/apenwarr/git-subtree/blob/master/git-subtree.txt). This allows us to pull in changes from upstream, while easily tracking the bidpom code to branches. It's unlikely that we'll need to push or pull to upstream frequently, but for details on doing so, see also apenwarr's [blog post](http://apenwarr.ca/log/?m=200904#30).
