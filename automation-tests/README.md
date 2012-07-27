@@ -46,7 +46,7 @@ When you want to run the tests, make sure the virtualenv is active:
 
     . bid_selenium/bin/activate
 
-Then, run the tests by calling py.test on the command line with some options.
+Then, run the tests by calling py.test on the command line with some options. [Here](https://github.com/davehunt/pytest-mozwebqa) are some options added to py.test by the mozwebqa plugin. [Here](http://pytest.org/latest/usage.html) is the py.test documentation.
 
 Here's an example incantation to run the 123done tests locally, assuming you have firefox installed:
 
