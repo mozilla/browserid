@@ -222,3 +222,10 @@ class SignIn(Base):
     def sign_in_returning_user(self):
         """Signs in with the stored user."""
         self.click_sign_in_returning_user()
+
+    def sign_in_add_another_email(self, email):
+        self.click_add_another_email_address()
+        self.new_email = email
+        self.click_add_new_email()
+        self.close_window()
+        self.switch_to_main_window()
