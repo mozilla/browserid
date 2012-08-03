@@ -28,6 +28,12 @@ var daemonsToRun = {
     PORT: 10005,
     HOST: HOST
   },
+  dynamic_id_primary: {
+    SHIMMED_DOMAIN: "dynamicidexample.domain",
+    path: path.join(__dirname, "..", "scripts", "serve_example_dynamic_id_primary.js"),
+    PORT: 10008,
+    HOST: HOST
+  },
   proxy: { },
   browserid: { },
   static: { },
@@ -50,7 +56,9 @@ process.env['CONFIG_FILES'] = configFiles.join(',');
 // all spawned process that use handle primaries should know about "shimmed"
 // primaries
 var oldShims = process.env['SHIMMED_PRIMARIES'] ? process.env['SHIMMED_PRIMARIES'] + "," : "";
-process.env['SHIMMED_PRIMARIES'] = oldShims + "example.domain|http://" + HOST + ":10005|" + path.join(__dirname, "..", "example", "primary", ".well-known", "browserid");
+process.env['SHIMMED_PRIMARIES'] = oldShims +
+  "example.domain|http://" + HOST + ":10005|" + path.join(__dirname, "..", "example", "primary", ".well-known", "browserid") + "," +
+  "dynamicidexample.domain|http://" + HOST + ":10008|" + path.join(__dirname, "..", "example", "dynamic_id_primary", ".well-known", "browserid");
 
 // all spawned processes should log to console
 process.env['LOG_TO_CONSOLE'] = 1;
