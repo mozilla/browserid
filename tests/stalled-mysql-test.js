@@ -161,7 +161,7 @@ suite.addBatch({
 // is stalled
 addStallDriverBatch(false);
 
-var token = undefined;
+token = undefined;
 
 suite.addBatch({
   "ping": {
