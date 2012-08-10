@@ -165,7 +165,8 @@ rpmbuild --define "_topdir $PWD/rpmbuild" \
          --define "fullver ${ver_string}" \
          --define "src_repo $(get_remote)" \
          -ba scripts/browserid.spec
-rc=$? \
+rc=$?
+[[ $rc -eq 0 ]] \
 && ls -l $PWD/rpmbuild/RPMS/*/*.rpm \
 || echo "$progname: failed to build browserid RPM (rpmbuild rc=$rc)" >&2
 exit $rc
