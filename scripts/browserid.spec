@@ -22,17 +22,18 @@ Persona server & web home for persona.org
 
 %build
 npm install
+echo "%{fullver}" > resources/static/ver.txt
+echo "ORIGIN REPO: %{src_repo}" >> resources/static/ver.txt
 export PATH=$PWD/node_modules/.bin:$PATH
 ## Locales are optional
 [[ -d locale ]] \
 && {
     ./locale/compile-mo.sh locale/
     ./locale/compile-json.sh locale/ resources/static/i18n/
-    echo "locale svn r%{localerev}" >> resources/static/ver.txt
+    echo "locale svn r$LOCALE_REV" >> resources/static/ver.txt
 }
 env CONFIG_FILES=$PWD/config/l10n-all.json scripts/compress
 rm -r resources/static/build resources/static/test
-echo "$GIT_REVISION" > resources/static/ver.txt
 exit 0
 
 %install
