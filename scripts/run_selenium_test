@@ -26,6 +26,7 @@ var globalPythonArgs = {
   "-m": "py.test",
   "--credentials": path.join(testPath, "credentials.yaml"),
   "--saucelabs": path.join(testPath, "sauce.yaml"),
+  "--webqatimeout": 90,
   "--destructive": null
 };
 
