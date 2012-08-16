@@ -61,11 +61,14 @@ var testSpecificPythonArgs = {
 };
 
 // python arguments specific to different browser/os combos
+var noProxyJson = '{"avoid-proxy":"true"}';
+
 var browserSpecificPythonArgs = {
   "linux_ffx_13": {
     '--platform': 'LINUX',
     '--browsername': 'firefox',
-    '--browserver': 13
+    '--browserver': 13,
+    '--capabilities': noProxyJson,
   },
   "linux_opera_12": {
     '--platform': 'LINUX',
@@ -75,18 +78,21 @@ var browserSpecificPythonArgs = {
   "osx_firefox_14": {
     '--platform': 'MAC',
     '--browsername':'firefox',
-    '--browserver':'14'
+    '--browserver':'14',
+    '--capabilities': noProxyJson,
   },
   "vista_chrome": {
     '--platform':'VISTA',
-    '--browsername':'chrome'
+    '--browsername':'chrome',
+    '--capabilities': noProxyJson,
   },
   "vista_firefox_13": {
     '--platform':'VISTA',
     '--browsername':'firefox',
-    '--browserver':'13'
+    '--browserver':'13',
+    '--capabilities': noProxyJson,
   },
-  "vista_ie_9": {
+  "2008_ie_9": {
     '--platform':'Windows 2008',
     '--browsername':'internet explorer',
     '--browserver':'9'
