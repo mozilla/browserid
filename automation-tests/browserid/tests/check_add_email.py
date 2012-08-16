@@ -17,6 +17,9 @@ import restmail
 class TestSignIn(BaseTest):
 
     @pytest.mark.travis
+    @pytest.mark.xfail("config.getvalue('browser_name') == 'internet explorer' \
+                       and int(config.getvalue('browser_version')) == 9", 
+                       reason='IE Local Storage https://github.com/mozilla/browserid/issues/2265')
     def test_add_email(self, mozwebqa):
         user = self.create_verified_user(mozwebqa.selenium, mozwebqa.timeout)
         user.additional_emails.append('%s_1@restmail.net' % user.id)
