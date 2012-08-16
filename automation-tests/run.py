@@ -154,7 +154,7 @@ def main():
             ('--platform=VISTA --browsername=chrome  --capabilities=' + no_proxy_json + ' ', 'vista_chrome'),
             ('--platform=VISTA --browsername=firefox --browserver=13  --capabilities=' + no_proxy_json + ' ', 'vista_firefox_13'),
             ('--platform=VISTA --browsername="internet explorer" --browserver=9 ', 'vista_ie_9'),
-            ('--platform=XP    --browsername="internet explorer" --browserver=8 ' 'xp_ie_8'),
+            ('--platform=XP    --browsername="internet explorer" --browserver=8 ', 'xp_ie_8'),
         ]
         sauce = '--saucelabs=sauce.yaml '
     else:
