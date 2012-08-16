@@ -59,6 +59,7 @@ def main():
 
     # 1. check that python is the right version 
     # TODO: would 2.6 actually work?
+    # it worked for Leah with 2.6, but i didn't necessarily test all the options
     if sys.version_info < (2,7,0):
         sys.stderr.write('python 2.7 or later is required to run the tests\n')
         exit(1)
@@ -114,35 +115,68 @@ def main():
                     ' ensure the test process has permission to create the file.\n')
                 exit(1)
 
+    # 5.5 check for and/or create credentials.yaml
+    if not os.path.isfile('credentials.yaml'):
+        # look for env variables
+        try:
+            email = os.environ['PERSONA_EMAIL']
+            password = os.environ['PERSONA_PASSWORD']
+        # if they are missing, bail
+        except KeyError:
+            sys.stderr.write('Existing validated user credentials are needed to run' +
+                ' tests for 123done and myfavoritebeer. Please set them in the' +
+                ' PERSONA_EMAIL and PERSONA_PASSWORD environmental variables.\n')
+            exit(1)
+        # if they are present, write them out to credentials.yaml
+        try:
+            credentialsfile = open('credentials.yaml', 'w')
+            credentialsfile.write('default:\n')
+            credentialsfile.write('    email: ' + email + '\n')
+            credentialsfile.write('    password: ' + password + '\n')
+            credentialsfile.close()
+        #if you can't open the file for editing, bail
+        except IOError:
+            sys.stederr.write('Unalbe to open credentials.yaml to write out' +
+                ' credentials. Either create credentials.yaml manually or' +
+                ' ensure the test process has permission to create the file.\n')
+            exit(1)
+
     # 6. run the tests
 
     # TODO move the run_everywhere list into a config file?
+    no_proxy_json = r'{\"avoid-proxy\":true}'
+
     if options.run_everywhere:
-        browsers = ['--platform=LINUX --browsername=firefox --browserver=13 ',
-            '--platform=LINUX --browsername=opera   --browserver=12 ',
-            '--platform=MAC   --browsername=firefox --browserver=14 ',
-            '--platform=VISTA --browsername=chrome ',
-            '--platform=VISTA --browsername=firefox --browserver=13 ',
-            '--platform=VISTA --browsername="internet explorer" --browserver=9 ',
-            '--platform=XP    --browsername="internet explorer" --browserver=8 ']
+        browsers = [
+            ('--platform=LINUX --browsername=firefox --browserver=13 --capabilities=' + no_proxy_json + ' ', 'linux_firefox_13'),
+            ('--platform=LINUX --browsername=opera   --browserver=12 ', 'linux_opera_12'),
+            ('--platform=MAC   --browsername=firefox --browserver=14  --capabilities=' + no_proxy_json + ' ', 'mac_firefox_14'),
+            ('--platform=VISTA --browsername=chrome  --capabilities=' + no_proxy_json + ' ', 'vista_chrome'),
+            ('--platform=VISTA --browsername=firefox --browserver=13  --capabilities=' + no_proxy_json + ' ', 'vista_firefox_13'),
+            ('--platform=VISTA --browsername="internet explorer" --browserver=9 ', 'vista_ie_9'),
+            ('--platform=XP    --browsername="internet explorer" --browserver=8 ' 'xp_ie_8'),
+        ]
         sauce = '--saucelabs=sauce.yaml '
     else:
-        browsers = ['--driver=firefox ']
+        browsers = [('--driver=firefox ', 'local_firefox')]
         sauce = ''
 
     for browser in browsers:
         if options.run_everywhere or options.run_all:
             subprocess.call(env_py + ' -m py.test --destructive ' +
-                '--credentials=credentials.yaml ' + sauce + browser + 
+                '--credentials=credentials.yaml ' + sauce + browser[0] + 
                 ' --webqatimeout=90 -m travis' +
+                ' --webqareport=results/browserid/' + browser[1] + '.html' +
                 ' --baseurl=http://' + host + '.123done.org -q browserid', shell=True)
             subprocess.call(env_py + ' -m py.test --destructive ' +
-                '--credentials=credentials.yaml ' + sauce + browser + 
+                '--credentials=credentials.yaml ' + sauce + browser[0] + 
                 ' --webqatimeout=90' +
+                ' --webqareport=results/123done/' + browser[1] + '.html' +
                 ' --baseurl=http://' + host + '.123done.org -q 123done', shell=True)
             subprocess.call(env_py + ' -m py.test --destructive ' +
-                '--credentials=credentials.yaml ' + sauce + browser + 
+                '--credentials=credentials.yaml ' + sauce + browser[0] + 
                 ' --webqatimeout=90' +
+                ' --webqareport=results/myfavoritebeer/' + browser[1] + '.html' +
                 ' --baseurl=http://' + host + '.myfavoritebeer.org -q myfavoritebeer', shell=True)
         # only run one test in the default case
         else:
@@ -152,6 +186,8 @@ def main():
                 '-q 123done/tests/test_new_user.py', shell=True)
 
     # 7. TODO deactivate/destroy virtualenv?? maybe '--cleanup' argument?
+      # clean up sauce.yaml
+      # clean up credentials.yaml
 
 
 if __name__ == '__main__':
