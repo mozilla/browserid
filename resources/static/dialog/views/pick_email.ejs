@@ -13,7 +13,7 @@
           <% _.each(identities, function(item, index) { var emailAddress = item.address, id = "email_" + index; %>
               <li>
                   <label for="<%= id %>" class="<% if (emailAddress === siteEmail) { %> preselected<% } %> selectable" title="<%= emailAddress %>" >
-                    <input type="radio" name="email" id="<%= id %>" value="<%= emailAddress %>"
+                    <input tabindex="1" type="radio" name="email" id="<%= id %>" value="<%= emailAddress %>"
                         <% if (emailAddress === siteEmail || identities.length === 1) { %> checked="checked" <% } %>
                       />
                     <%= emailAddress %>
@@ -26,11 +26,11 @@
         <%= gettext('Please choose an email address.') %>
       </div>
 
-      <a id="useNewEmail" class="emphasize" href="#"><%= gettext('Add another email address') %></a>
-      <a id="thisIsNotMe" class="emphasize" href="#"><%= gettext('This is not me') %></a>
+      <a tabindex="2" id="useNewEmail" class="emphasize" href="#"><%= gettext('Add another email address') %></a>
+      <a tabindex="2" id="thisIsNotMe" class="emphasize" href="#"><%= gettext('This is not me') %></a>
 
 
       <p class="submit add cf">
-        <button id="signInButton"><%= gettext('sign in') %></button>
+        <button tabindex="1" id="signInButton"><%= gettext('sign in') %></button>
       </p>
   </div>
