@@ -7,6 +7,8 @@
   var bid = BrowserID,
       storage = bid.Storage,
       testHelpers = bid.TestHelpers,
+      createValidatedEmail = testHelpers.createValidatedEmail,
+      testEmailInvalidated = testHelpers.testEmailInvalidated,
       TEST_ORIGIN = "http://test.domain";
 
   module("common/js/storage", {
@@ -18,13 +20,6 @@
       storage.clear();
     }
   });
-
-  function testInvalidatedEmail(address) {
-    var id = storage.getEmail(address);
-    ok(id && !("priv" in id), "private key was removed");
-    ok(id && !("pub" in id), "public key was removed");
-    ok(id && !("cert" in id), "cert was removed");
-  }
 
   test("getEmails, getEmailCount with no emails", function() {
     var emails = storage.getEmails();
@@ -96,10 +91,9 @@
   });
 
   test("invalidateEmail with valid email address", function() {
-    storage.addEmail("testuser@testuser.com", {priv: "key", pub: "pub", cert: "cert"});
-
+    createValidatedEmail("testuser@testuser.com");
     storage.invalidateEmail("testuser@testuser.com");
-    testInvalidatedEmail("testuser@testuser.com");
+    testEmailInvalidated("testuser@testuser.com");
   });
 
   test("invalidateEmail with invalid email address", function() {
@@ -117,13 +111,13 @@
     var emails = ["testuser@testuser.com", "testuser2@testuser.com"];
 
     _.each(emails, function(address) {
-      storage.addPrimaryEmail(address, {priv: "key", pub: "pub", cert: "cert"});
+      createValidatedEmail(address);
     });
 
     storage.invalidateAllEmails();
 
     _.each(emails, function(address) {
-      testInvalidatedEmail(address);
+      testEmailInvalidated(address);
     });
   });
 
