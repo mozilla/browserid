@@ -11,8 +11,8 @@
               <p class="tour white">
                 <%- format(gettext('<a %(aboutLink)>Take the tour</a> or <a %(signupButton)>Sign Up &rarr;</a>'),
                       {
-                        aboutLink: 'href="/about"',
-                        signupButton: 'href="/signin" class="button create"',
+                        aboutLink: 'tabindex="2" href="/about"',
+                        signupButton: 'tabindex="1" href="/signin" class="button create"',
                       }) %>
               </p>
           </div>
