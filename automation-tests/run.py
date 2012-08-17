@@ -46,22 +46,12 @@ def main():
                       ' not the full domain name ("foo.123done.org")')
     parser.add_option('--everywhere', '-e', dest='run_everywhere', action='store_true',
                       help='like --all, but run all tests on all supported' +
-                           ' browsers using sauce labs credentials either' +
-                           ' specified in sauce.yaml or in environment' +
-                           ' variables PERSONA_SAUCE_USER, PERSONA_SAUCE_PASSWORD,' +
-                           ' and PERSONA_SAUCE_APIKEY.')
+                           ' browsers available locally.')
     options, arguments = parser.parse_args()
 
-    # you can't specify both --all and --everywhere
-    if options.run_everywhere and options.run_all:
-            sys.stderr.write("either use --all or --everywhere, not both")
-            exit(1)
-
     # 1. check that python is the right version 
-    # TODO: would 2.6 actually work?
-    # it worked for Leah with 2.6, but i didn't necessarily test all the options
-    if sys.version_info < (2,7,0):
-        sys.stderr.write('python 2.7 or later is required to run the tests\n')
+    if sys.version_info < (2,6,0):
+        sys.stderr.write('python 2.6 or later is required to run the tests\n')
         exit(1)
 
     # 2. check that virtualenv and pip exist. if not, bail.
@@ -121,7 +111,7 @@ def main():
         # XXX check to see if opera is installed locally
 
     for browser in browsers:
-        if options.run_everywhere or options.run_all:
+        if options.run_all:
             no_proxy_json = '--capabilities={\"avoid-proxy\":true}'
             subprocess.call(env_py + ' -m py.test --destructive' +
                 ' --credentials=credentials.yaml ' + browser[0] + 
