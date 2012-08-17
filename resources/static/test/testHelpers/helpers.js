@@ -348,7 +348,32 @@ BrowserID.TestHelpers = (function() {
     testDocumentNotRedirected: function(doc, msg) {
       equal(doc.location.href, document.location.href, msg || "document not redirected");
 
+    },
+
+    createValidatedEmail: function(address, type) {
+      storage.addEmail(address, {priv: "key", pub: "pub", cert: "cert", type: type || "secondary"});
+
+    },
+
+    testEmailInvalidated: function(address) {
+      var id = storage.getEmail(address);
+      ok(id && !("priv" in id), address + ": private key was removed");
+      ok(id && !("pub" in id), address + ": public key was removed");
+      ok(id && !("cert" in id), address + ": cert was removed");
+    },
+
+    testEmailValidated: function(address) {
+      var id = storage.getEmail(address);
+      ok(id && ("priv" in id), address + ": private key exists");
+      ok(id && ("pub" in id), address + ": public key exists");
+      ok(id && ("cert" in id), address + ": cert exists");
+    },
+
+    testEmailType: function(address, expectedType) {
+      var id = storage.getEmail(address);
+      equal(id.type, expectedType, address + " is a " + expectedType);
     }
+
   };
 
   return TestHelpers;
