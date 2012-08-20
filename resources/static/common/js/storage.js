@@ -15,7 +15,8 @@ BrowserID.Storage = (function() {
       UsersComputer = Models.UsersComputer,
       EmailToUserID = Models.EmailToUserID,
       LoggedIn = Models.LoggedIn,
-      ReturnTo = Models.ReturnTo;
+      ReturnTo = Models.ReturnTo,
+      MainSite = Models.MainSite;
 
   // Set default values immediately so that IE8 localStorage synchronization
   // issues do not become a factor. See issue #2206
@@ -57,40 +58,8 @@ BrowserID.Storage = (function() {
     });
   }
 
-  function generic2KeySet(namespace, key, value) {
-    var allInfo = JSON.parse(storage[namespace] || "{}");
-    allInfo[key] = value;
-    storage[namespace] = JSON.stringify(allInfo);
-  }
-
-  function generic2KeyGet(namespace, key) {
-    var allInfo = JSON.parse(storage[namespace] || "{}");
-    return allInfo[key];
-  }
-
-  function generic2KeyRemove(namespace, key) {
-    var allInfo = JSON.parse(storage[namespace] || "{}");
-    delete allInfo[key];
-    storage[namespace] = JSON.stringify(allInfo);
-  }
-
   var Storage = {
     site: Site,
-    manage_page: {
-      /**
-       * Set a data field for the manage page
-       * @method managePage.set
-       */
-      set: generic2KeySet.curry("managePage"),
-      get: generic2KeyGet.curry("managePage"),
-      remove: generic2KeyRemove.curry("managePage")
-    },
-
-    signInEmail: {
-      set: generic2KeySet.curry("main_site", "signInEmail"),
-      get: generic2KeyGet.curry("main_site", "signInEmail"),
-      remove: generic2KeyRemove.curry("main_site", "signInEmail")
-    },
 
     usersComputer: UsersComputer,
 
@@ -113,6 +82,7 @@ BrowserID.Storage = (function() {
   _.extend(Storage, EmailToUserID);
   _.extend(Storage, LoggedIn);
   _.extend(Storage, ReturnTo);
+  _.extend(Storage, MainSite);
 
   return Storage;
 }());
