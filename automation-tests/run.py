@@ -104,41 +104,49 @@ def main():
                 ' ensure the test process has permission to create the file.\n')
             exit(1)
 
-    # 6. run the tests
+    # 5.5 determine the browsers to use
     # if the person is working for mozilla and doesn't have firefox installed, something is wrong
     browsers = [('--driver=firefox ', 'local_firefox')]
     if options.run_everywhere:
-        if platform.system() == 'Windows':
-            # if Windows, IE must exist
-            browsers.append(('--driver=IE', 'local_ie'))
-        # XXX add check to see if chrome is installed locally
-        # XXX check to see if opera is installed locally
-
+        # Chrome
+        if not which('chromedriver'):
+            sys.stderr.write('In order to run tests with chrome, you must download the driver from' +
+                ' https://code.google.com/p/chromedriver/downloads/list' +
+                ' and put it on the PATH.')
+            exit(1)
+        browsers.append(('--driver=chrome ', 'local_chrome'))
+        # XXX IEDriver does not provide a clean environment for tests when run on a non-VM
+        # XXX Opera does not have a WebDriver implementation, can only be run
+        # via a selenium server
+                
+    # 6. run the tests
     for browser in browsers:
+        no_proxy_json = '--capabilities={\"avoid-proxy\":true}'
         if options.run_all:
-            no_proxy_json = '--capabilities={\"avoid-proxy\":true}'
             subprocess.call(env_py + ' -m py.test --destructive' +
                 ' --credentials=credentials.yaml ' + browser[0] + 
                 ' --webqatimeout=90 -m travis ' + no_proxy_json +
                 ' --webqareport=results/browserid/' + browser[1] + '.html' +
-                ' --baseurl=http://' + host + '.123done.org -q browserid', shell=True)
+                ' --baseurl=http://%s.123done.org -q browserid' % host, shell=True)
             subprocess.call(env_py + ' -m py.test --destructive' +
                 ' --credentials=credentials.yaml ' + browser[0] + 
                 ' --webqatimeout=90 ' + no_proxy_json +
                 ' --webqareport=results/123done/' + browser[1] + '.html' +
-                ' --baseurl=http://' + host + '.123done.org -q 123done', shell=True)
+                ' --baseurl=http://%s.123done.org -q 123done' % host, shell=True)
             subprocess.call(env_py + ' -m py.test --destructive' +
                 ' --credentials=credentials.yaml ' + browser[0] + 
                 ' --webqatimeout=90 ' + no_proxy_json +
                 ' --webqareport=results/myfavoritebeer/' + browser[1] + '.html' +
-                ' --baseurl=http://' + host + '.myfavoritebeer.org -q myfavoritebeer', shell=True)
+                ' --baseurl=http://%s.myfavoritebeer.org -q myfavoritebeer' % host, shell=True)
         # only run one test in the default case
         else:
             subprocess.call(env_py + ' -m py.test --destructive' +
-                ' --credentials=credentials.yaml ' + browser +
+                ' --credentials=credentials.yaml ' + browser[0] +
                 ' --webqatimeout=90 ' + no_proxy_json +
-                ' --baseurl=http://' + host + '.123done.org' +
-                ' -q 123done/tests/test_new_user.py', shell=True)
+                ' --baseurl=http://%s.123done.org' % host +
+                ' --webqareport=results/test_new_user/' + browser[1] + '.html' +
+                ' -q 123done/tests/test_new_user.py', 
+                shell=True)
 
     # 7. TODO deactivate/destroy virtualenv?? maybe '--cleanup' argument?
       # clean up credentials.yaml
