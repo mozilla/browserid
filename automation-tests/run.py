@@ -5,6 +5,7 @@ import os
 import platform
 import subprocess
 import sys
+import pkg_resources
 
 
 # used to check for existence of virtualenv and pip.
@@ -44,7 +45,7 @@ def main():
     parser.add_option('--all', '-a', dest='run_all', action="store_true",
                       help='run all tests. requires test account credentials' +
                            ' to be created and added to credentials.yaml')
-    parser.add_option('--target', '-t', dest='target_hostname', 
+    parser.add_option('--target', '-t', dest='target_hostname',
                       default="dev", help='run tests against an ephemeral' +
                       ' instance. Specify your instance\'s hostname ("foo"),' +
                       ' not the full domain name ("foo.123done.org")')
@@ -53,26 +54,23 @@ def main():
                            ' browsers available locally.')
     options, arguments = parser.parse_args()
 
-    # 1. check that python is the right version 
+    # 1. check that python is the right version
     if sys.version_info < (2,6,0):
         sys.stderr.write('python 2.6 or later is required to run the tests\n')
         exit(1)
 
     # 2. check that virtualenv and pip exist. if not, bail.
-    if not which('pip'):
-        sys.stderr.write('pip must be installed; do "easy_install pip", ' +
-                         ' then try again\n')
-        exit(1)
-    if not which('virtualenv'):
-        sys.stderr.write('virtualenv must be installed; do "pip install ' +
-                         'virtualenv", then try again\n')
+    try:
+        pkg_resources.WorkingSet().require('pip', 'virtualenv')
+    except pkg_resources.DistributionNotFound as e:
+        sys.stderr.write('{package} must be installed\n'.format(package=e.message)
         exit(1)
 
     # 3. create the virtualenv if they asked you to install it or it's missing
     if options.install or not os.path.exists(env_py):
         subprocess.call('virtualenv bid_selenium', shell=True)
         # 4. pip install requirements (or verify they're installed).
-        subprocess.call(env_path + 'pip install -Ur requirements.txt', 
+        subprocess.call(env_path + 'pip install -Ur requirements.txt',
                         shell=True)
 
     # 4. check the ephemeral instance to hit.
@@ -94,8 +92,8 @@ def main():
         try:
             credentialsfile = open('credentials.yaml', 'w')
             credentialsfile.write('default:\n')
-            credentialsfile.write('    email: ' + email + '\n')
-            credentialsfile.write('    password: ' + password + '\n')
+            credentialsfile.write(' email: ' + email + '\n')
+            credentialsfile.write(' password: ' + password + '\n')
             credentialsfile.close()
         #if you can't open the file for editing, bail
         except IOError:
@@ -124,17 +122,17 @@ def main():
         no_proxy_json = '--capabilities={\"avoid-proxy\":true}'
         if options.run_all:
             subprocess.call(env_py + ' -m py.test --destructive' +
-                ' --credentials=credentials.yaml ' + browser[0] + 
+                ' --credentials=credentials.yaml ' + browser[0] +
                 ' --webqatimeout=90 -m travis ' + no_proxy_json +
                 ' --webqareport=results/browserid/' + browser[1] + '.html' +
                 ' --baseurl=http://%s.123done.org -q browserid' % host, shell=True)
             subprocess.call(env_py + ' -m py.test --destructive' +
-                ' --credentials=credentials.yaml ' + browser[0] + 
+                ' --credentials=credentials.yaml ' + browser[0] +
                 ' --webqatimeout=90 ' + no_proxy_json +
                 ' --webqareport=results/123done/' + browser[1] + '.html' +
                 ' --baseurl=http://%s.123done.org -q 123done' % host, shell=True)
             subprocess.call(env_py + ' -m py.test --destructive' +
-                ' --credentials=credentials.yaml ' + browser[0] + 
+                ' --credentials=credentials.yaml ' + browser[0] +
                 ' --webqatimeout=90 ' + no_proxy_json +
                 ' --webqareport=results/myfavoritebeer/' + browser[1] + '.html' +
                 ' --baseurl=http://%s.myfavoritebeer.org -q myfavoritebeer' % host, shell=True)
@@ -145,7 +143,7 @@ def main():
                 ' --webqatimeout=90 ' + no_proxy_json +
                 ' --baseurl=http://%s.123done.org' % host +
                 ' --webqareport=results/test_new_user/' + browser[1] + '.html' +
-                ' -q 123done/tests/test_new_user.py', 
+                ' -q 123done/tests/test_new_user.py',
                 shell=True)
 
     # 7. TODO deactivate/destroy virtualenv?? maybe '--cleanup' argument?
