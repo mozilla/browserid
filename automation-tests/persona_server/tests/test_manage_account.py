@@ -103,6 +103,10 @@ class TestManageAccount(BaseTest):
         home = HomePage(mozwebqa)
         signin = home.click_sign_in()
 
+        # email
+        signin.email = user.primary_email
+        signin.click_next()
+        
         # forgot password
         user.password += '_new'
         signin.forgot_password(user.primary_email, user.password)
