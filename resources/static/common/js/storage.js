@@ -49,6 +49,7 @@ BrowserID.Storage = (function() {
     storage.removeItem("emails");
     storage.removeItem("siteInfo");
     storage.removeItem("managePage");
+    storage.removeItem("loggedIn");
     // Ensure there are default values after they are removed.  This is
     // necessary so that IE8's localStorage synchronization issues do not
     // surface.  In IE8, if the dialog page is open when the verification page
@@ -136,6 +137,15 @@ BrowserID.Storage = (function() {
         }
       }
       storage.siteInfo = JSON.stringify(siteInfo);
+
+      // remove any logged in sites associated with this address.
+      var loggedInInfo = JSON.parse(storage.loggedIn || "{}");
+      for(var site in loggedInInfo) {
+        if(loggedInInfo[site] === email) {
+          delete loggedInInfo[site];
+        }
+      }
+      storage.loggedIn = JSON.stringify(loggedInInfo);
     }
     else {
       throw "unknown email address";
@@ -153,6 +163,13 @@ BrowserID.Storage = (function() {
     else {
       throw "unknown email address";
     }
+  }
+
+  function invalidateAllEmails() {
+    var emails = getEmails();
+    _.each(emails, function(emailInfo, emailAddress) {
+      invalidateEmail(emailAddress);
+    });
   }
 
   function setReturnTo(returnToURL) {
@@ -485,8 +502,8 @@ BrowserID.Storage = (function() {
      */
     getEmail: getEmail,
     /**
-     * Remove an email address, its key pairs, and any sites associated with
-     * email address.
+     * Remove an email address, its key pairs, and any loggedIn sites, and any
+     * sites associated with email address.
      * @throws "unknown email address" if email address is not known.
      * @method removeEmail
      */
@@ -497,6 +514,12 @@ BrowserID.Storage = (function() {
      * @method invalidateEmail
      */
     invalidateEmail: invalidateEmail,
+
+    /**
+     * Remove the key information for all email addresses.
+     * @method invalidateAllEmails
+     */
+    invalidateAllEmails: invalidateAllEmails,
 
     site: {
       /**

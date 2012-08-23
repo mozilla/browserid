@@ -99,7 +99,7 @@ BrowserID.User = (function() {
     }
 
     if (!authenticated) {
-      storage.clear();
+      storage.invalidateAllEmails();
     }
   }
 
@@ -726,9 +726,8 @@ BrowserID.User = (function() {
     cancelUser: function(onComplete, onFailure) {
       network.cancelUser(function() {
         setAuthenticationStatus(false);
-        if (onComplete) {
-          onComplete();
-        }
+        storage.clear();
+        complete(onComplete);
       }, onFailure);
 
     },
@@ -746,6 +745,9 @@ BrowserID.User = (function() {
       // log out of browserid
       network.logout(function() {
         setAuthenticationStatus(false);
+        // since the user explicitly logged out, make sure all of the emails
+        // and associations are removed.
+        storage.clear();
         complete(onComplete);
       }, onFailure);
     },
@@ -770,7 +772,11 @@ BrowserID.User = (function() {
           var emails_to_remove = _.difference(client_emails, server_emails);
           var emails_to_update = _.intersection(client_emails, server_emails);
 
-          // remove emails
+          // remove emails. localStorage is not cleared after a user's session
+          // expires in case the user logs back in we want their site
+          // associations and loggedIn emails to still be valid. If a new user
+          // logs in, we are depending on this functionality to remove
+          // any loggedIn emails and site associations for the previous user.
           _.each(emails_to_remove, function(email) {
             storage.removeEmail(email);
           });

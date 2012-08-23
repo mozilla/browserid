@@ -685,26 +685,31 @@
     failureCheck(lib.authenticateWithAssertion, TEST_EMAIL, "testuser");
   });
 
-  asyncTest("checkAuthentication with valid authentication", function() {
-    storage.addSecondaryEmail(TEST_EMAIL);
+  asyncTest("checkAuthentication with valid authentication - does not touch localStorage", function() {
+    var email = "testuser2@testuser.com";
+    storage.addSecondaryEmail(email);
     xhr.setContextInfo("auth_level", "primary");
 
     lib.checkAuthentication(function(authenticated) {
       equal(authenticated, "primary", "We are authenticated!");
-      testNotUndefined(storage.getEmail(TEST_EMAIL), "localStorage is not cleared");
+      // this email address does not belong to this address, if a sync occurs
+      // it will be cleared. Since sync should not occur on
+      // checkAuthentication, do not clear the old email.
+      testNotUndefined(storage.getEmail(email), "localStorage is not cleared");
       start();
     });
   });
 
 
 
-  asyncTest("checkAuthentication with invalid authentication - localStorage cleared", function() {
+  asyncTest("checkAuthentication with invalid authentication - localStorage not cleared, user could log in again", function() {
     storage.addSecondaryEmail(TEST_EMAIL);
     xhr.setContextInfo("auth_level", undefined);
 
     lib.checkAuthentication(function(authenticated) {
       equal(authenticated, false, "We are not authenticated!");
-      testUndefined(storage.getEmail(TEST_EMAIL), "localStorage was cleared");
+
+      testNotUndefined(storage.getEmail(TEST_EMAIL), "localStorage was not cleared");
       start();
     });
   });
@@ -728,23 +733,33 @@
 
 
 
-  asyncTest("checkAuthenticationAndSync with valid authentication", function() {
+  asyncTest("checkAuthenticationAndSync with valid authentication - remove any old emails, add new emails", function() {
     xhr.setContextInfo("auth_level", "primary");
 
+    // This email should be removed when the emails are synced. This simulates
+    // an old user whose session has expired which still has email addresses
+    // hanging around that must be cleared.
+    storage.addSecondaryEmail("testuser2@testuser.com");
+
+    // checkAuthenticationAndSync is called with a mock that returns one email,
+    // testuser@testuser.com. This email should replace the address that is
+    // already in localStorage.
     lib.checkAuthenticationAndSync(function(authenticated) {
       equal(authenticated, "primary", "We are authenticated!");
+      testUndefined(storage.getEmail("testuser2@testuser.com"), "unknown email is removed");
+      testNotUndefined(storage.getEmail(TEST_EMAIL), "new email is added");
       start();
     }, testHelpers.unexpectedXHRFailure);
   });
 
 
-  asyncTest("checkAuthenticationAndSync with invalid authentication - localStorage cleared", function() {
+  asyncTest("checkAuthenticationAndSync with invalid authentication - localStorage not cleared, user could log in again", function() {
     storage.addSecondaryEmail(TEST_EMAIL);
     xhr.setContextInfo("auth_level", undefined);
 
     lib.checkAuthenticationAndSync(function onComplete(authenticated) {
       equal(authenticated, false, "We are not authenticated!");
-      testUndefined(storage.getEmail(TEST_EMAIL), "localStorage was cleared");
+      testNotUndefined(storage.getEmail(TEST_EMAIL), "localStorage was not cleared");
       start();
     }, testHelpers.unexpectedXHRFailure);
   });
@@ -1207,8 +1222,9 @@
         equal(_.size(storedIdentities), 1, "one identity");
 
         lib.logoutUser(function() {
-          storedIdentities = storage.getEmails();
-          equal(_.size(storedIdentities), 0, "All items have been removed on logout");
+          equal(storage.getEmailCount(), 0, "All emails have been removed on logout");
+          equal(storage.loggedInCount(), 0, "All logged users associations have been removed on logout");
+          equal(storage.site.count(), 0, "All site->user associations have been removed on logout");
 
           start();
         }, testHelpers.unexpectedXHRFailure);
