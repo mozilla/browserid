@@ -20,7 +20,7 @@
   </div>
 
   <script type="text/html" id="templateUser">
-    <li class="identity cf" id="{{ email.replace('@', '_').replace('.', '_') }}">
+    <li class="identity cf {{ type }}" id="{{ email.replace('@', '_').replace('.', '_') }}">
       <div class="email">{{ email }}</div>
       <button class="delete"><%- gettext('remove') %></button>
     </li>

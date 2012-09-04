@@ -88,7 +88,8 @@ BrowserID.manageAccount = (function() {
 
     _(emails).each(function(item) {
       var e = item.address,
-          identity = _.template(template, { email: e });
+          t = item.info.type,
+          identity = _.template(template, { email: e, type: t });
 
       var idEl = dom.appendTo(identity, list),
           deleteButton = dom.getDescendentElements(".delete", idEl);
