@@ -58,7 +58,7 @@
         // the resources or cost required to generate an assertion
         if (assertion) chan.notify({ method: 'login', params: assertion });
         loggedInUser = email;
-      } else if (loggedInUser !== null) {
+      } else if (loggedInUser != null) {
         // only send logout events when loggedInUser is not null, which is an
         // indicator that the site thinks the user is logged out
         chan.notify({ method: 'logout' });
