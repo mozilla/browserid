@@ -18,15 +18,6 @@ import restmail
 class TestSignIn(BaseTest):
 
     @pytest.mark.travis
-    def test_sign_in_helper(self, mozwebqa):
-        credentials = mozwebqa.credentials['default']
-        browser_id = BrowserID(mozwebqa.selenium, mozwebqa.timeout)
-        browser_id.sign_in(credentials['email'], credentials['password'])
-
-        WebDriverWait(mozwebqa.selenium, mozwebqa.timeout).until(
-            lambda s: s.find_element_by_id('loggedin').is_displayed())
-
-    @pytest.mark.travis
     def test_sign_in(self, mozwebqa):
         credentials = mozwebqa.credentials['default']
         from .. pages.sign_in import SignIn
