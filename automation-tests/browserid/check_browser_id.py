@@ -13,15 +13,6 @@ from tests.base import BaseTest
 class TestBrowserID(BaseTest):
 
     @pytest.mark.travis
-    def test_sign_in(self, mozwebqa):
-        browser_id = BrowserID(mozwebqa.selenium, mozwebqa.timeout)
-        user = self.get_test_user(mozwebqa)
-        browser_id.sign_in(user['email'], user['password'])
-
-        WebDriverWait(mozwebqa.selenium, mozwebqa.timeout).until(
-            lambda s: s.find_element_by_id('loggedin').is_displayed())
-
-    @pytest.mark.travis
     @pytest.mark.skip_selenium
     def test_persona_test_user_verified_prod(self, mozwebqa):
 
