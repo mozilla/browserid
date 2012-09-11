@@ -18,11 +18,13 @@ class BaseTest(object):
         env = None
         if 'dev' in mozwebqa.base_url:
             env = 'dev'
-        elif 'ansorep' in mozwebqa.base_url:
+        elif 'anosrep' in mozwebqa.base_url:
             env = 'stage'
         else:
             env = 'prod'
-        return bidpom.persona_test_user(env=env)
+        user = bidpom.persona_test_user(env=env)
+        print user  # important for debugging
+        return user
  
     def get_confirm_url_from_email(self, email, message_count=1, regex='(https?:.*?token=.{48})'):
         '''

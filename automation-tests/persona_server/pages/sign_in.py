@@ -62,7 +62,7 @@ class SignIn(Base):
             s.find_element(*self._sign_in_locator).is_displayed(),
             "sign in button not found / not visible")
         self.selenium.find_element(*self._sign_in_locator).click()
-        self.wait_for_ajax()
+        # XXX wait for something else here?
         print "clicked sign in"
 
     def click_verify_email(self):
