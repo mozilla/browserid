@@ -164,6 +164,27 @@ BrowserID.Storage = (function() {
     }
   }
 
+  // Used when a secondary converts to a primary.  All outstanding secondary
+  // certs for the domain must be invalidated so they cannot be used to
+  // generate certs. Assertions generated using the old secondary cert will
+  // fail on verification. see issue #1039
+  function convertSecondaryEmailsForDomain(domain) {
+    var emails = getEmails();
+    _.each(emails, function(emailInfo, emailAddress) {
+      var emailDomain = emailAddress.split("@")[1];
+      if (emailDomain === domain && emailInfo.type === "secondary") {
+        // invalidate the cert
+        delete emailInfo.priv;
+        delete emailInfo.pub;
+        delete emailInfo.cert;
+
+        // convert its type
+        emailInfo.type = "primary"
+        addEmail(emailAddress, emailInfo);
+      }
+    });
+  }
+
   function setReturnTo(returnToURL) {
     storage.returnTo = JSON.stringify({
       at: new Date().toString(),
@@ -506,6 +527,13 @@ BrowserID.Storage = (function() {
      * @method invalidateEmail
      */
     invalidateEmail: invalidateEmail,
+
+    /**
+     * Convert all secondary addresses for a domain to primaries. Clears
+     * existing secondary certs for the domain.
+     * @method convertSecondaryEmailsForDomain
+     */
+    convertSecondaryEmailsForDomain: convertSecondaryEmailsForDomain,
 
     site: {
       /**

@@ -7,6 +7,9 @@
   var bid = BrowserID,
       storage = bid.Storage,
       testHelpers = bid.TestHelpers,
+      createValidatedEmail = testHelpers.createValidatedEmail,
+      testEmailInvalidated = testHelpers.testEmailInvalidated,
+      testEmailValidated = testHelpers.testEmailValidated,
       TEST_ORIGIN = "http://test.domain";
 
   module("common/js/storage", {
@@ -28,7 +31,7 @@
   });
 
   test("addEmail, getEmails, getEmail", function() {
-    storage.addEmail("testuser@testuser.com", {priv: "key"});
+    createValidatedEmail("testuser@testuser.com");
 
     var emails = storage.getEmails();
     equal(_.size(emails), 1, "object should have one item");
@@ -54,7 +57,7 @@
   });
 
   test("removeEmail, getEmails", function() {
-    storage.addEmail("testuser@testuser.com", {priv: "key"});
+    createValidatedEmail("testuser@testuser.com");
     storage.removeEmail("testuser@testuser.com");
 
     var emails = storage.getEmails();
@@ -74,7 +77,7 @@
 
 
   test("clear - there should be default values", function() {
-    storage.addEmail("testuser@testuser.com", {priv: "key"});
+    createValidatedEmail("testuser@testuser.com");
     storage.clear();
 
     var emails = storage.getEmails();
@@ -89,13 +92,9 @@
   });
 
   test("invalidateEmail with valid email address", function() {
-    storage.addEmail("testuser@testuser.com", {priv: "key", pub: "pub", cert: "cert"});
-
+    createValidatedEmail("testuser@testuser.com");
     storage.invalidateEmail("testuser@testuser.com");
-    var id = storage.getEmail("testuser@testuser.com");
-    ok(id && !("priv" in id), "private key was removed");
-    ok(id && !("pub" in id), "public key was removed");
-    ok(id && !("cert" in id), "cert was removed");
+    testEmailInvalidated("testuser@testuser.com");
   });
 
   test("invalidateEmail with invalid email address", function() {
@@ -107,6 +106,18 @@
       error = e;
     }
     equal(error.toString(), "unknown email address", "Invalidating an unknown email address");
+  });
+
+  test("convertSecondaryEmailsForDomain invalidates secondary certs and sets type to primary for a particular domain", function() {
+    createValidatedEmail("secondary@invalidated.com", "secondary");
+    createValidatedEmail("primary@invalidated.com", "primary");
+    createValidatedEmail("testuser@remains-validated.com", "secondary");
+
+    storage.convertSecondaryEmailsForDomain("invalidated.com");
+
+    testEmailInvalidated("secondary@invalidated.com");
+    testEmailValidated("primary@invalidated.com");
+    testEmailValidated("testuser@remains-validated.com");
   });
 
   test("site.set/site.get/site.remove/site.count, happy case", function() {

@@ -20,6 +20,10 @@
       testUndefined = testHelpers.testUndefined,
       testNotUndefined = testHelpers.testNotUndefined,
       testObjectValuesEqual = testHelpers.testObjectValuesEqual,
+      createValidatedEmail = testHelpers.createValidatedEmail,
+      testEmailInvalidated = testHelpers.testEmailInvalidated,
+      testEmailValidated = testHelpers.testEmailValidated,
+      testEmailType = testHelpers.testEmailType,
       provisioning = bid.Mocks.Provisioning,
       TEST_EMAIL = "testuser@testuser.com";
 
@@ -179,40 +183,6 @@
     failureCheck(lib.createSecondaryUser, TEST_EMAIL, "password");
   });
 
-
-  asyncTest("createPrimaryUser with primary, user verified with primary - expect 'primary.verified'", function() {
-    xhr.useResult("primary");
-    provisioning.setStatus(provisioning.AUTHENTICATED);
-    lib.createPrimaryUser({email: "unregistered@testuser.com"}, function(status) {
-      equal(status, "primary.verified", "primary user is already verified, correct status");
-      network.checkAuth(function(authenticated) {
-        equal(authenticated, "assertion", "after provisioning user, user should be automatically authenticated to Persona");
-        start();
-      });
-    }, testHelpers.unexpectedXHRFailure);
-  });
-
-  asyncTest("createPrimaryUser with primary, user must authenticate with primary - expect 'primary.verify'", function() {
-    xhr.useResult("primary");
-
-    lib.createPrimaryUser({email: "unregistered@testuser.com"}, function(status) {
-      equal(status, "primary.verify", "primary must verify with primary, correct status");
-      start();
-    }, testHelpers.unexpectedXHRFailure);
-  });
-
-  asyncTest("createPrimaryUser with primary, unknown provisioning failure, expect XHR failure callback", function() {
-    xhr.useResult("primary");
-    provisioning.setFailure({
-      code: "primaryError",
-      msg: "some error"
-    });
-
-    lib.createPrimaryUser({email: "unregistered@testuser.com"},
-      testHelpers.unexpectedSuccess,
-      testHelpers.expectedXHRFailure
-    );
-  });
 
   asyncTest("provisionPrimaryUser authenticated with IdP, expect primary.verified", function() {
     xhr.useResult("primary");
@@ -1347,6 +1317,38 @@
       testHelpers.unexpectedFailure
     );
   });
+
+  asyncTest("addressInfo with primary that used to be a secondary - removes previously issued secondary certs", function() {
+    // create the initial secondary cert that should be invalidated afterwards.
+    createValidatedEmail(TEST_EMAIL, "secondary");
+    createValidatedEmail("testuser2@testuser.com", "secondary");
+    createValidatedEmail("primary@testuser.com", "primary");
+    createValidatedEmail("testuser@not-touched.com", "secondary");
+
+    xhr.useResult("primary");
+    provisioning.setStatus(provisioning.AUTHENTICATED);
+    lib.addressInfo(TEST_EMAIL, function(info) {
+        // These two addresses should be converted from a primary to
+        // a secondary.
+        testEmailInvalidated(TEST_EMAIL);
+        testEmailType(TEST_EMAIL, "primary");
+
+        testEmailInvalidated("testuser2@testuser.com");
+        testEmailType("testuser2@testuser.com", "primary");
+
+        // These addresses should not be touched.
+        testEmailValidated("primary@testuser.com");
+        testEmailType("primary@testuser.com", "primary");
+
+        testEmailValidated("testuser@not-touched.com");
+        testEmailType("testuser@not-touched.com", "secondary");
+
+        start();
+      },
+      testHelpers.unexpectedFailure
+    );
+  });
+
 
   asyncTest("hasSecondary returns false if the user has 0 secondary email address", function() {
     lib.hasSecondary(function(hasSecondary) {

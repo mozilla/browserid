@@ -375,40 +375,6 @@ BrowserID.User = (function() {
     },
 
     /**
-     * Create a primary user.
-     * @method createPrimaryUser
-     * @param {object} info
-     * @param {function} onComplete - function to call on complettion.  Called
-     * with two parameters - status and info.
-     * Status can be:
-     *  primary.already_added
-     *  primary.verified
-     *  primary.verify
-     *  primary.could_not_add
-     *
-     *  info is passed on primary.verify and contains the info necessary to
-     *  verify the user with the IdP
-     */
-    createPrimaryUser: function(info, onComplete, onFailure) {
-      var email = info.email;
-      User.provisionPrimaryUser(email, info, function(status, provInfo) {
-        if (status === "primary.verified") {
-          User.authenticateWithAssertion(email, provInfo.assertion, function(status) {
-            if (status) {
-              onComplete("primary.verified");
-            }
-            else {
-              onComplete("primary.could_not_add");
-            }
-          }, onFailure);
-        }
-        else {
-          onComplete(status, provInfo);
-        }
-      }, onFailure);
-    },
-
-    /**
      * A full provision a primary user, if they are authenticated, save their
      * cert/keypair.  Note, we do not authenticate to login.persona.org but
      * merely get an assertion for login.persona.org so that we can either add the
@@ -954,6 +920,12 @@ BrowserID.User = (function() {
         network.addressInfo(email, function(info) {
           info.email = email;
           if(info.type === "primary") {
+            // If a new primary is stood up, convert any secondary addresses
+            // for the domain so no attempts are made to create an assertion
+            // with the old secondary certs. see issue #1039.
+            var domain = email.split("@")[1];
+            storage.convertSecondaryEmailsForDomain(domain);
+
             User.isEmailRegistered(email, function(registered) {
               User.isUserAuthenticatedToPrimary(email, info, function(authed) {
                 info.known = registered;
