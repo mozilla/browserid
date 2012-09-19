@@ -1,0 +1,147 @@
+{
+  "OpenSansRegular": {
+    "fontFamily": "Open Sans",
+    "fontStyle": "normal",
+    "fontWeight": "400",
+    "formats": [
+      {
+        "type": "local",
+        "location": "Open Sans"
+      },
+      {
+        "type": "local",
+        "location": "OpenSans"
+      },
+      {
+        "type": "embedded-opentype",
+        "location": {
+          "latin": "/common/fonts/OpenSans-Regular-latin.eot",
+          "extended": "/common/fonts/OpenSans-Regular-extended.eot"
+        }
+      },
+      {
+        "type": "woff",
+        "location": {
+          "latin": "/common/fonts/OpenSans-Regular-latin.woff",
+          "extended": "/common/fonts/OpenSans-Regular-extended.woff"
+        }
+      },
+      {
+        "type": "truetype",
+        "location": {
+          "latin": "/common/fonts/OpenSans-Regular-latin.ttf",
+          "extended": "/common/fonts/OpenSans-Regular-extended.ttf"
+        }
+      }
+      ]
+  }, 
+  "OpenSansLight": {
+    "fontFamily": "Open Sans",
+    "fontStyle": "normal",
+    "fontWeight": "300",
+    "formats": [
+      {
+        "type": "local",
+        "location": "Open Sans Light"
+      },
+      {
+        "type": "local",
+        "location": "OpenSansLight"
+      },
+      {
+        "type": "embedded-opentype",
+        "location": {
+          "latin": "/common/fonts/OpenSans-Light-latin.eot",
+          "extended": "/common/fonts/OpenSans-Light-extended.eot"
+        }
+      },
+      {
+        "type": "woff",
+        "location": {
+          "latin": "/common/fonts/OpenSans-Light-latin.woff",
+          "extended": "/common/fonts/OpenSans-Light-extended.woff"
+        }
+      },
+      {
+        "type": "truetype",
+        "location": {
+          "latin": "/common/fonts/OpenSans-Light-latin.ttf",
+          "extended": "/common/fonts/OpenSans-Light-extended.ttf"
+        }
+      }
+      ]
+  }, 
+  "OpenSansBold": {
+    "fontFamily": "Open Sans",
+    "fontStyle": "normal",
+    "fontWeight": "700",
+    "formats": [
+      {
+        "type": "local",
+        "location": "Open Sans Bold"
+      },
+      {
+        "type": "local",
+        "location": "OpenSansBold"
+      },
+      {
+        "type": "embedded-opentype",
+        "location": {
+          "latin": "/common/fonts/OpenSans-Bold-latin.eot",
+          "extended": "/common/fonts/OpenSans-Bold-extended.eot"
+         }
+      },
+      {
+        "type": "woff",
+        "location": {
+          "latin": "/common/fonts/OpenSans-Bold-latin.woff",
+          "extended": "/common/fonts/OpenSans-Bold-extended.woff"
+        }
+      },
+      {
+        "type": "truetype",
+        "location": {
+          "latin": "/common/fonts/OpenSans-Bold-latin.ttf",
+          "extended": "/common/fonts/OpenSans-Bold-extended.ttf"
+         }
+      }
+      ]
+  }, 
+  "OpenSansItalic": {
+    "fontFamily": "Open Sans",
+    "fontStyle": "italic",
+    "fontWeight": "400",
+    "formats": [
+      {
+        "type": "local",
+        "location": "Open Sans Italic"
+      },
+      {
+        "type": "local",
+        "location": "OpenSansItalic"
+      },
+      {
+        "type": "embedded-opentype",
+        "location": {
+          "latin": "/common/fonts/OpenSans-Italic-latin.eot",
+          "extended": "/common/fonts/OpenSans-Italic-extended.eot"
+        }
+      },
+      {
+        "type": "woff",
+        "location": {
+          "latin": "/common/fonts/OpenSans-Italic-latin.woff",
+          "extended": "/common/fonts/OpenSans-Italic-extended.woff"
+        }
+      },
+      {
+        "type": "truetype",
+        "location": {
+          "latin": "/common/fonts/OpenSans-Italic-latin.ttf",
+          "extended": "/common/fonts/OpenSans-Italic-extended.ttf"
+        }
+      }
+      ]
+  } 
+}
+

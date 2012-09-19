@@ -77,6 +77,9 @@
   "connect-cookie-session": {
     "0.0.2": "cadd881d36e7d17fca102be77eded7f07846be1a"
   },
+  "connect-fonts": {
+    "0.0.3": "3c67556e14fb5b5f873477399cc29a21f092cf4b"
+  },
   "connect-logger-statsd": {
     "0.0.1": "e1e350f0f6dc538a50a1868b4008806c45c409ea"
   },
@@ -199,11 +202,14 @@
   "node-inspector": {
     "0.2.0beta3": "2adb552da7757ff3d4ec549f5570799355952d20"
   },
+  "node-font-face-generator": {
+    "0.0.4": "839a5330976c3fdf1281c122942625c955995e0d"
+  },
   "node-proxy": {
     "0.6.0": "41e64712dbd947aa9d9f466b5c0b5ee020bbcbbb"
   },
   "node-statsd": {
-    "0.0.2": "*"
+    "0.0.2": "ba96c26d4ec22b4f9501bb332fdf740db5a40ee7"
   },
   "nodemailer": {
     "0.3.21": "d9637a1d585f36fd30362c3036ce0692656fe771"

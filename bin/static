@@ -26,7 +26,23 @@ heartbeat = require('../lib/heartbeat.js'),
 logger = require('../lib/logging.js').logger,
 views = require('../lib/static/views.js'),
 toobusy = require('../lib/busy_middleware.js'),
-shutdown = require('../lib/shutdown.js');
+shutdown = require('../lib/shutdown.js'),
+fonts = require('connect-fonts');
+
+function loadJSON(path) {
+  var jsonStr = fs.readFileSync(path, "utf8");
+  // strip out any comments
+  jsonStr = jsonStr.replace(/\/\/.*/g, "");
+  return JSON.parse(jsonStr);
+}
+
+function getRegisteredFonts() {
+  return loadJSON(__dirname + "/../config/fonts.json");
+}
+
+function getLanguageToLocations() {
+  return loadJSON(__dirname + "/../config/language-font-types.json");
+}
 
 var app = undefined;
 
@@ -97,6 +113,14 @@ app.use(cachify.setup(assets(config.get('supported_languages')),
 
 // #9 - handle views for dynamicish content
 views.setup(app);
+
+// Set up the font server that serves up browser/language specific 
+// CSS for requested @font-faces
+app.use(fonts.setup({
+  fonts: getRegisteredFonts(),
+  language_to_locations: getLanguageToLocations(),
+  url_modifier: cachify.cachify
+}));
 
 // add 'Access-Control-Allow-Origin' headers to static resources that will be served
 // from the CDN.  We explicitly allow resources served from public_url to access these.
