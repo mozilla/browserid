@@ -1053,7 +1053,11 @@
           });
 
           commChan.bind('login', function(trans, params) {
-            if (observers.login) observers.login(params);
+            if (navigator.id._prevent_auto_login === true) {
+                navigator.id.logout();
+            } else if (observers.login) {
+                observers.login(params);
+            }
           });
 
           if (loggedInUser) {
@@ -1211,7 +1215,9 @@
         w = undefined;
         if (!err && r && r.assertion) {
           try {
-            if (observers.login) observers.login(r.assertion);
+            if (observers.login) {
+                observers.login(r.assertion);
+            }
           } catch(e) {
             // client's observer threw an exception
           }
@@ -1230,6 +1236,7 @@
       request: function(options) {
         if (this != navigator.id)
           throw new Error("all navigator.id calls must be made on the navigator.id object");
+        this._prevent_auto_login = false;
         options = options || {};
         checkCompat(false);
         api_called = "request";
@@ -1249,6 +1256,7 @@
       logout: function(callback) {
         if (this != navigator.id)
           throw new Error("all navigator.id calls must be made on the navigator.id object");
+        this._prevent_auto_login = true;
         // allocate iframe if it is not allocated
         _open_hidden_iframe();
         // send logout message if the commChan exists
