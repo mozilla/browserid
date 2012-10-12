@@ -78,7 +78,7 @@
     "0.0.2": "cadd881d36e7d17fca102be77eded7f07846be1a"
   },
   "connect-fonts": {
-    "0.0.4": "665c3bc513273c956b50da362d0481ceddba173f"
+    "0.0.5": "7ff09ae8528f252227783a673557222d9f18c0a9"
   },
   "connect-logger-statsd": {
     "0.0.1": "e1e350f0f6dc538a50a1868b4008806c45c409ea"
@@ -203,7 +203,7 @@
     "0.2.0beta3": "2adb552da7757ff3d4ec549f5570799355952d20"
   },
   "node-font-face-generator": {
-    "0.0.4": "839a5330976c3fdf1281c122942625c955995e0d"
+    "0.0.6": "7a1b717c6f66d8bbb81f8c69f32e0026168021a2"
   },
   "node-proxy": {
     "0.6.0": "41e64712dbd947aa9d9f466b5c0b5ee020bbcbbb"
@@ -310,6 +310,9 @@
   "traverse": {
     "0.6.3": "a053ffa1b6179b9240ea16d74bfd604bd6b6e41b"
   },
+  "ua-parser": {
+    "0.2.4": "c25ef577be95350d0fe1d3361597282da4e9ba71"
+  },
   "uglify-js": {
     "1.0.6": "f0d3aafd463f26a437b9ebc19f4947ab7e8078aa",
     "1.2.5": "b542c2c76f78efb34b200b20177634330ff702b6",
@@ -362,5 +365,8 @@
   },
   "zeparser": {
     "0.0.5": "03726561bc268f2e5444f54c665b7fd4a8c029e2"
+  },
+  "yamlparser": {
+    "0.0.2": "e9f3e05e52762df751e4c522e0b6a43fff9ce1c4"
   }
 }

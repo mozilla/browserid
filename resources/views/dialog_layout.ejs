@@ -26,11 +26,10 @@
   <!--[if lt IE 9]>
     <%- cachify_js('/production/html5shim.js') %>
   <![endif]-->
-  <%- cachify_css('/production/dialog.css') %>
+  <%- cachify_css(util.format('/production/%s/dialog.css', locale)) %>
   <!--[if lt IE 9]>
     <%- cachify_css('/production/ie8_dialog.css') %>
   <![endif]-->
-  <link rel="stylesheet" type="text/css" href="/<%- commit %>/<%= lang %>/OpenSansRegular,OpenSansLight,OpenSansBold/fonts.css">
   <% /* the title comes from the server when the page is loaded.
          It still needs translated, so wrap it in its own gettext
      */ %>
