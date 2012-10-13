@@ -19,9 +19,9 @@ class TestSignIn(BaseTest):
 
     @pytest.mark.travis
     def test_sign_in_helper(self, mozwebqa):
-        credentials = mozwebqa.credentials['default']
         browser_id = BrowserID(mozwebqa.selenium, mozwebqa.timeout)
-        browser_id.sign_in(credentials['email'], credentials['password'])
+        user = self.get_test_user(mozwebqa)
+        browser_id.sign_in(user['email'], user['password'])
 
         WebDriverWait(mozwebqa.selenium, mozwebqa.timeout).until(
             lambda s: s.find_element_by_id('loggedin').is_displayed())

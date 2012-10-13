@@ -26,10 +26,3 @@ class Base(object):
     def load_page(self):
         if self._page_url:
             self.selenium.get(self.base_url + self._page_url)
-            self.wait_for_ajax()
-
-    def wait_for_ajax(self):
-        """Waits for the script 'jQuery.active == 0'."""
-        WebDriverWait(self.selenium, self.timeout).until(
-            lambda s: s.execute_script("return jQuery.active == 0"),
-            "Wait for AJAX timed out after %s seconds" % self.timeout)

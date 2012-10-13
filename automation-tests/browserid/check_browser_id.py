@@ -7,9 +7,10 @@
 import pytest
 
 from browser_id import BrowserID
+from tests.base import BaseTest
 
 @pytest.mark.nondestructive
-class TestBrowserID(object):
+class TestBrowserID(BaseTest):
 
     @pytest.mark.travis
     @pytest.mark.skip_selenium
@@ -75,3 +76,18 @@ class TestBrowserID(object):
         assert user['verifier'] == 'https://verifier.dev.anosrep.org'
         assert user.has_key('token')
 
+    @pytest.mark.travis
+    @pytest.mark.skip_selenium
+    def test_mock_user_add_email_with_email(self, mozwebqa):
+        user = BrowserID(mozwebqa.selenium, mozwebqa.timeout).persona_test_user(verified=False, env='dev')
+        user.add_additional_email('george@brown.gov')
+        assert len(user['additional_emails']) == 1
+        assert 'george@brown.gov' in user['additional_emails']
+
+    @pytest.mark.travis
+    @pytest.mark.skip_selenium
+    def test_mock_user_add_email_default(self, mozwebqa):
+        user = BrowserID(mozwebqa.selenium, mozwebqa.timeout).persona_test_user(verified=False, env='dev')
+        user.add_additional_email()
+        user.add_additional_email()
+        assert len(user['additional_emails']) == 2
