@@ -28,6 +28,7 @@ class TestNewAccount:
 
         # Load the BrowserID link from the email in the browser
         from browserid.pages.complete_registration import CompleteRegistration
-        complete_registration = CompleteRegistration(mozwebqa.selenium, mozwebqa.timeout, email.verify_user_link)
+        mozwebqa.selenium.get(email.verify_user_link)
+        complete_registration = CompleteRegistration(mozwebqa.selenium, mozwebqa.timeout)
 
         Assert.equal(home_pg.logged_in_user_email, user['email'])

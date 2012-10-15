@@ -18,7 +18,7 @@ class CompleteRegistration(Base):
     _finish_locator = (By.CSS_SELECTOR, 'div.submit > button')
     _thank_you_locator = (By.ID, 'congrats')
 
-    def __init__(self, selenium, timeout, url, expect='redirect'):
+    def __init__(self, selenium, timeout, url=None, expect='redirect'):
         """
         class init method
         :Args:
@@ -26,8 +26,9 @@ class CompleteRegistration(Base):
         - expect - redirect/success/reset/verify (default redirect)
         """
         Base.__init__(self, selenium, timeout)
-        print "the url" + url
-        self.selenium.get(url)
+        if url:
+            print "the url" + url
+            self.selenium.get(url)
 
         if expect == 'redirect':
             WebDriverWait(self.selenium, self.timeout).until(
