@@ -136,6 +136,24 @@ def main():
                 ' --webqatimeout=90 ' + no_proxy_json +
                 ' --webqareport=results/myfavoritebeer/' + browser[1] + '.html' +
                 ' --baseurl=http://%s.myfavoritebeer.org -q myfavoritebeer' % host, shell=True)
+
+            persona_base_url = ''
+            if host == 'dev':
+                persona_base_url = 'https://login.dev.anosrep.org'
+            elif host == 'beta':
+                persona_base_url = 'https://login.anosrep.org'
+            elif host == 'www':
+                persona_base_url = 'https://login.persona.org'
+            else:
+                sys.stderr.write('--target must be one of [dev|beta|www] rather than %s' +
+                                 ' in order to run persona_server tests.\n' % host)
+                exit(1)
+
+            subprocess.call(env_py + ' -m py.test --destructive ' +
+                browser[0] + ' --webqatimeout=90 ' + no_proxy_json +
+                ' --webqareport=results/persona_server/' + browser[1] + '.html' +
+                ' --baseurl=' + persona_base_url + ' -q persona_server', shell=True)
+
         # only run one test in the default case
         else:
             subprocess.call(env_py + ' -m py.test --destructive' +

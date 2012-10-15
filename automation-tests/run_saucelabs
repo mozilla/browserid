@@ -57,6 +57,9 @@ var testSpecificPythonArgs = {
   },
   "myfavoritebeer": {
     "--baseurl": "http://dev.myfavoritebeer.org"
+  },
+  "persona_server": {
+    "--baseurl": "https://login.dev.anosrep.org"
   }
 };
 
