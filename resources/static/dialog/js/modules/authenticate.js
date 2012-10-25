@@ -22,9 +22,10 @@ BrowserID.Modules.Authenticate = (function() {
       EMAIL_SELECTOR = "#authentication_email",
       PASSWORD_SELECTOR = "#authentication_password",
       FORGOT_PASSWORD_SELECTOR = "#forgotPassword",
-      RP_NAME_SELECTOR = "#rp_name",
+      RP_NAME_SELECTOR = "#start_rp_name",
       BODY_SELECTOR = "body",
       AUTHENTICATION_CLASS = "authentication",
+      FORM_CLASS = "form",
       currentHint;
 
   function getEmail() {
@@ -184,6 +185,7 @@ BrowserID.Modules.Authenticate = (function() {
       var self=this;
 
       dom.addClass(BODY_SELECTOR, AUTHENTICATION_CLASS);
+      dom.addClass(BODY_SELECTOR, FORM_CLASS);
       dom.setInner(RP_NAME_SELECTOR, options.siteName);
       dom.setInner(EMAIL_SELECTOR, lastEmail);
 
@@ -212,6 +214,7 @@ BrowserID.Modules.Authenticate = (function() {
 
     stop: function() {
       dom.removeClass(BODY_SELECTOR, AUTHENTICATION_CLASS);
+      dom.removeClass(BODY_SELECTOR, FORM_CLASS);
       Module.sc.stop.call(this);
     }
 
