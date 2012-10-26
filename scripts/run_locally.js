@@ -34,6 +34,12 @@ var daemonsToRun = {
     PORT: 10011,
     HOST: HOST
   },
+  example_bigtent: {
+    SHIMMED_DOMAIN: "bigtent.domain",
+    path: path.join(__dirname, "..", "scripts", "serve_example_bigtent.js"),
+    PORT: 10012,
+    HOST: HOST
+  },
   proxy: { },
   browserid: { },
   static: { },
@@ -60,7 +66,9 @@ process.env['SHIMMED_PRIMARIES'] = oldShims +
   "example.domain|http://" + HOST + ":10005|" + 
   path.join(__dirname, "..", "example", "primary", ".well-known", "browserid") +
   "," + "delegated.domain|http://" + HOST + ":10011|" +
-  path.join(__dirname, "..", "example", "delegated_primary", ".well-known", "browserid");
+  path.join(__dirname, "..", "example", "delegated_primary", ".well-known", "browserid") +
+  "," + "bigtent.domain|http://" + HOST + ":10012|" +
+	    path.join(__dirname, "..", "example", "bigtent", ".well-known", "browserid");
 
 // all spawned processes should log to console
 process.env['LOG_TO_CONSOLE'] = 1;
