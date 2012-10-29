@@ -164,10 +164,10 @@ suite.addBatch({
           }).call(this);
         },
         "works": function (err, r) {
-	  var resp = JSON.parse(r.body);
-	  assert.isObject(resp);
-	  assert.isTrue(resp.success);
-	}
+          var resp = JSON.parse(r.body);
+          assert.isObject(resp);
+          assert.isTrue(resp.success);
+        }
       }
     }
   }
