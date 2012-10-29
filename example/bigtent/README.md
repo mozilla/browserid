@@ -1,0 +1,1 @@
+Currently this is used only by tests/auth_with_assertion.js
