@@ -67,8 +67,8 @@ process.env['SHIMMED_PRIMARIES'] = oldShims +
   path.join(__dirname, "..", "example", "primary", ".well-known", "browserid") +
   "," + "delegated.domain|http://" + HOST + ":10011|" +
   path.join(__dirname, "..", "example", "delegated_primary", ".well-known", "browserid") +
-  "," + "bigtent.domain|http://" + HOST + ":10012|" +
-	    path.join(__dirname, "..", "example", "bigtent", ".well-known", "browserid");
+  "," + "bigtent.domain|http://bigtent.domain:10012|" +
+  path.join(__dirname, "..", "example", "bigtent", ".well-known", "browserid");
 
 // all spawned processes should log to console
 process.env['LOG_TO_CONSOLE'] = 1;

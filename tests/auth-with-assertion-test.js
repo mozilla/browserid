@@ -166,7 +166,6 @@ suite.addBatch({
         "works": function (err, r) {
 	  var resp = JSON.parse(r.body);
 	  assert.isObject(resp);
-	  console.log(resp);
 	  assert.isTrue(resp.success);
 	}
       }
