@@ -1056,7 +1056,7 @@
             if (observers.login) observers.login(params);
           });
 
-          if (loggedInUser) {
+          if (loggedInUser !== undefined) {
             commChan.notify({
               method: 'loggedInUser',
               params: loggedInUser
