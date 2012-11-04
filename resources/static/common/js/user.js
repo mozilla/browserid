@@ -271,11 +271,14 @@ BrowserID.User = (function() {
    * Persist an address and key pair locally.
    * @method persistEmailKeypair
    * @param {string} email - Email address to persist.
+   * @param {string} type - Identity is a 'primary' or a 'secondary'
    * @param {object} keypair - Key pair to save
+   * @param {string} cert - Certificate for email signed by IdP
+   * @paraqm {object} issuer - Issuer who has this private key and issues certificates
    * @param {function} [onComplete] - Called on successful completion.
    * @param {function} [onFailure] - Called on error.
    */
-  function persistEmailKeypair(email, type, keypair, cert, onComplete, onFailure) {
+  function persistEmailKeypair(email, type, keypair, cert, issuer, onComplete, onFailure) {
     checkEmailType(type);
     var now = new Date();
     var email_obj = storage.getEmails()[email] || {
@@ -287,7 +290,8 @@ BrowserID.User = (function() {
       updated: now,
       pub: keypair.publicKey.toSimpleObject(),
       priv: keypair.secretKey.toSimpleObject(),
-      cert: cert
+      cert: cert,
+      issuer: issuer
     });
 
     storage.addEmail(email, email_obj);
@@ -302,7 +306,8 @@ BrowserID.User = (function() {
   function certifyEmailKeypair(email, keypair, onComplete, onFailure) {
     network.certKey(email, keypair.publicKey, function(cert) {
       // emails that *we* certify are always secondary emails
-      persistEmailKeypair(email, "secondary", keypair, cert, onComplete, onFailure);
+      // TODO best way to put login.persona.org into the code?
+      persistEmailKeypair(email, "secondary", keypair, cert, 'login.persona.org', onComplete, onFailure);
     }, onFailure);
   }
 
@@ -469,10 +474,27 @@ BrowserID.User = (function() {
      * @param {function} [onFailure] - called on failure
      */
     provisionPrimaryUser: function(email, info, onComplete, onFailure) {
+/* Couple ideas here... address_info could add issuer and we could carry it through to the info we get here...
+   We could crack open the cert...
+   or we can pull issuer out of the auth url
 
+  Doing regex for now, looking for feedback.
+*/
+      var issuer;
+      try {
+        issuer = /https:\/\/([^/]*)\/.*/.exec(info.auth)[1];
+      } catch(e) {}
+        if (!issuer) {
+	  return setTimeout(function () {
+	    onFailure({
+	      code: 'internal',
+              message: 'bad provisioning url, can\'t extract issuer'
+	    });
+	  }, 0);          
+      }
       User.primaryUserAuthenticationInfo(email, info, function(authInfo) {
         if(authInfo.authenticated) {
-          persistEmailKeypair(email, "primary", authInfo.keypair, authInfo.cert,
+          persistEmailKeypair(email, "primary", authInfo.keypair, authInfo.cert, issuer,
             function() {
               // We are getting an assertion for persona.org.
               User.getAssertion(email, "https://login.persona.org", function(assertion) {
@@ -506,12 +528,17 @@ BrowserID.User = (function() {
      *   keypair - returned if user is authenticated.
      *   cert - returned if user is authenticated.
      * @param {function} [onFailure] - called on failure
+     *
+     * Checks issuer of current and previous certs to detect new issuers and
+     * invalidates old certs.
      */
     primaryUserAuthenticationInfo: function(email, info, onComplete, onFailure) {
       var idInfo = storage.getEmail(email),
           self=this;
 
       primaryAuthCache = primaryAuthCache || {};
+
+      // TODO check new param issuer against info.issuer
 
       function complete(info) {
         primaryAuthCache[email] = info;

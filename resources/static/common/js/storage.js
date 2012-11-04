@@ -151,6 +151,7 @@ BrowserID.Storage = (function() {
       delete id.priv;
       delete id.pub;
       delete id.cert;
+      delete id.issuer;
       addEmail(email, id);
     }
     else {

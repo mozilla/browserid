@@ -87,13 +87,14 @@
   });
 
   test("invalidateEmail with valid email address", function() {
-    storage.addEmail("testuser@testuser.com", {priv: "key", pub: "pub", cert: "cert"});
+    storage.addEmail("testuser@testuser.com", {priv: "key", pub: "pub", cert: "cert", issuer: 'login.persona.org'});
 
     storage.invalidateEmail("testuser@testuser.com");
     var id = storage.getEmail("testuser@testuser.com");
     ok(id && !("priv" in id), "private key was removed");
     ok(id && !("pub" in id), "public key was removed");
     ok(id && !("cert" in id), "cert was removed");
+    ok(id && !("issuer" in id), "issuer was removed");
   });
 
   test("invalidateEmail with invalid email address", function() {

@@ -275,6 +275,7 @@
         equal(info.authenticated, true, "user is authenticated");
         ok(info.keypair, "keypair passed");
         ok(info.cert, "cert passed");
+        equal(info.issuer, "testuser.com", "issuer passed");
         start();
       },
       testHelpers.unexpectedXHRError
