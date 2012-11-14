@@ -3,6 +3,7 @@
  * file, You can obtain one at http://mozilla.org/MPL/2.0/. */
 BrowserID.XHR = (function() {
   "use strict";
+  /*globals BrowserID:true,_:true,window:true,CODE_SHA:true*/
 
   var bid = BrowserID,
       mediator = bid.Mediator,
@@ -112,7 +113,7 @@ BrowserID.XHR = (function() {
     else {
       request({
         type: "GET",
-        url: "/wsapi/session_context",
+        url: "/wsapi/" + CODE_SHA + "/session_context",
         success: function(result) {
           csrf_token = result.csrf_token;
           context = result;

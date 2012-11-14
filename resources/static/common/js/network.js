@@ -3,7 +3,7 @@
  * file, You can obtain one at http://mozilla.org/MPL/2.0/. */
 BrowserID.Network = (function() {
   "use strict";
-  /*globals require:true*/
+  /*globals require:true,_:true,BrowserID:true,window:true,CODE_SHA:true*/
 
   var jwcrypto = require("./lib/jwcrypto"),
       bid = BrowserID,
@@ -123,6 +123,14 @@ BrowserID.Network = (function() {
 
     }
 
+  /**
+   * Given a wsapi operation, quersting, etc will
+   * return the relative /wsapi/{SHA}/{opertion}
+   */
+  function wsapi(operation) {
+    return '/wsapi/' + CODE_SHA + '/' + operation;
+  }
+
   var Network = {
     /**
      * Initialize - Clear all context info. Used for testing.
@@ -150,7 +158,7 @@ BrowserID.Network = (function() {
      */
     authenticate: function(email, password, onComplete, onFailure) {
       post({
-        url: "/wsapi/authenticate_user",
+        url: wsapi("authenticate_user"),
         data: {
           email: email,
           pass: password,
@@ -172,7 +180,7 @@ BrowserID.Network = (function() {
      */
     authenticateWithAssertion: function(email, assertion, onComplete, onFailure) {
       post({
-        url: "/wsapi/auth_with_assertion",
+        url: wsapi("auth_with_assertion"),
         data: {
           assertion: assertion,
           ephemeral: !storage.usersComputer.confirmed(email)
@@ -219,7 +227,7 @@ BrowserID.Network = (function() {
      */
     logout: function(onComplete, onFailure) {
       post({
-        url: "/wsapi/logout",
+        url: wsapi("logout"),
         success: function() {
           // assume the logout request is successful and
           // log the user out.  There is no need to reset the
@@ -257,7 +265,7 @@ BrowserID.Network = (function() {
         pass: password,
         site : origin
       };
-      stageAddressForVerification(postData, "/wsapi/stage_user", onComplete, onFailure);
+      stageAddressForVerification(postData, wsapi("stage_user"), onComplete, onFailure);
     },
 
     /**
@@ -270,7 +278,7 @@ BrowserID.Network = (function() {
      */
     emailForVerificationToken: function(token, onComplete, onFailure) {
       get({
-        url : "/wsapi/email_for_token?token=" + encodeURIComponent(token),
+        url : wsapi("email_for_token?token=" + encodeURIComponent(token)),
         success: function(result) {
           var data = null;
           if(result.success !== false) {
@@ -291,7 +299,7 @@ BrowserID.Network = (function() {
      */
     checkUserRegistration: function(email, onComplete, onFailure) {
       get({
-        url: "/wsapi/user_creation_status?email=" + encodeURIComponent(email),
+        url: wsapi("user_creation_status?email=" + encodeURIComponent(email)),
         success: handleAddressVerifyCheckResponse.curry(onComplete),
         error: onFailure
       });
@@ -305,7 +313,7 @@ BrowserID.Network = (function() {
      * @param {function} [onComplete] - Called when complete.
      * @param {function} [onFailure] - Called on XHR failure.
      */
-    completeUserRegistration: completeAddressVerification.curry("/wsapi/complete_user_creation"),
+    completeUserRegistration: completeAddressVerification.curry(wsapi("complete_user_creation")),
 
     /**
      * Call with a token to prove an email address ownership.
@@ -316,7 +324,7 @@ BrowserID.Network = (function() {
      * with one boolean parameter that specifies the validity of the token.
      * @param {function} [onFailure] - Called on XHR failure.
      */
-    completeEmailRegistration: completeAddressVerification.curry("/wsapi/complete_email_confirmation"),
+    completeEmailRegistration: completeAddressVerification.curry(wsapi("complete_email_confirmation")),
 
     /**
      * Request a password reset for the given email address.
@@ -333,7 +341,7 @@ BrowserID.Network = (function() {
         pass: password,
         site : origin
       };
-      stageAddressForVerification(postData, "/wsapi/stage_reset", onComplete, onFailure);
+      stageAddressForVerification(postData, wsapi("stage_reset"), onComplete, onFailure);
     },
 
     /**
@@ -344,7 +352,7 @@ BrowserID.Network = (function() {
      * @param {function} [onComplete] - Called when complete.
      * @param {function} [onFailure] - Called on XHR failure.
      */
-    completePasswordReset: completeAddressVerification.curry("/wsapi/complete_reset"),
+    completePasswordReset: completeAddressVerification.curry(wsapi("complete_reset")),
 
     /**
      * Check the registration status of a password reset
@@ -354,7 +362,7 @@ BrowserID.Network = (function() {
      */
     checkPasswordReset: function(email, onComplete, onFailure) {
       get({
-        url: "/wsapi/password_reset_status?email=" + encodeURIComponent(email),
+        url: wsapi("password_reset_status?email=" + encodeURIComponent(email)),
         success: handleAddressVerifyCheckResponse.curry(onComplete),
         error: onFailure
       });
@@ -373,7 +381,7 @@ BrowserID.Network = (function() {
         email: email,
         site : origin
       };
-      stageAddressForVerification(postData, "/wsapi/stage_reverify", onComplete, onFailure);
+      stageAddressForVerification(postData, wsapi("stage_reverify"), onComplete, onFailure);
     },
 
     // the verification page for reverifying an email and adding an email to an
@@ -389,7 +397,7 @@ BrowserID.Network = (function() {
      */
     checkEmailReverify: function(email, onComplete, onFailure) {
       get({
-        url: "/wsapi/email_reverify_status?email=" + encodeURIComponent(email),
+        url: wsapi("email_reverify_status?email=" + encodeURIComponent(email)),
         success: handleAddressVerifyCheckResponse.curry(onComplete),
         error: onFailure
       });
@@ -405,7 +413,7 @@ BrowserID.Network = (function() {
      */
     setPassword: function(password, onComplete, onFailure) {
       post({
-        url: "/wsapi/set_password",
+        url: wsapi("set_password"),
         data: {
           password: password
         },
@@ -425,7 +433,7 @@ BrowserID.Network = (function() {
      */
     sendInteractionData: function(data, onComplete, onFailure) {
       post({
-        url: "/wsapi/interaction_data",
+        url: wsapi("interaction_data"),
         data: {
           // reminder, CSRF token will be inserted here by xhr.js, that's
           // why this *must* be an object
@@ -449,7 +457,7 @@ BrowserID.Network = (function() {
      */
     changePassword: function(oldPassword, newPassword, onComplete, onFailure) {
       post({
-        url: "/wsapi/update_password",
+        url: wsapi("update_password"),
         data: {
           oldpass: oldPassword,
           newpass: newPassword
@@ -470,7 +478,7 @@ BrowserID.Network = (function() {
      */
     cancelUser: function(onComplete, onFailure) {
       post({
-        url: "/wsapi/account_cancel",
+        url: wsapi("account_cancel"),
         success: onComplete,
         error: onFailure
       });
@@ -485,7 +493,7 @@ BrowserID.Network = (function() {
      */
     addEmailWithAssertion: function(assertion, onComplete, onFailure) {
       post({
-        url: "/wsapi/add_email_with_assertion",
+        url: wsapi("add_email_with_assertion"),
         data: {
           assertion: assertion
         },
@@ -511,7 +519,7 @@ BrowserID.Network = (function() {
         pass: password,
         site : origin
       };
-      stageAddressForVerification(postData, "/wsapi/stage_email", onComplete, onFailure);
+      stageAddressForVerification(postData, wsapi("stage_email"), onComplete, onFailure);
     },
 
     /**
@@ -522,7 +530,7 @@ BrowserID.Network = (function() {
      */
     checkEmailRegistration: function(email, onComplete, onFailure) {
       get({
-        url: "/wsapi/email_addition_status?email=" + encodeURIComponent(email),
+        url: wsapi("email_addition_status?email=" + encodeURIComponent(email)),
         success: handleAddressVerifyCheckResponse.curry(onComplete),
         error: onFailure
       });
@@ -539,7 +547,7 @@ BrowserID.Network = (function() {
      */
     emailRegistered: function(email, onComplete, onFailure) {
       get({
-        url: "/wsapi/have_email?email=" + encodeURIComponent(email),
+        url: wsapi("have_email?email=" + encodeURIComponent(email)),
         success: function(data, textStatus, xhr) {
           complete(onComplete, data.email_known);
         },
@@ -562,7 +570,7 @@ BrowserID.Network = (function() {
      */
     addressInfo: function(email, onComplete, onFailure) {
       get({
-        url: "/wsapi/address_info?email=" + encodeURIComponent(email),
+        url: wsapi("address_info?email=" + encodeURIComponent(email)),
         success: function(data, textStatus, xhr) {
           complete(onComplete, data);
         },
@@ -579,7 +587,7 @@ BrowserID.Network = (function() {
      */
     removeEmail: function(email, onComplete, onFailure) {
       post({
-        url: "/wsapi/remove_email",
+        url: wsapi("remove_email"),
         data: {
           email: email
         },
@@ -596,7 +604,7 @@ BrowserID.Network = (function() {
      */
     certKey: function(email, pubkey, onComplete, onFailure) {
       post({
-        url: "/wsapi/cert_key",
+        url: wsapi("cert_key"),
         data: {
           email: email,
           pubkey: pubkey.serialize(),
@@ -613,7 +621,7 @@ BrowserID.Network = (function() {
      */
     listEmails: function(onComplete, onFailure) {
       get({
-        url: "/wsapi/list_emails",
+        url: wsapi("list_emails"),
         success: function(emails) {
           // TODO - Put this into user.js or storage.js when emails are synced/saved to
           // storage.
@@ -740,7 +748,7 @@ BrowserID.Network = (function() {
       Network.checkAuth(function(authenticated) {
         if(authenticated) {
           post({
-            url: "/wsapi/prolong_session",
+            url: wsapi("prolong_session"),
             success: onComplete,
             error: onFailure
           });

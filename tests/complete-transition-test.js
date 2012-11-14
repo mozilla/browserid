@@ -64,7 +64,9 @@ suite.addBatch({
         }).call(this);
       },
       "works": function(err, r) {
-        var resp = JSON.parse(r.body);
+        var resp;
+        assert.equal(r.code, 200);
+        resp = JSON.parse(r.body);
         assert.isObject(resp);
         assert.isTrue(resp.success);
       }

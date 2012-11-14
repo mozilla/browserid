@@ -4,13 +4,17 @@ var
 path = require('path')
 resources = require('../lib/static_resources.js'),
 config = require('../lib/configuration.js'),
+generateCodeVersionJS = require('./generate_code_version.js'),
 i18n = require('../lib/i18n'),
 mkdirp = require('mkdirp'),
-computecluster = require('compute-cluster');
+computecluster = require('compute-cluster'),
+version = require('../lib/version.js');
 
 const staticPath = path.join(__dirname, '..', 'resources', 'static');
 
 var langs = config.get('supported_languages');
+
+generateCodeVersionJS();
 
 var all = resources.all(langs);
 

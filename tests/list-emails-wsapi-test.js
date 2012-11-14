@@ -91,6 +91,16 @@ suite.addBatch({
   }
 });
 
+suite.addBatch({
+  "code version mismatch using list emails API": {
+    topic: wsapi.get('/wsapi/01dc0de/list_emails', {}),
+    "fails with HTTP 400": function (err, r) {
+      assert.equal(r.code, 400);
+      assert.equal(r.body, 'Bad Request: Code version mis-match');
+    }
+  }
+});
+
 start_stop.addShutdownBatches(suite);
 
 // run or export the suite.

@@ -3,9 +3,11 @@
  * License, v. 2.0. If a copy of the MPL was not distributed with this
  * file, You can obtain one at http://mozilla.org/MPL/2.0/. */
 
-const path = require('path'),
+const fs = require('fs'),
+path = require('path'),
 spawn = require('child_process').spawn,
 config = require('../lib/configuration.js'),
+generateCodeVersionJS = require('./generate_code_version.js'),
 temp = require('temp'),
 secrets = require('../lib/secrets.js');
 
@@ -108,6 +110,12 @@ if (!(SIGNALS_PROP in process.env)) {
 
 var debugPort = 5859;
 var inspectorProc;
+
+// Setup code version for client side code during dev / test
+// production uses browserid.spec via compress
+if (config.get('env') !== 'production') {
+  generateCodeVersionJS();
+}
 
 function runDaemon(daemon, cb) {
   Object.keys(daemonsToRun[daemon]).forEach(function(ek) {
