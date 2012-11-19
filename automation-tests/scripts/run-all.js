@@ -170,7 +170,7 @@ function startTesting() {
     });
 
     var opts = {
-      cwd: path.dirname(testPath),
+      cwd: path.join(__dirname, ".."),
       env: env
     };
     var testProcess = child_process.spawn(vows_path,
