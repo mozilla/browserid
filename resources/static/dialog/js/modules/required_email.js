@@ -32,7 +32,7 @@ BrowserID.Modules.RequiredEmail = (function() {
     var self = this;
 
     function getAssertion() {
-      dialogHelpers.getAssertion.call(self, email, callback);
+      dialogHelpers.getAssertion.call(self, email, 'default', callback);
     }
 
     if(primaryInfo) {
@@ -143,7 +143,7 @@ BrowserID.Modules.RequiredEmail = (function() {
           // 1) Authenticated primary user who has an expired cert.
           // 2) Authenticated user who does not control address.
           // 3) Unauthenticated user.
-          user.addressInfo(email, function(info) {
+          user.addressInfo(email, 'default', function(info) {
             if(info.type === "primary") primaryInfo = info;
 
             if (info.type === "primary" && info.authed) {

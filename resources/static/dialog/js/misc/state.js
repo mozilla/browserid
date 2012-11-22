@@ -117,7 +117,7 @@ BrowserID.State = (function() {
       self.hostname = info.hostname;
       self.siteName = info.siteName || info.hostname;
       self.siteTOSPP = !!(info.privacyPolicy && info.termsOfService);
-
+      self.forceIssuer = user.forceIssuer = (!!info.forceIssuer ? info.forceIssuer : 'default');
       startAction(false, "doRPInfo", info);
 
       if (info.email && info.type === "primary") {
@@ -158,7 +158,8 @@ BrowserID.State = (function() {
     handleState("authenticate", function(msg, info) {
       _.extend(info, {
         siteName: self.siteName,
-        siteTOSPP: self.siteTOSPP
+        siteTOSPP: self.siteTOSPP,
+        forceIssuer: self.forceIssuer
       });
 
       startAction("doAuthenticate", info);
@@ -191,15 +192,25 @@ BrowserID.State = (function() {
       complete(info.complete);
     });
 
-    handleState("password_set", function(msg, info) {
-      /* A password can be set for one of three reasons - 1) This is a new user
-       * or 2) a user is adding the first secondary address to an account that
-       * consists only of primary addresses, or 3) an existing user has
-       * forgotten their password and wants to reset it.  #1 is taken care of
-       * by newUserEmail, #2 by addEmailEmail, #3 by resetPasswordEmail.
-       */
-      info = _.extend({ email: self.newUserEmail || self.addEmailEmail || self.resetPasswordEmail }, info);
+    handleState("new_fxaccount", function(msg, info) {
+      self.newFxAccountEmail = info.email;
+      startAction(false, "doSetPassword", info);
+      complete(info.complete);
+    });
 
+    handleState("password_set", function(msg, info) {
+      /* A password can be set for several reasons
+       * 1) This is a new user
+       * 2) A user is adding the first secondary address to an account that
+       * consists only of primary addresses
+       * 3) an existing user has forgotten their password and wants to reset it.
+       * 4) RP is using forceIssuer and we have a primary email address with
+       * no password for the user
+       * #1 is taken care of by newUserEmail, #2 by addEmailEmail, #3 by resetPasswordEmail,
+       * and #4 by fxAccountEmail
+       */
+      info = _.extend({ email: self.newUserEmail || self.addEmailEmail ||
+                               self.resetPasswordEmail || self.newFxAccountEmail}, info);
       if(self.newUserEmail) {
         startAction(false, "doStageUser", info);
       }
@@ -208,6 +219,9 @@ BrowserID.State = (function() {
       }
       else if(self.resetPasswordEmail) {
         startAction(false, "doStageResetPassword", info);
+      }
+      else if(self.newFxAccountEmail) {
+        startAction(false, "doStageUser", info);
       }
     });
 
@@ -293,9 +307,16 @@ BrowserID.State = (function() {
 
     handleState("email_chosen", function(msg, info) {
       var email = info.email,
-          idInfo = storage.getEmail(email);
+          idInfo;
+      // qunit tests won't have run start state... reinit selfIssuer
+      self.forceIssuer = self.forceIssuer || 'default';
 
-      self.email = email;
+      if ('default' === self.forceIssuer)
+        idInfo = storage.getEmail(email);
+      else
+        idInfo = storage.getForceIssuerEmail(email, self.forceIssuer);
+      // Maybe use a second global variable so we know which email address was chosen?
+      self.email = user.forceIssuerEmail = email;
 
       function oncomplete() {
         complete(info.complete);
@@ -322,6 +343,24 @@ BrowserID.State = (function() {
           // and the user must re-verify with their IdP.
           redirectToState("primary_user", info);
         }
+      }
+      else if ('default' !== self.forceIssuer && !idInfo.cert) {
+        // TODO: Duplicates some of the logic in the authentication action module.
+        user.addressInfo(info.email, self.forceIssuer, function (serverInfo) {
+          // We'll end up in this state again, but we want to see serverInfo.state change
+          user.resetCaches();
+
+          if (serverInfo.known && serverInfo.state === "transition_no_password") {
+            var newInfo = _.extend(info, { fxaccount: true });
+            self.newFxAccountEmail = info.email;
+            startAction(false, "doSetPassword", info);
+          } else {
+            redirectToState("email_valid_and_ready", info);
+            oncomplete();
+          }
+        }, function () {
+          throw new Error('Unable to check with address info from email_chosen');
+        });
       }
       // Anything below this point means the address is a secondary.
       else if (!idInfo.verified) {
@@ -397,7 +436,9 @@ BrowserID.State = (function() {
     });
 
     handleState("generate_assertion", function(msg, info) {
-      startAction("doGenerateAssertion", info);
+      var issuer = self.forceIssuer || 'default';
+      startAction("doGenerateAssertion", _.extend({ forceIssuer: issuer },
+                                                  info));
     });
 
     handleState("forgot_password", function(msg, info) {

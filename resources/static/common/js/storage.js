@@ -35,12 +35,24 @@ BrowserID.Storage = (function() {
   // issues do not become a factor. See issue #2206
   setDefaultValues();
 
+  function emailsStorageKey(issuer, cb) {
+    if (!! issuer)
+      return 'forceIssuerEmails';
+    else
+      return 'emails';
+  }
+
   function storeEmails(emails) {
-    storage.emails = JSON.stringify(emails);
+    storage[emailsStorageKey(null)] = JSON.stringify(emails);
+  }
+
+  function storeForceIssuerEmails(emails, forceIssuer) {
+    storage[emailsStorageKey(forceIssuer)] = JSON.stringify(emails);
   }
 
   function clear() {
     storage.removeItem("emails");
+    storage.removeItem("forceIssuerEmails");
     storage.removeItem("siteInfo");
     storage.removeItem("managePage");
     // Ensure there are default values after they are removed.  This is
@@ -60,6 +72,7 @@ BrowserID.Storage = (function() {
     _.each({
       emailToUserID: {},
       emails: {},
+      forceIssuerEmails: {},
       interaction_data: {},
       loggedIn: {},
       main_site: {},
@@ -77,7 +90,7 @@ BrowserID.Storage = (function() {
 
   function getEmails() {
     try {
-      var emails = JSON.parse(storage.emails || "{}");
+      var emails = JSON.parse(storage[emailsStorageKey(null)] || "{}");
       if (emails !== null)
         return emails;
     } catch(e) {
@@ -86,6 +99,14 @@ BrowserID.Storage = (function() {
     // if we had a problem parsing or the emails are null
     clear();
     return {};
+  }
+
+  function getForceIssuerEmails(forceIssuer) {
+    var emails = {};
+    try {
+      emails = JSON.parse(storage[emailsStorageKey(forceIssuer)] || "{}");
+    } catch(e) {}
+    return emails || {};
   }
 
   function getEmailCount() {
@@ -98,10 +119,21 @@ BrowserID.Storage = (function() {
     return ids && ids[email];
   }
 
+  function getForceIssuerEmail(email, forceIssuer) {
+    var ids = getForceIssuerEmails(forceIssuer);
+    return ids && ids[email];
+  }
+
   function addEmail(email, obj) {
     var emails = getEmails();
     emails[email] = obj;
     storeEmails(emails);
+  }
+
+  function addForceIssuerEmail(email, forceIssuer, obj) {
+    var emails = getForceIssuerEmails(forceIssuer);
+    emails[email] = obj;
+    storeForceIssuerEmails(emails, forceIssuer);
   }
 
   function addPrimaryEmail(email, obj) {
@@ -142,6 +174,14 @@ BrowserID.Storage = (function() {
     }
     else {
       throw new Error("unknown email address");
+    }
+  }
+
+  function removeForceIssuerEmail(email) {
+    var emails = getForceIssuerEmails();
+    if(emails[email]) {
+      delete emails[email];
+      storeForceIssuerEmails(emails);
     }
   }
 
@@ -437,6 +477,7 @@ BrowserID.Storage = (function() {
      * @method addEmail
      */
     addEmail: addEmail,
+    addForceIssuerEmail: addForceIssuerEmail,
     /**
      * Add a primary address
      * @method addPrimaryEmail
@@ -452,6 +493,7 @@ BrowserID.Storage = (function() {
      * @method getEmails
      */
     getEmails: getEmails,
+    getForceIssuerEmails: getForceIssuerEmails,
 
     /**
      * Get the number of stored emails
@@ -466,6 +508,7 @@ BrowserID.Storage = (function() {
      * @method getEmail
      */
     getEmail: getEmail,
+    getForceIssuerEmail: getForceIssuerEmail,
     /**
      * Remove an email address, its key pairs, and any sites associated with
      * email address.
@@ -473,6 +516,7 @@ BrowserID.Storage = (function() {
      * @method removeEmail
      */
     removeEmail: removeEmail,
+    removeForceIssuerEmail: removeForceIssuerEmail,
     /**
      * Remove the key information for an email address.
      * @throws "unknown email address" if email address is not known.

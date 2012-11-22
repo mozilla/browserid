@@ -37,6 +37,7 @@ BrowserID.Modules.SetPassword = (function() {
       self.renderDialog("set_password", {
         email: options.email,
         password_reset: !!options.password_reset,
+        fxaccount: !!options.fxaccount,
         cancelable: options.cancelable !== false,
         personaTOSPP: options.personaTOSPP
       });
