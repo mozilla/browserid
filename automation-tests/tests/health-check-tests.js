@@ -24,9 +24,9 @@ var pcss = CSS['persona.org'],
 var startup = function(b, email, cb) {
   b.chain({onError: cb})
     .get(persona_urls['persona'])
-    .wclick(pcss.header.signIn)
+    .wsubmit(pcss.header.signIn)
     .wtype(pcss.signInForm.email, email)
-    .wclick(pcss.signInForm.nextButton, cb);
+    .wsubmit(pcss.signInForm.nextButton, cb);
 }
 
 var setup = {
@@ -51,7 +51,7 @@ var primaryTest = {
     startup(browser, eyedeemail, done)
   },
   "click 'verify primary' to pop eyedeeme dialog": function(done) {
-    browser.wclick(pcss.signInForm.verifyPrimaryButton, done);
+    browser.wsubmit(pcss.signInForm.verifyPrimaryButton, done);
   },
   "switch to eyedeeme dialog, submit password, click ok": function(done) {
     browser.chain({onError: done})
@@ -59,7 +59,7 @@ var primaryTest = {
       // Give eyedee.me a bit of time to load itself up.
       .delay(timeouts.DEFAULT_LOAD_PAGE_MS)
       .wtype(CSS['eyedee.me'].newPassword, eyedeemail.split('@')[0])
-      .wclick(CSS['eyedee.me'].createAccountButton, done);
+      .wsubmit(CSS['eyedee.me'].createAccountButton, done);
   },
   "switch back to main window, look for the email in acct mgr, then log out": function(done) {
     browser.chain({onError: done})
@@ -67,7 +67,7 @@ var primaryTest = {
       .wtext(pcss.accountEmail, function(err, text) {
         done(err || assert.equal(eyedeemail.toLowerCase(), text)); // note, had to lower case it.
       })
-      .wclick(pcss.header.signOut, done);
+      .wsubmit(pcss.header.signOut, done);
   },
   "shut down primary test": function(done) {
     browser.quit(done);
@@ -86,7 +86,7 @@ var secondaryTest = {
     secondBrowser.chain({onError: done})
       .wtype(pcss.signInForm.password, theEmail.split('@')[0])
       .wtype(pcss.signInForm.verifyPassword, theEmail.split('@')[0])
-      .wclick(pcss.signInForm.verifyEmailButton, done);
+      .wsubmit(pcss.signInForm.verifyEmailButton, done);
   },
   "get verification link": function(done) {
     restmail.getVerificationLink({email: theEmail}, done);

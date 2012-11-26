@@ -68,23 +68,23 @@ runner.run(module, {
   "in the second browser, log in to persona.org": function(done) {
     secondBrowser.chain({onError: done})
       .get(persona_urls['persona'])
-      .wclick(CSS['persona.org'].header.signIn)
+      .wsubmit(CSS['persona.org'].header.signIn)
       .wtype(CSS['persona.org'].signInForm.email, testUser.email)
-      .wclick(CSS['persona.org'].signInForm.nextButton)
+      .wsubmit(CSS['persona.org'].signInForm.nextButton)
       .wtype(CSS['persona.org'].signInForm.password, testUser.pass)
-      .wclick(CSS['persona.org'].signInForm.finishButton)
+      .wsubmit(CSS['persona.org'].signInForm.finishButton)
       .wtext(CSS['persona.org'].accountManagerHeader, function(err, text) {
         done(err || assert.equal(text, 'Account Manager'));
       });
     },
   "click the change password button": function(done) {
-    secondBrowser.wclick(CSS["persona.org"].changePasswordButton, done);
+    secondBrowser.wsubmit(CSS["persona.org"].changePasswordButton, done);
   },
   "enter old and new passwords and click done": function(done) {
     secondBrowser.chain({onError: done})
       .wtype(CSS['persona.org'].oldPassword, testUser.pass)
       .wtype(CSS['persona.org'].newPassword, 'new' + testUser.pass)
-      .wclick(CSS['persona.org'].passwordChangeDoneButton)
+      .wsubmit(CSS['persona.org'].passwordChangeDoneButton)
       // wait for the change password button to go back before leaving
       .wfind(CSS['persona.org'].changePasswordButton)
       .quit(done);

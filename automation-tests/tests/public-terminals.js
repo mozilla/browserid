@@ -80,7 +80,7 @@ runner.run(module, {
       '})();';
 
     browser.chain({onError: done})
-      .wclick(CSS['persona.org'].header.signIn)
+      .wsubmit(CSS['persona.org'].header.signIn)
       .wfind(CSS['persona.org'].accountManagerHeader) // make sure we're logged in
       .eval(rewindOneMinute, function(err, out) {
         // you can echo out eval's return value for debugging
@@ -93,12 +93,12 @@ runner.run(module, {
       .get(persona_urls['123done'])
       .wclick(CSS['123done.org'].signinButton)
       .wwin(CSS['persona.org'].windowName)
-      .wclick(CSS['dialog'].signInButton, done)
+      .wsubmit(CSS['dialog'].signInButton, done)
   },
   // TODO here's where the two tests differ: extract setup vows from assert vows
   // TODO figure out which cases to cover now that we've hacked localStorage
   'click "this is my computer" and the session should last a long time': function(done) {
-    browser.wclick(CSS['dialog'].myComputerButton, done)
+    browser.wsubmit(CSS['dialog'].myComputerButton, done)
   },
   "until we decide what to do, at least end the session properly": function(done) {
     browser.quit(done)

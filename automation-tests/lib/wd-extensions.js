@@ -1,7 +1,7 @@
 // add helper routines onto wd that make common operations easy to do
 // correctly
 
-const wd        = require('wd/lib/webdriver')
+const wd        = require('wd/lib/webdriver'),
       utils     = require('./utils.js'),
       timeouts  = require('./timeouts.js');
 
@@ -256,4 +256,27 @@ wd.prototype.wclear = function(opts, cb) {
     if (err) return cb(err);
     self.clear(el, cb);
   });
+};
+
+// click on a submit button when form submission is enabled.
+wd.prototype.wsubmit = function(opts, cb) {
+  var self=this;
+  if (typeof opts === 'string') opts = { which: opts };
+  if (!opts.which) throw "css selector required";
+
+  self.waitForDisplayed("body", function(err, elem) {
+    if (err) return cb(err);
+
+    setTimeouts(opts);
+    utils.waitFor(opts.poll, opts.timeout, function(done) {
+      self.getAttribute(elem, "class", function(err, value) {
+        if (err || /submit_disabled/.test(value)) return done(!!err, err);
+
+        self.wclick(opts, function(err, elem) {
+          done(!err, err, elem);
+        });
+      });
+    }, cb);
+  });
+
 };

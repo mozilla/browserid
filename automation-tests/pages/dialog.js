@@ -12,10 +12,10 @@ exports.signInAsNewUser = function(opts, cb) {
   var browser = opts.browser;
   browser.chain({onError: cb})
     .wtype(CSS['dialog'].emailInput, opts.email)
-    .wclick(CSS['dialog'].newEmailNextButton)
+    .wsubmit(CSS['dialog'].newEmailNextButton)
     .wtype(CSS['dialog'].choosePassword, opts.password)
     .wtype(CSS['dialog'].verifyPassword, opts.password)
-    .wclick(CSS['dialog'].createUserButton, cb);
+    .wsubmit(CSS['dialog'].createUserButton, cb);
 };
 
 exports.signInExistingUser = function(opts, cb) {
@@ -23,8 +23,8 @@ exports.signInExistingUser = function(opts, cb) {
   var browser = opts.browser;
   browser.chain({onError: cb})
     .wtype(CSS['dialog'].emailInput, opts.email)
-    .wclick(CSS['dialog'].newEmailNextButton)
+    .wsubmit(CSS['dialog'].newEmailNextButton)
     .wtype(CSS['dialog'].existingPassword, opts.password)
-    .wclick(CSS['dialog'].returningUserButton)
+    .wsubmit(CSS['dialog'].returningUserButton)
     .wclickIfExists(CSS['dialog'].notMyComputerButton, cb);
 };

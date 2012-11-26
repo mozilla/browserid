@@ -40,7 +40,7 @@ function saveEmail(email) {
 function removeEmail(email, done) {
   browser.chain({onError: done})
     .get(persona_urls['persona'])
-    .wclick(CSS['persona.org'].emailListEditButton)
+    .wsubmit(CSS['persona.org'].emailListEditButton)
     .elementsByCssSelector(CSS['persona.org'].removeEmailButton, function(err, elements) {
       var index = getEmailIndex(email);
       var button = elements[index];
@@ -55,7 +55,7 @@ function removeEmail(email, done) {
 
           if (emails.length) {
             // if there are emails remaining, click the done button
-            browser.wclick(CSS['persona.org'].emailListDoneButton, done);
+            browser.wsubmit(CSS['persona.org'].emailListDoneButton, done);
           }
           else {
             // if there are no emails remaining, the user will be logged out
@@ -91,13 +91,13 @@ runner.run(module, {
       .wclick(CSS['123done.org'].signInButton)
       .wwin(CSS['dialog'].windowName)
       .wtype(CSS['dialog'].emailInput, firstPrimaryEmail)
-      .wclick(CSS['dialog'].newEmailNextButton)
+      .wsubmit(CSS['dialog'].newEmailNextButton)
       // sometimes the verifyWithPrimaryButton needs to be clicked twice
-      .wclick(CSS['dialog'].verifyWithPrimaryButton)
+      .wsubmit(CSS['dialog'].verifyWithPrimaryButton)
       // Give eyedee.me a bit of time to load itself up.
       .delay(timeouts.DEFAULT_LOAD_PAGE_MS)
       .wtype(CSS['eyedee.me'].newPassword, firstPrimaryPassword)
-      .wclick(CSS['eyedee.me'].createAccountButton)
+      .wsubmit(CSS['eyedee.me'].createAccountButton)
       .wwin()
       .wtext(CSS['123done.org'].currentlyLoggedInEmail, function(err, text) {
         done(err || assert.equal(text, firstPrimaryEmail))
@@ -111,13 +111,13 @@ runner.run(module, {
       .wwin(CSS['dialog'].windowName)
       .wclick(CSS['dialog'].useNewEmail)
       .wtype(CSS['dialog'].newEmail, secondPrimaryEmail)
-      .wclick(CSS['dialog'].addNewEmailButton)
+      .wsubmit(CSS['dialog'].addNewEmailButton)
       // sometimes the verifyWithPrimaryButton needs to be clicked twice
-      .wclick(CSS['dialog'].verifyWithPrimaryButton)
+      .wsubmit(CSS['dialog'].verifyWithPrimaryButton)
       // Give eyedee.me a bit of time to load itself up.
       .delay(timeouts.DEFAULT_LOAD_PAGE_MS)
       .wtype(CSS['eyedee.me'].newPassword, secondPrimaryPassword)
-      .wclick(CSS['eyedee.me'].createAccountButton)
+      .wsubmit(CSS['eyedee.me'].createAccountButton)
       .wwin()
       .wtext(CSS['123done.org'].currentlyLoggedInEmail, function(err, text) {
         done(err || assert.equal(text, secondPrimaryEmail))
@@ -131,10 +131,10 @@ runner.run(module, {
       .wwin(CSS['dialog'].windowName)
       .wclick(CSS['dialog'].useNewEmail)
       .wtype(CSS['dialog'].newEmail, secondaryEmail)
-      .wclick(CSS['dialog'].addNewEmailButton)
+      .wsubmit(CSS['dialog'].addNewEmailButton)
       .wtype(CSS['dialog'].choosePassword, secondaryPassword)
       .wtype(CSS['dialog'].verifyPassword, secondaryPassword)
-      .wclick(CSS['dialog'].createUserButton, done)
+      .wsubmit(CSS['dialog'].createUserButton, done)
   },
 
   "get verification link": function(done) {
@@ -156,7 +156,7 @@ runner.run(module, {
       .wclick(CSS['123done.org'].signInButton)
       .wwin(CSS['dialog'].windowName)
       .wclick(CSS['dialog'].emailPrefix + getEmailIndex(secondPrimaryEmail))
-      .wclick(CSS['dialog'].signInButton)
+      .wsubmit(CSS['dialog'].signInButton)
       .wclickIfExists(CSS['dialog'].notMyComputerButton)
       .wwin()
       .wtext(CSS['123done.org'].currentlyLoggedInEmail, function(err, text) {
@@ -170,7 +170,7 @@ runner.run(module, {
       .wclick(CSS['myfavoritebeer.org'].signInButton)
       .wwin(CSS['dialog'].windowName)
       .wclick(CSS['dialog'].emailPrefix + getEmailIndex(secondaryEmail))
-      .wclick(CSS['dialog'].signInButton)
+      .wsubmit(CSS['dialog'].signInButton)
       .wclickIfExists(CSS['dialog'].notMyComputerButton)
       .wwin()
       .wtext(CSS['myfavoritebeer.org'].currentlyLoggedInEmail, function(err, text) {
@@ -205,15 +205,15 @@ runner.run(module, {
   "user should now be signed out - cannot sign in with deleted addresses": function(done) {
     browser.chain({onError: done})
       .get(persona_urls['persona'])
-      .wclick(CSS['persona.org'].header.signIn)
+      .wsubmit(CSS['persona.org'].header.signIn)
       .wtype(CSS['persona.org'].signInForm.email, secondaryEmail)
-      .wclick(CSS['persona.org'].signInForm.nextButton)
+      .wsubmit(CSS['persona.org'].signInForm.nextButton)
       .wfind(CSS['persona.org'].signInForm.verifyPassword)
       .wclear(CSS['persona.org'].signInForm.email)
       // the user will still be logged in to eyedee.me under the
       // secondPrimaryEmail, so try logging in using the firstPrimaryEmail
       .wtype(CSS['persona.org'].signInForm.email, firstPrimaryEmail)
-      .wclick(CSS['persona.org'].signInForm.nextButton)
+      .wsubmit(CSS['persona.org'].signInForm.nextButton)
       .wfind(CSS['persona.org'].signInForm.verifyPrimaryButton, done);
   }
 },

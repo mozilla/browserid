@@ -48,7 +48,7 @@ runner.run(module, {
       .wclick(CSS['myfavoritebeer.org'].signinButton)
       .wwin(CSS['dialog'].windowName)
       .wtype(CSS['dialog'].emailInput, theUser.email)
-      .wclick(CSS['dialog'].newEmailNextButton)
+      .wsubmit(CSS['dialog'].newEmailNextButton)
       .wclick(CSS['dialog'].forgotPassword, done);
   },
 
@@ -56,7 +56,7 @@ runner.run(module, {
     browser.chain({onError: done})
       .wtype(CSS['dialog'].choosePassword, NEW_PASSWORD)
       .wtype(CSS['dialog'].verifyPassword, NEW_PASSWORD)
-      .wclick(CSS['dialog'].resetPasswordButton, function(err) {
+      .wsubmit(CSS['dialog'].resetPasswordButton, function(err) {
         done(err);
       });
   },
