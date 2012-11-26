@@ -163,10 +163,23 @@ wd.prototype.wwin = function(opts, cb) {
 // wait for element to be displayed, then click on it.
 // optionally accepts waitForDisplayed opts object instead of CSS selector
 wd.prototype.wclick = function(opts, cb) {
+  if (typeof opts === 'string') opts = { which: opts };
+  if (!opts.which) throw "css selector required";
+
   var self = this;
   self.waitForDisplayed(opts, function(err, el) {
     if (err) return cb(err);
-    self.clickElement(el, cb);
+
+    setTimeouts(opts);
+    utils.waitFor(opts.poll, opts.timeout, function(done) {
+      self.getAttribute(el, "disabled", function(err, value) {
+        if (err || value) return done(!!err, err);
+
+        self.clickElement(el, function(err) {
+          done(!err, err, el);
+        });
+      });
+    }, cb);
   });
 };
 
