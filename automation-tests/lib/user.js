@@ -18,7 +18,7 @@ exports.verifyEmail = function(email, password, index, browser, done) {
       .newSession(testSetup.sessionOpts)
       .get(link)
       .wtype(CSS['persona.org'].signInForm.password, password)
-      .wclick(CSS['persona.org'].signInForm.finishButton)
+      .wsubmit(CSS['persona.org'].signInForm.finishButton)
       .wfind(CSS['persona.org'].congratsMessage)
       .quit(function() {
         done();

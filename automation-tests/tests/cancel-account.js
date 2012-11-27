@@ -48,7 +48,7 @@ function saveEmail(email) {
 function removeEmail(email, done) {
   browser.chain({onError: done})
     .get(persona_urls['persona'])
-    .wclick(CSS['persona.org'].emailListEditButton)
+    .wsubmit(CSS['persona.org'].emailListEditButton)
     .elementsByCssSelector(CSS['persona.org'].removeEmailButton, function(err, elements) {
       var index = getEmailIndex(email);
       var button = elements[index];
@@ -63,7 +63,7 @@ function removeEmail(email, done) {
 
           if (emails.length) {
             // if there are emails remaining, click the done button
-            browser.wclick(CSS['persona.org'].emailListDoneButton, done);
+            browser.wsubmit(CSS['persona.org'].emailListDoneButton, done);
           }
           else {
             // if there are no emails remaining, the user will be logged out
@@ -80,9 +80,9 @@ function signIn123DoneWithSecondary(browser, email, password, done) {
     .wclick(CSS['123done.org'].signInButton)
     .wwin(CSS['dialog'].windowName)
     .wtype(CSS['dialog'].emailInput, email)
-    .wclick(CSS['dialog'].newEmailNextButton)
+    .wsubmit(CSS['dialog'].newEmailNextButton)
     .wtype(CSS['dialog'].existingPassword, password)
-    .wclick(CSS['dialog'].returningUserButton)
+    .wsubmit(CSS['dialog'].returningUserButton)
     .wwin()
     .wtext(CSS['123done.org'].currentlyLoggedInEmail, function(err, text) {
       done(err || assert.equal(text, email));
@@ -98,9 +98,9 @@ function testUserNotSignedIn123Done(browser, done) {
 function testEmailNotRegistered(browser, email, done) {
   browser.chain({onError: done})
     .get(persona_urls['persona'])
-    .wclick(CSS['persona.org'].header.signIn)
+    .wsubmit(CSS['persona.org'].header.signIn)
     .wtype(CSS['persona.org'].signInForm.email, email)
-    .wclick(CSS['persona.org'].signInForm.nextButton)
+    .wsubmit(CSS['persona.org'].signInForm.nextButton)
     .wfind(CSS['persona.org'].signInForm.verifyPassword, done)
 }
 

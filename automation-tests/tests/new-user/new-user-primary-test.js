@@ -25,7 +25,7 @@ function dialogEyedeemeFlow(b, email, cb) {
     .wclick(CSS['dialog'].verifyWithPrimaryButton)
     .wclickIfExists(CSS['dialog'].verifyWithPrimaryButton) //XXX Why do we need to click twice?
     .wtype(CSS['eyedee.me'].newPassword, email.split('@')[0])
-    .wclick(CSS['eyedee.me'].createAccountButton, cb);
+    .wsubmit(CSS['eyedee.me'].createAccountButton, cb);
 }
 
 var primary_123done = {
@@ -110,7 +110,7 @@ var pcss = CSS['persona.org'],
         .wclick(pcss.signInForm.verifyPrimaryButton)
         .wwin(pcss.verifyPrimaryDialogName)
         .wtype(CSS['eyedee.me'].newPassword, porg_eyedeemail.split('@')[0])
-        .wclick(CSS['eyedee.me'].createAccountButton)
+        .wsubmit(CSS['eyedee.me'].createAccountButton)
         .wwin()
         .wtext(pcss.accountEmail, function(err, text) {
           done(err || assert.equal(porg_eyedeemail.toLowerCase(), text)) // note

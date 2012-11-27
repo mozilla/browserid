@@ -42,15 +42,15 @@ runner.run(module, {
   "startup, create primary acct on personaorg": function(done) {
     browser.chain({onError: done})
       .get(persona_urls['persona'])
-      .wclick(CSS['persona.org'].header.signIn)
+      .wsubmit(CSS['persona.org'].header.signIn)
       .wtype(CSS['persona.org'].signInForm.email, primary)
-      .wclick(CSS['persona.org'].signInForm.nextButton)
-      .wclick(CSS['persona.org'].signInForm.verifyPrimaryButton)
+      .wsubmit(CSS['persona.org'].signInForm.nextButton)
+      .wsubmit(CSS['persona.org'].signInForm.verifyPrimaryButton)
       .wwin(CSS['persona.org'].verifyPrimaryDialogName)
       // Give eyedee.me a bit of time to load itself up.
       .delay(timeouts.DEFAULT_LOAD_PAGE_MS)
       .wtype(CSS['eyedee.me'].newPassword, primary.split('@')[0])
-      .wclick(CSS['eyedee.me'].createAccountButton)
+      .wsubmit(CSS['eyedee.me'].createAccountButton)
       .wwin()
       .wtext(CSS['persona.org'].accountEmail, function(err, text) {
         done(err || assert.equal(primary.toLowerCase(), text)); // note
@@ -63,10 +63,10 @@ runner.run(module, {
       .wwin(CSS['persona.org'].windowName)
       .wclick(CSS['dialog'].useNewEmail)
       .wtype(CSS['dialog'].newEmail, secondary)
-      .wclick(CSS['dialog'].addNewEmailButton)
+      .wsubmit(CSS['dialog'].addNewEmailButton)
       .wtype(CSS['dialog'].choosePassword, secondary.split('@')[0])
       .wtype(CSS['dialog'].verifyPassword, secondary.split('@')[0])
-      .wclick(CSS['dialog'].createUserButton, done)
+      .wsubmit(CSS['dialog'].createUserButton, done)
   },
   "get verification link": function(done) {
     restmail.getVerificationLink({ email: secondary }, done);
@@ -99,7 +99,7 @@ runner.run(module, {
   "sign in using primary, sign out, reload, click sign in, verify primary is selected": function(done) {
     browser.chain({onError: done})
       .wclick(CSS['dialog'].firstEmail)
-      .wclick(CSS['dialog'].signInButton)
+      .wsubmit(CSS['dialog'].signInButton)
       .wclickIfExists(CSS['dialog'].notMyComputerButton)
       .wwin()
       .wclick(CSS['myfavoritebeer.org'].logout)
