@@ -120,6 +120,7 @@ testSetup.newBrowserSession = function(b, cb) {
 };
 
 testSetup.teardown = function(cb) {
+  console.log('teardown called')
   var enders = [];
   // quit all browser sessions
   for (var i = 0, b; b = testSetup.browsers[i]; i++) enders.push(Q.ncall(b.quit, b));
