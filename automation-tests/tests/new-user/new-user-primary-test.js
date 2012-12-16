@@ -24,6 +24,7 @@ function dialogEyedeemeFlow(b, email, cb) {
     .wtype(CSS['dialog'].emailInput, email)
     .wclick(CSS['dialog'].newEmailNextButton)
     .wclick(CSS['dialog'].verifyWithPrimaryButton)
+    .delay(timeouts.DEFAULT_LOAD_PAGE_MS)
     .wtype(CSS['eyedee.me'].newPassword, email.split('@')[0])
     .wclick(CSS['eyedee.me'].createAccountButton, cb);
 }
@@ -109,6 +110,7 @@ var pcss = CSS['persona.org'],
         .wclick(pcss.signInForm.nextButton)
         .wclick(pcss.signInForm.verifyPrimaryButton)
         .wwin(pcss.verifyPrimaryDialogName)
+        .delay(timeouts.DEFAULT_LOAD_PAGE_MS)
         .wtype(CSS['eyedee.me'].newPassword, porg_eyedeemail.split('@')[0])
         .wclick(CSS['eyedee.me'].createAccountButton)
         .wwin()
