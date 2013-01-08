@@ -92,6 +92,8 @@
   });
 
   chan.bind("logout", function(trans, params) {
+    if (params && params.everywhere) user.logoutUser();
+
     if (loggedInUser != null) {
       storage.setLoggedIn(remoteOrigin, false);
       chan.notify({ method: 'logout' });

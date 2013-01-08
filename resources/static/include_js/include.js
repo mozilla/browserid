@@ -1248,13 +1248,20 @@
       // logout from the current website
       // The callback parameter is DEPRECATED, instead you should use the
       // the .onlogout observer of the .watch() api.
-      logout: function(callback) {
+      // FirefoxOS - Marketplace can call logout({everywhere: true});
+      logout: function(options) {
+        var callback;
         if (this != navigator.id)
           throw new Error("all navigator.id calls must be made on the navigator.id object");
+        options = options ? options : {};
+        if ('function' === typeof options) {
+          options = {};
+          callback = options;
+        }
         // allocate iframe if it is not allocated
         _open_hidden_iframe();
         // send logout message if the commChan exists
-        if (commChan) commChan.notify({ method: 'logout' });
+        if (commChan) commChan.notify({ method: 'logout', params: options });
         if (typeof callback === 'function') {
           warn('navigator.id.logout callback argument has been deprecated.');
           setTimeout(callback, 0);
