@@ -203,7 +203,7 @@
       email: "registered@testuser.com"
     });
 
-    dialogHelpers.resetPassword.call(controllerMock, "registered@testuser.com", "password", function(reset) {
+    dialogHelpers.resetPassword.call(controllerMock, "registered@testuser.com", function(reset) {
       ok(reset, "password reset");
       start();
     });
@@ -212,7 +212,7 @@
 
   asyncTest("resetPassword throttled", function() {
     xhr.useResult("throttle");
-    dialogHelpers.resetPassword.call(controllerMock, "registered@testuser.com", "password", function(reset) {
+    dialogHelpers.resetPassword.call(controllerMock, "registered@testuser.com", function(reset) {
       equal(reset, false, "password not reset");
       start();
     });
@@ -222,7 +222,7 @@
     errorCB = expectedError;
 
     xhr.useResult("ajaxError");
-    dialogHelpers.resetPassword.call(controllerMock, "registered@testuser.com", "password", testHelpers.unexpectedSuccess);
+    dialogHelpers.resetPassword.call(controllerMock, "registered@testuser.com", testHelpers.unexpectedSuccess);
   });
 
 
