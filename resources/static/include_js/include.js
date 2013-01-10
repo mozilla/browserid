@@ -1254,7 +1254,7 @@
         // allocate iframe if it is not allocated
         _open_hidden_iframe();
         // send logout message if the commChan exists
-        if (commChan) commChan.notify({ method: 'logout' });
+        if (commChan) commChan.call({ method: 'logout', success: function() {} });
         if (typeof callback === 'function') {
           warn('navigator.id.logout callback argument has been deprecated.');
           setTimeout(callback, 0);
