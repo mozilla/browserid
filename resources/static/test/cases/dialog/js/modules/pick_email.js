@@ -6,6 +6,7 @@
 
   var controller,
       bid = BrowserID,
+      user = bid.User,
       storage = bid.Storage,
       testHelpers = bid.TestHelpers,
       testOrigin = testHelpers.testOrigin,
@@ -46,15 +47,15 @@
   });
 
 
-  function createController() {
+  function createController(options) {
     controller = bid.Modules.PickEmail.create();
-    controller.start({});
+    controller.start(options);
   }
 
   test("multiple emails with no email assocated with site - print emails in alphabetical order, select none", function() {
-    storage.addEmail("third@testuser.com", {});
-    storage.addEmail("second@testuser.com", {});
-    storage.addEmail("first@testuser.com", {});
+    storage.addEmail("third@testuser.com");
+    storage.addEmail("second@testuser.com");
+    storage.addEmail("first@testuser.com");
 
     createController();
 
@@ -69,8 +70,8 @@
   });
 
   test("email associated with site - check correct email", function() {
-    storage.addEmail("testuser@testuser.com", {});
-    storage.addEmail("testuser2@testuser.com", {});
+    storage.addEmail("testuser@testuser.com");
+    storage.addEmail("testuser2@testuser.com");
     storage.site.set(testOrigin, "email", "testuser2@testuser.com");
 
     createController();
@@ -84,7 +85,7 @@
   });
 
   test("single email, no email associated with site - check first radio button", function() {
-    storage.addEmail("testuser@testuser.com", {});
+    storage.addEmail("testuser@testuser.com");
 
     createController();
 
@@ -152,8 +153,8 @@
   });
 
   test("click on an email label and radio button - select corresponding radio button", function() {
-    storage.addEmail("testuser2@testuser.com", {});
-    storage.addEmail("testuser@testuser.com", {});
+    storage.addEmail("testuser2@testuser.com");
+    storage.addEmail("testuser@testuser.com");
 
     createController();
 
@@ -169,8 +170,8 @@
   });
 
   test("click on an email label that contains a + - select corresponding radio button", function() {
-    storage.addEmail("testuser+test0@testuser.com", {});
-    storage.addEmail("testuser+test1@testuser.com", {});
+    storage.addEmail("testuser+test0@testuser.com");
+    storage.addEmail("testuser+test1@testuser.com");
 
     createController();
 
@@ -194,6 +195,33 @@
     });
 
     $("#thisIsNotMe").click();
+  });
+
+  test("showOnlyOriginEmail: true, only show one address", function() {
+    storage.addEmail("testuser@testuser.com");
+    storage.addEmail("testuser2@testuser.com");
+    user.setOriginEmail("testuser@testuser.com");
+
+    createController({ showOnlyOriginEmail: true });
+
+    var inputs = $(".inputs input[type=radio]");
+    equal(inputs.length, 1);
+    equal(inputs.eq(0).val(), "testuser@testuser.com", "correct email for the first element");
+  });
+
+  asyncTest("showOnlyOriginEmail: true, useAnotherEmail button - trigger pick_email message with showOnlyOriginEmail: false", function() {
+    storage.addEmail("testuser@testuser.com");
+    storage.addEmail("testuser2@testuser.com");
+    user.setOriginEmail("testuser@testuser.com");
+
+    createController({ showOnlyOriginEmail: true });
+
+    register("pick_email", function(msg, info) {
+      equal(info.showOnlyOriginEmail, false);
+      start();
+    });
+
+    $("#useAnotherEmail").click();
   });
 
 }());

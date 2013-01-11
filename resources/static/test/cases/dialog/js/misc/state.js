@@ -8,12 +8,12 @@
       mediator = bid.Mediator,
       State = bid.State,
       user = bid.User,
-      machine,
-      actions,
       network = bid.Network,
       storage = bid.Storage,
       testHelpers = bid.TestHelpers,
       xhr = bid.Mocks.xhr,
+      machine,
+      actions,
       TEST_EMAIL = "testuser@testuser.com";
 
   var ActionsMock = function() {
@@ -335,6 +335,40 @@
     mediator.publish("assertion_generated", {
       assertion: null
     });
+  });
+
+  test("pick_email with a multiple identities and none saved as already used - show all addresses", function() {
+    storage.addEmail("first@testuser.com");
+    storage.addEmail("second@testuser.com");
+
+    mediator.publish("pick_email");
+    testActionStarted("doPickEmail", { showOnlyOriginEmail: false });
+  });
+
+  test("pick_email with a multiple identities and one saved as already used - show saved address", function() {
+    storage.addEmail("first@testuser.com");
+    storage.addEmail("second@testuser.com");
+    user.setOriginEmail("second@testuser.com");
+
+    mediator.publish("pick_email");
+    testActionStarted("doPickEmail", { showOnlyOriginEmail: true });
+  });
+
+  test("pick_email with showOnlyOriginEmail: false specified - show all addresses", function() {
+    storage.addEmail("first@testuser.com");
+    storage.addEmail("second@testuser.com");
+    user.setOriginEmail("second@testuser.com");
+
+    mediator.publish("pick_email", { showOnlyOriginEmail: false });
+    testActionStarted("doPickEmail", { showOnlyOriginEmail: false });
+  });
+
+  test("pick_email with a single identity - show all addresses", function() {
+    storage.addEmail("first@testuser.com");
+    user.setOriginEmail("first@testuser.com");
+
+    mediator.publish("pick_email");
+    testActionStarted("doPickEmail", { showOnlyOriginEmail: false });
   });
 
   test("assertion_generated with assertion - doAssertionGenerated called", function() {

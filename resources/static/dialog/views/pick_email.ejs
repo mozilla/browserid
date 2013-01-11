@@ -10,23 +10,36 @@
       </p>
 
       <ul class="inputs" id="emailList">
-          <% _.each(identities, function(item, index) { var emailAddress = item.address, id = "email_" + index; %>
-              <li>
-                  <label for="<%= id %>" class="<% if (emailAddress === siteEmail) { %> preselected<% } %> selectable" title="<%= emailAddress %>" >
-                    <input type="radio" name="email" id="<%= id %>" value="<%= emailAddress %>"
-                        <% if (emailAddress === siteEmail || identities.length === 1) { %> checked="checked" <% } %>
-                      />
-                    <%= emailAddress %>
-                  </label>
-              </li>
-          <% }); %>
+          <% if (showOnlyOriginEmail && originEmail) { %>
+            <li>
+                <label for="email_0" class="email_address preselected selectable" title="<%= originEmail %>" >
+                  <input type="radio" name="email" id="email_0" value="<%= originEmail %>" checked="checked" />
+                  <%= originEmail %>
+                </label>
+            </li>
+          <% } else { %>
+            <% _.each(identities, function(item, index) { var emailAddress = item.address, id = "email_" + index; %>
+                <li>
+                    <label for="<%= id %>" class="email_address <% if (emailAddress === originEmail) { %> preselected<% } %> selectable" title="<%= emailAddress %>" >
+                      <input type="radio" name="email" id="<%= id %>" value="<%= emailAddress %>"
+                          <% if (emailAddress === originEmail || identities.length === 1) { %> checked="checked" <% } %>
+                        />
+                      <%= emailAddress %>
+                    </label>
+                </li>
+            <% }); %>
+          <% } %>
       </ul>
 
       <div id="must_choose_email" class="tooltip" for="emailList">
         <%= gettext('Please choose an email address.') %>
       </div>
 
-      <a id="useNewEmail" class="emphasize" href="#"><%= gettext('Add another email address') %></a>
+      <% if (showOnlyOriginEmail && originEmail) { %>
+        <a id="useAnotherEmail" class="emphasize" href="#"><%= gettext('Use another email address') %></a>
+      <% } else { %>
+        <a id="useNewEmail" class="emphasize" href="#"><%= gettext('Add another email address') %></a>
+      <% } %>
       <a id="thisIsNotMe" class="emphasize" href="#"><%= gettext('This is not me') %></a>
 
 

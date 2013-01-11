@@ -34,6 +34,14 @@ BrowserID.Modules.PickEmail = (function() {
     this.publish("add_email");
   }
 
+  // Trigger the "user_another_email" message, which will cause the
+  // email_picker module to be re-loaded with all email addresses and all DOM
+  // events re-attached.
+  function useAnotherEmail() {
+    /*jshint validthis: true*/
+    this.publish("pick_email", { showOnlyOriginEmail: false } );
+  }
+
   function checkEmail(email) {
     /*jshint validthis: true*/
     if (!email) {
@@ -116,18 +124,16 @@ BrowserID.Modules.PickEmail = (function() {
 
   var Module = bid.Modules.PageModule.extend({
     start: function(options) {
-      var origin = user.getOrigin(),
-          self=this;
+      var self=this;
 
       options = options || {};
 
       dom.addClass("body", "pickemail");
 
-      var identities = getSortedIdentities();
-
       self.renderForm("pick_email", {
-        identities: identities,
-        siteEmail: user.getOriginEmail()
+        identities: getSortedIdentities(),
+        originEmail: user.getOriginEmail(),
+        showOnlyOriginEmail: options.showOnlyOriginEmail
       });
 
       if (options.siteTOSPP) {
@@ -142,6 +148,7 @@ BrowserID.Modules.PickEmail = (function() {
         dom.focus("#signInButton");
       }
 
+      self.click("#useAnotherEmail", useAnotherEmail);
       self.click("#useNewEmail", addEmail);
       // The click function does not pass the event to the function.  The event
       // is needed for the label handler so that the correct radio button is
@@ -162,6 +169,7 @@ BrowserID.Modules.PickEmail = (function() {
     // BEGIN TESTING API
     ,
     signIn: signIn,
+    useAnotherEmail: useAnotherEmail,
     addEmail: addEmail,
     notMe: notMe
     // END TESTING API
