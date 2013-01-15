@@ -1056,10 +1056,7 @@ BrowserID.User = (function() {
      */
     addEmail: function(email, password, onComplete, onFailure) {
       stageAddressVerification(email, password,
-        network.addSecondaryEmail.bind(network, email, password, origin),
-        function(status) {
-          complete(onComplete, status.success);
-        }, onFailure);
+        network.addSecondaryEmail.bind(network, email, password, origin), onComplete, onFailure);
     },
 
     /**
