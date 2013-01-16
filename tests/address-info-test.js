@@ -78,6 +78,28 @@ suite.addBatch({
   }
 });
 
+suite.addBatch({
+  "address_info for a known secondary address, user part capitalized, bug 2866": {
+     topic: wsapi.get('/wsapi/address_info', {
+      email: 'Test@example.com'
+     }),
+    "returns known": function(e, r) {
+      assert.equal(r.state, "known");
+    }
+  }
+});
+
+suite.addBatch({
+  "address_info for a known secondary address, domain part capitalized, bug 2891": {
+     topic: wsapi.get('/wsapi/address_info', {
+      email: 'test@Example.com'
+     }),
+    "returns known": function(e, r) {
+      assert.equal(r.state, "known");
+    }
+  }
+});
+
 // now let's generate an assertion using this user
 suite.addBatch({
   "setting up a primary user": {
