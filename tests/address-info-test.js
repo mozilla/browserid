@@ -80,22 +80,43 @@ suite.addBatch({
 
 suite.addBatch({
   "address_info for a known secondary address, user part capitalized, bug 2866": {
-     topic: wsapi.get('/wsapi/address_info', {
-      email: 'Test@example.com'
-     }),
-    "returns known": function(e, r) {
-      assert.equal(r.state, "known");
+     topic: function() {
+       secondary.create({ email: "test@example.com" }, this.callback);
+     },
+    "works": function(e, r) {
+      assert.isNull(e);
+    },
+    "actually calling address_info": {
+       topic: wsapi.get('/wsapi/address_info', {
+        email: 'TEST@example.com' 
+      }),
+      "returns known": function(e, r) {
+        assert.isNull(e)
+        var r = JSON.parse(r.body);
+        assert.equal(r.state, "known");
+      }
     }
   }
 });
 
+
 suite.addBatch({
   "address_info for a known secondary address, domain part capitalized, bug 2891": {
-     topic: wsapi.get('/wsapi/address_info', {
-      email: 'test@Example.com'
-     }),
-    "returns known": function(e, r) {
-      assert.equal(r.state, "known");
+     topic: function() {
+       secondary.create({ email: "test@example.com" }, this.callback);
+     },
+    "works": function(e, r) {
+      assert.isNull(e);
+    },
+    "actually calling address_info": {
+       topic: wsapi.get('/wsapi/address_info', {
+        email: 'test@EXAMPLE.com' 
+      }),
+      "returns known": function(e, r) {
+        assert.isNull(e)
+        var r = JSON.parse(r.body);
+        assert.equal(r.state, "known");
+      }
     }
   }
 });
