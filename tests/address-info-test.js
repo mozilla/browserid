@@ -121,6 +121,28 @@ suite.addBatch({
   }
 });
 
+suite.addBatch({
+  "when a user creates an account with the email capitalized": {
+     topic: function() {
+       secondary.create({ email: "Test@Example.com" }, this.callback);
+     },
+    "successfully": function(e, r) {
+      assert.isNull(e);
+    },
+    "address_info for that account": {
+      topic: wsapi.get('/wsapi/address_info', {
+        email: 'test@example.com'
+      }),
+      "should return display_email field capitalized, email field normalized": function(e, r) {
+        assert.isNull(e);
+        var r = JSON.parse(r.body);
+        assert.equal(r.display_email, "Test@Example.com");
+      }
+    }
+  }
+});
+
+
 // now let's generate an assertion using this user
 suite.addBatch({
   "setting up a primary user": {
