@@ -124,6 +124,7 @@ runner.run(module, {
       .wclick(CSS['123done.org'].logoutLink)
       .wclick(CSS['123done.org'].signInButton)
       .wwin(CSS['dialog'].windowName)
+      .wclick(CSS['dialog'].useAnotherEmail)
       .wclick(CSS['dialog'].useNewEmail)
       .wtype(CSS['dialog'].newEmail, secondaryEmail)
       .wclick(CSS['dialog'].addNewEmailButton)
