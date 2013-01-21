@@ -11,9 +11,9 @@ resources = require('../lib/static_resources.js'),
 templates = require('../lib/templates'),
 cachify = require('connect-cachify'),
 connect_fonts = require('connect-fonts'),
-config = require('../lib/configuration');
+config = require('../lib/configuration'),
+mkdirp = require('mkdirp');
 
-var existsSync = fs.existsSync || path.existsSync;
 var dir = process.cwd();
 var output_dir = process.env.BUILD_DIR || dir;
 
@@ -28,7 +28,7 @@ function getRegisteredFonts() {
   return loadJSON(__dirname + "/../config/fonts.json");
 }
 
-function getLanguageToLocations() {
+function getLanguageToFontTypes() {
   return loadJSON(__dirname + "/../config/language-font-types.json");
 }
 
@@ -39,7 +39,7 @@ cachify.setup({}, {
 
 connect_fonts.setup({
   fonts: getRegisteredFonts(),
-  language_to_locations: getLanguageToLocations(),
+  language_to_locations: getLanguageToFontTypes(),
   url_modifier: cachify.cachify
 });
 
@@ -64,14 +64,8 @@ function generateCSS() {
             var css_output_dir = path.dirname(css_output_path);
 
             // create any missing directories.
-            var dir_parts = css_output_dir.split('/');
-            root = "";
-            for(var i = 1, dir; dir = dir_parts[i]; ++i) {
-              root += ("/" + dir);
-              if (!existsSync(root)) {
-                fs.mkdirSync(root);
-              }
-            }
+            mkdirp.sync(css_output_dir);
+
             // finally, write out the file.
             fs.writeFileSync(css_output_path, css.css, "utf8");
           });

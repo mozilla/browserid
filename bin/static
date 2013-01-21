@@ -40,7 +40,7 @@ function getRegisteredFonts() {
   return loadJSON(__dirname + "/../config/fonts.json");
 }
 
-function getLanguageToLocations() {
+function getLanguageToFontTypes() {
   return loadJSON(__dirname + "/../config/language-font-types.json");
 }
 
@@ -118,9 +118,9 @@ views.setup(app);
 // CSS for requested @font-faces
 app.use(fonts.setup({
   fonts: getRegisteredFonts(),
-  language_to_locations: getLanguageToLocations(),
+  language_to_locations: getLanguageToFontTypes(),
   url_modifier: cachify.cachify,
-  etags: true,
+  etags: config.get('env') === 'production',
   "cache-control": config.get('use_minified_resources')
 }));
 

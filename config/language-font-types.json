@@ -1,9 +1,14 @@
 {
-  "en": "latin",
-  "es": "latin",
-  "fr": "latin",
-  "de": "latin",
+  "de": "de",
+  "en": "en",
+  "es": "es",
+  "fr": "fr",
+  "it": "it",
   "se": "latin",
-  "it-ch": "extended"
+  "it-ch": "extended",
+  "nl": "nl",
+  "pl": "pl",
+  "pt": "es",
+  "ru": "cyrillic"
 }
 
