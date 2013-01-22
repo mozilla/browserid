@@ -24,11 +24,12 @@
   // what font types are enabled and what are the extensions of
   // the font files.
   //
-  // valid types are embedded-opentype, woff, and truetype
+  // valid types are embedded-opentype, woff, truetype, svg
   "font-types": {
     "embedded-opentype": "eot",
     "woff": "woff",
-    "truetype": "ttf"
+    "truetype": "ttf",
+    "svg": "svg"
   },
 
   // The possible fonts. The name of the font must be the same as the font 
