@@ -12,37 +12,22 @@ templates = require('../lib/templates'),
 cachify = require('connect-cachify'),
 connect_fonts = require('connect-fonts'),
 config = require('../lib/configuration'),
+font_config = require('../lib/font_config'),
 mkdirp = require('mkdirp');
 
 var dir = process.cwd();
 var output_dir = process.env.BUILD_DIR || dir;
 
-function loadJSON(path) {
-  var jsonStr = fs.readFileSync(path, "utf8");
-  // strip out any comments
-  jsonStr = jsonStr.replace(/\/\/.*/g, "");
-  return JSON.parse(jsonStr);
-}
-
-function getRegisteredFonts() {
-  return loadJSON(__dirname + "/../config/fonts.json");
-}
-
-function getLanguageToFontTypes() {
-  return loadJSON(__dirname + "/../config/language-font-types.json");
-}
-
 cachify.setup({}, {
   prefix: config.get('cachify_prefix'),
-  root: path.join(__dirname, '/../resources/static')
+  root: path.join(__dirname, "..", "resources", "static")
 });
 
 connect_fonts.setup({
-  fonts: getRegisteredFonts(),
-  language_to_locations: getLanguageToFontTypes(),
+  fonts: font_config.fonts,
+  locale_to_url_keys: font_config.locale_to_subdirs,
   url_modifier: cachify.cachify
 });
-
 
 function generateCSS() {
   var langs = config.get('supported_languages');

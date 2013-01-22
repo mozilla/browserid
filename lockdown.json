@@ -78,7 +78,7 @@
     "0.0.2": "cadd881d36e7d17fca102be77eded7f07846be1a"
   },
   "connect-fonts": {
-    "0.0.5": "7ff09ae8528f252227783a673557222d9f18c0a9"
+    "0.0.7": "69e90880e633930837934f686e0c6258b896091b"
   },
   "connect-logger-statsd": {
     "0.0.1": "e1e350f0f6dc538a50a1868b4008806c45c409ea"
@@ -203,7 +203,7 @@
     "0.2.0beta3": "2adb552da7757ff3d4ec549f5570799355952d20"
   },
   "node-font-face-generator": {
-    "0.0.6": "7a1b717c6f66d8bbb81f8c69f32e0026168021a2"
+    "0.0.7": "75c494b08e7d4e97d04368283bc2b20268b790ea"
   },
   "node-proxy": {
     "0.6.0": "41e64712dbd947aa9d9f466b5c0b5ee020bbcbbb"

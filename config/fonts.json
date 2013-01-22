@@ -1,295 +1,66 @@
 {
-  "OpenSansRegular": {
-    "fontFamily": "Open Sans",
-    "fontStyle": "normal",
-    "fontWeight": "400",
-    "formats": [
-      {
-        "type": "local",
-        "location": "Open Sans"
-      },
-      {
-        "type": "local",
-        "location": "OpenSans"
-      },
-      {
-        "type": "embedded-opentype",
-        "location": {
-          "ca": "/common/fonts/ca/opensans-regular.eot",
-          "cs": "/common/fonts/cs/opensans-regular.eot",
-          "cyrillic": "/common/fonts/cyrillic/opensans-regular.eot",
-          "da": "/common/fonts/da/opensans-regular.eot",
-          "de": "/common/fonts/de/opensans-regular.eot",
-          "en": "/common/fonts/en/opensans-regular.eot",
-          "es": "/common/fonts/es/opensans-regular.eot",
-          "et": "/common/fonts/et/opensans-regular.eot",
-          "extended": "/common/fonts/extended/opensans-regular.eot",
-          "fr": "/common/fonts/fr/opensans-regular.eot",
-          "it": "/common/fonts/it/opensans-regular.eot",
-          "latin": "/common/fonts/latin/opensans-regular.eot",
-          "nl": "/common/fonts/nl/opensans-regular.eot",
-          "pl": "/common/fonts/pl/opensans-regular.eot",
-          "ro": "/common/fonts/ro/opensans-regular.eot"
-        }
-      },
-      {
-        "type": "woff",
-        "location": {
-          "ca": "/common/fonts/ca/opensans-regular.woff",
-          "cs": "/common/fonts/cs/opensans-regular.woff",
-          "cyrillic": "/common/fonts/cyrillic/opensans-regular.woff",
-          "da": "/common/fonts/da/opensans-regular.woff",
-          "de": "/common/fonts/de/opensans-regular.woff",
-          "en": "/common/fonts/en/opensans-regular.woff",
-          "es": "/common/fonts/es/opensans-regular.woff",
-          "et": "/common/fonts/et/opensans-regular.woff",
-          "extended": "/common/fonts/extended/opensans-regular.woff",
-          "fr": "/common/fonts/fr/opensans-regular.woff",
-          "it": "/common/fonts/it/opensans-regular.woff",
-          "latin": "/common/fonts/latin/opensans-regular.woff",
-          "nl": "/common/fonts/nl/opensans-regular.woff",
-          "pl": "/common/fonts/pl/opensans-regular.woff",
-          "ro": "/common/fonts/ro/opensans-regular.woff"
-        }
-      },
-      {
-        "type": "truetype",
-        "location": {
-          "ca": "/common/fonts/ca/opensans-regular.ttf",
-          "cs": "/common/fonts/cs/opensans-regular.ttf",
-          "cyrillic": "/common/fonts/cyrillic/opensans-regular.ttf",
-          "de": "/common/fonts/de/opensans-regular.ttf",
-          "en": "/common/fonts/en/opensans-regular.ttf",
-          "es": "/common/fonts/es/opensans-regular.ttf",
-          "et": "/common/fonts/et/opensans-regular.ttf",
-          "extended": "/common/fonts/extended/opensans-regular.ttf",
-          "fr": "/common/fonts/fr/opensans-regular.ttf",
-          "it": "/common/fonts/it/opensans-regular.ttf",
-          "latin": "/common/fonts/latin/opensans-regular.ttf",
-          "nl": "/common/fonts/nl/opensans-regular.ttf",
-          "pl": "/common/fonts/pl/opensans-regular.ttf",
-          "ro": "/common/fonts/ro/opensans-regular.ttf"
-        }
-      }
-      ]
-  }, 
-  "OpenSansLight": {
-    "fontFamily": "Open Sans",
-    "fontStyle": "normal",
-    "fontWeight": "300",
-    "formats": [
-      {
-        "type": "local",
-        "location": "Open Sans Light"
-      },
-      {
-        "type": "local",
-        "location": "OpenSansLight"
-      },
-      {
-        "type": "embedded-opentype",
-        "location": {
-          "ca": "/common/fonts/ca/opensans-light.eot",
-          "cs": "/common/fonts/cs/opensans-light.eot",
-          "cyrillic": "/common/fonts/cyrillic/opensans-light.eot",
-          "de": "/common/fonts/de/opensans-light.eot",
-          "en": "/common/fonts/en/opensans-light.eot",
-          "es": "/common/fonts/es/opensans-light.eot",
-          "et": "/common/fonts/et/opensans-light.eot",
-          "extended": "/common/fonts/extended/opensans-light.eot",
-          "fr": "/common/fonts/fr/opensans-light.eot",
-          "it": "/common/fonts/it/opensans-light.eot",
-          "latin": "/common/fonts/latin/opensans-light.eot",
-          "nl": "/common/fonts/nl/opensans-light.eot",
-          "pl": "/common/fonts/pl/opensans-light.eot",
-          "ro": "/common/fonts/ro/opensans-light.eot"
-        }
-      },
-      {
-        "type": "woff",
-        "location": {
-          "ca": "/common/fonts/ca/opensans-light.woff",
-          "cs": "/common/fonts/cs/opensans-light.woff",
-          "cyrillic": "/common/fonts/cyrillic/opensans-light.woff",
-          "de": "/common/fonts/de/opensans-light.woff",
-          "en": "/common/fonts/en/opensans-light.woff",
-          "es": "/common/fonts/es/opensans-light.woff",
-          "et": "/common/fonts/et/opensans-light.woff",
-          "extended": "/common/fonts/extended/opensans-light.woff",
-          "fr": "/common/fonts/fr/opensans-light.woff",
-          "it": "/common/fonts/it/opensans-light.woff",
-          "latin": "/common/fonts/latin/opensans-light.woff",
-          "nl": "/common/fonts/nl/opensans-light.woff",
-          "pl": "/common/fonts/pl/opensans-light.woff",
-          "ro": "/common/fonts/ro/opensans-light.woff"
-        }
-      },
-      {
-        "type": "truetype",
-        "location": {
-          "ca": "/common/fonts/ca/opensans-light.ttf",
-          "cs": "/common/fonts/cs/opensans-light.ttf",
-          "cyrillic": "/common/fonts/cyrillic/opensans-light.ttf",
-          "de": "/common/fonts/de/opensans-light.ttf",
-          "en": "/common/fonts/en/opensans-light.ttf",
-          "es": "/common/fonts/es/opensans-light.ttf",
-          "et": "/common/fonts/et/opensans-light.ttf",
-          "extended": "/common/fonts/extended/opensans-light.ttf",
-          "fr": "/common/fonts/fr/opensans-light.ttf",
-          "it": "/common/fonts/it/opensans-light.ttf",
-          "latin": "/common/fonts/latin/opensans-light.ttf",
-          "nl": "/common/fonts/nl/opensans-light.ttf",
-          "pl": "/common/fonts/pl/opensans-light.ttf",
-          "ro": "/common/fonts/ro/opensans-light.ttf"
-        }
-      }
-      ]
-  }, 
-  "OpenSansBold": {
-    "fontFamily": "Open Sans",
-    "fontStyle": "normal",
-    "fontWeight": "700",
-    "formats": [
-      {
-        "type": "local",
-        "location": "Open Sans Bold"
-      },
-      {
-        "type": "local",
-        "location": "OpenSansBold"
-      },
-      {
-        "type": "embedded-opentype",
-        "location": {
-          "ca": "/common/fonts/ca/opensans-bold.eot",
-          "cs": "/common/fonts/cs/opensans-bold.eot",
-          "cyrillic": "/common/fonts/cyrillic/opensans-bold.eot",
-          "de": "/common/fonts/de/opensans-bold.eot",
-          "en": "/common/fonts/en/opensans-bold.eot",
-          "es": "/common/fonts/es/opensans-bold.eot",
-          "et": "/common/fonts/et/opensans-bold.eot",
-          "extended": "/common/fonts/extended/opensans-bold.eot",
-          "fr": "/common/fonts/fr/opensans-bold.eot",
-          "it": "/common/fonts/it/opensans-bold.eot",
-          "latin": "/common/fonts/latin/opensans-bold.eot",
-          "nl": "/common/fonts/nl/opensans-bold.eot",
-          "pl": "/common/fonts/pl/opensans-bold.eot",
-          "ro": "/common/fonts/ro/opensans-bold.eot"
-        }
-      },
-      {
-        "type": "woff",
-        "location": {
-          "ca": "/common/fonts/ca/opensans-bold.woff",
-          "cs": "/common/fonts/cs/opensans-bold.woff",
-          "cyrillic": "/common/fonts/cyrillic/opensans-bold.woff",
-          "de": "/common/fonts/de/opensans-bold.woff",
-          "en": "/common/fonts/en/opensans-bold.woff",
-          "es": "/common/fonts/es/opensans-bold.woff",
-          "et": "/common/fonts/et/opensans-bold.woff",
-          "extended": "/common/fonts/extended/opensans-bold.woff",
-          "fr": "/common/fonts/fr/opensans-bold.woff",
-          "it": "/common/fonts/it/opensans-bold.woff",
-          "latin": "/common/fonts/latin/opensans-bold.woff",
-          "nl": "/common/fonts/nl/opensans-bold.woff",
-          "pl": "/common/fonts/pl/opensans-bold.woff",
-          "ro": "/common/fonts/ro/opensans-bold.woff"
-        }
-      },
-      {
-        "type": "truetype",
-        "location": {
-          "ca": "/common/fonts/ca/opensans-bold.ttf",
-          "cs": "/common/fonts/cs/opensans-bold.ttf",
-          "cyrillic": "/common/fonts/cyrillic/opensans-bold.ttf",
-          "de": "/common/fonts/de/opensans-bold.ttf",
-          "en": "/common/fonts/en/opensans-bold.ttf",
-          "es": "/common/fonts/es/opensans-bold.ttf",
-          "et": "/common/fonts/et/opensans-bold.ttf",
-          "extended": "/common/fonts/extended/opensans-bold.ttf",
-          "fr": "/common/fonts/fr/opensans-bold.ttf",
-          "it": "/common/fonts/it/opensans-bold.ttf",
-          "latin": "/common/fonts/latin/opensans-bold.ttf",
-          "nl": "/common/fonts/nl/opensans-bold.ttf",
-          "pl": "/common/fonts/pl/opensans-bold.ttf",
-          "ro": "/common/fonts/ro/opensans-bold.ttf"
-        }
-      }
+  // where are the fonts found (relative to http://persona.org)
+  "root": "/common/fonts/",
 
-      ]
-  }, 
-  "OpenSansItalic": {
-    "fontFamily": "Open Sans",
-    "fontStyle": "italic",
-    "fontWeight": "400",
-    "formats": [
-      {
-        "type": "local",
-        "location": "Open Sans Italic"
-      },
-      {
-        "type": "local",
-        "location": "OpenSansItalic"
-      },
-      {
-        "type": "embedded-opentype",
-        "location": {
-          "ca": "/common/fonts/ca/opensans-italic.eot",
-          "cs": "/common/fonts/cs/opensans-italic.eot",
-          "cyrillic": "/common/fonts/cyrillic/opensans-italic.eot",
-          "de": "/common/fonts/de/opensans-italic.eot",
-          "en": "/common/fonts/en/opensans-italic.eot",
-          "es": "/common/fonts/es/opensans-italic.eot",
-          "et": "/common/fonts/et/opensans-italic.eot",
-          "extended": "/common/fonts/extended/opensans-italic.eot",
-          "fr": "/common/fonts/fr/opensans-italic.eot",
-          "it": "/common/fonts/it/opensans-italic.eot",
-          "latin": "/common/fonts/latin/opensans-italic.eot",
-          "nl": "/common/fonts/nl/opensans-italic.eot",
-          "pl": "/common/fonts/pl/opensans-italic.eot",
-          "ro": "/common/fonts/ro/opensans-italic.eot"
-        }
-      },
-      {
-        "type": "woff",
-        "location": {
-          "ca": "/common/fonts/ca/opensans-italic.woff",
-          "cs": "/common/fonts/cs/opensans-italic.woff",
-          "cyrillic": "/common/fonts/cyrillic/opensans-italic.woff",
-          "de": "/common/fonts/de/opensans-italic.woff",
-          "en": "/common/fonts/en/opensans-italic.woff",
-          "es": "/common/fonts/es/opensans-italic.woff",
-          "et": "/common/fonts/et/opensans-italic.woff",
-          "extended": "/common/fonts/extended/opensans-italic.woff",
-          "fr": "/common/fonts/fr/opensans-italic.woff",
-          "it": "/common/fonts/it/opensans-italic.woff",
-          "latin": "/common/fonts/latin/opensans-italic.woff",
-          "nl": "/common/fonts/nl/opensans-italic.woff",
-          "pl": "/common/fonts/pl/opensans-italic.woff",
-          "ro": "/common/fonts/ro/opensans-italic.woff"
-        }
-      },
-      {
-        "type": "truetype",
-        "location": {
-          "ca": "/common/fonts/ca/opensans-italic.ttf",
-          "cs": "/common/fonts/cs/opensans-italic.ttf",
-          "cyrillic": "/common/fonts/cyrillic/opensans-italic.ttf",
-          "de": "/common/fonts/de/opensans-italic.ttf",
-          "en": "/common/fonts/en/opensans-italic.ttf",
-          "es": "/common/fonts/es/opensans-italic.ttf",
-          "et": "/common/fonts/et/opensans-italic.ttf",
-          "extended": "/common/fonts/extended/opensans-italic.ttf",
-          "fr": "/common/fonts/fr/opensans-italic.ttf",
-          "it": "/common/fonts/it/opensans-italic.ttf",
-          "latin": "/common/fonts/latin/opensans-italic.ttf",
-          "nl": "/common/fonts/nl/opensans-italic.ttf",
-          "pl": "/common/fonts/pl/opensans-italic.ttf",
-          "ro": "/common/fonts/ro/opensans-italic.ttf"
-        }
-      }
+  // where to find a locale's fonts under the root. 
+  "locale_to_subdirs": {
+    "ca": "ca",
+    "cs": "cs",
+    "da": "da",
+    "de": "de",
+    "en": "en",
+    "es": "es",
+    "et": "et",
+    "fr": "fr",
+    "it": "it",
+    "it-ch": "extended",
+    "nl": "nl",
+    "pl": "pl",
+    "pt": "es",
+    "ro": "ro",
+    "ru": "cyrillic"
+  },
 
-      ]
-  } 
+  // what font types are enabled and what are the extensions of
+  // the font files.
+  //
+  // valid types are embedded-opentype, woff, and truetype
+  "font-types": {
+    "embedded-opentype": "eot",
+    "woff": "woff",
+    "truetype": "ttf"
+  },
+
+  // The possible fonts. The name of the font must be the same as the font 
+  // declared in lib/static_resources and the same as found in 
+  // a locale-specific font directory.
+  "fonts": {
+    "opensans-regular": {
+      "fontFamily": "Open Sans",
+      "fontStyle": "normal",
+      "fontWeight": "400",
+      "local": [ "Open Sans", "OpenSans" ]
+    },
+
+    "opensans-light": {
+      "fontFamily": "Open Sans",
+      "fontStyle": "normal",
+      "fontWeight": "300",
+      "local": [ "Open Sans Light", "OpenSansLight" ]
+    },
+
+    "opensans-bold": {
+      "fontFamily": "Open Sans",
+      "fontStyle": "normal",
+      "fontWeight": "700",
+      "local": [ "Open Sans Bold", "OpenSansBold" ]
+    },
+
+    "opensans-italic": {
+      "fontFamily": "Open Sans",
+      "fontStyle": "italic",
+      "fontWeight": "400",
+      "local": [ "Open Sans Italic", "OpenSansItalic" ]
+    }
+  }
 }
-
