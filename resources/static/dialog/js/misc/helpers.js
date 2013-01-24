@@ -94,10 +94,10 @@
     }, self.getErrorDialog(errors.createUser, callback));
   }
 
-  function resetPassword(email, password, callback) {
+  function resetPassword(email, callback) {
     /*jshint validthis:true*/
     var self=this;
-    user.requestPasswordReset(email, password, function(status) {
+    user.requestPasswordReset(email, function(status) {
       if (status.success) {
         self.publish("reset_password_staged", { email: email });
       }
@@ -106,6 +106,20 @@
       }
       complete(callback, status.success);
     }, self.getErrorDialog(errors.requestPasswordReset, callback));
+  }
+
+  function transitionToSecondary(email, password, callback) {
+    /*jshint validthis:true*/
+    var self=this;
+    user.requestTransitionToSecondary(email, password, function(status) {
+      if (status.success) {
+        self.publish("transition_to_secondary_staged", { email: email });
+      }
+      else {
+        tooltip.showTooltip("#could_not_add");
+      }
+      complete(callback, status.success);
+    }, self.getErrorDialog(errors.transitionToSecondary, callback));
   }
 
   function reverifyEmail(email, callback) {
@@ -158,15 +172,15 @@
     /*jshint validthis:true*/
     var self=this;
 
-    user.addEmail(email, password, function(added) {
-      if (added) {
+    user.addEmail(email, password, function(status) {
+      if (status.success) {
         var info = { email: email, password: password };
         self.publish("email_staged", info, info );
       }
       else {
         tooltip.showTooltip("#could_not_add");
       }
-      complete(callback, added);
+      complete(callback, status.success);
     }, self.getErrorDialog(errors.addEmail, callback));
   }
 
@@ -184,6 +198,7 @@
     refreshEmailInfo: refreshEmailInfo,
     addSecondaryEmail: addSecondaryEmail,
     resetPassword: resetPassword,
+    transitionToSecondary: transitionToSecondary,
     reverifyEmail: reverifyEmail,
     cancelEvent: helpers.cancelEvent,
     animateClose: animateClose,
