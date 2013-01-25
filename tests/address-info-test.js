@@ -78,6 +78,71 @@ suite.addBatch({
   }
 });
 
+suite.addBatch({
+  "address_info for a known secondary address, user part capitalized, bug 2866": {
+     topic: function() {
+       secondary.create({ email: "test@example.com" }, this.callback);
+     },
+    "works": function(e, r) {
+      assert.isNull(e);
+    },
+    "actually calling address_info": {
+       topic: wsapi.get('/wsapi/address_info', {
+        email: 'TEST@example.com' 
+      }),
+      "returns known": function(e, r) {
+        assert.isNull(e)
+        var r = JSON.parse(r.body);
+        assert.equal(r.state, "known");
+      }
+    }
+  }
+});
+
+
+suite.addBatch({
+  "address_info for a known secondary address, domain part capitalized, bug 2891": {
+     topic: function() {
+       secondary.create({ email: "test@example.com" }, this.callback);
+     },
+    "works": function(e, r) {
+      assert.isNull(e);
+    },
+    "actually calling address_info": {
+       topic: wsapi.get('/wsapi/address_info', {
+        email: 'test@EXAMPLE.com' 
+      }),
+      "returns known": function(e, r) {
+        assert.isNull(e)
+        var r = JSON.parse(r.body);
+        assert.equal(r.state, "known");
+      }
+    }
+  }
+});
+
+suite.addBatch({
+  "when a user creates an account with the email capitalized": {
+     topic: function() {
+       secondary.create({ email: "Test@Example.com" }, this.callback);
+     },
+    "successfully": function(e, r) {
+      assert.isNull(e);
+    },
+    "address_info for that account": {
+      topic: wsapi.get('/wsapi/address_info', {
+        email: 'test@example.com'
+      }),
+      "should return display_email field capitalized, email field normalized": function(e, r) {
+        assert.isNull(e);
+        var r = JSON.parse(r.body);
+        assert.equal(r.display_email, "Test@Example.com");
+      }
+    }
+  }
+});
+
+
 // now let's generate an assertion using this user
 suite.addBatch({
   "setting up a primary user": {
