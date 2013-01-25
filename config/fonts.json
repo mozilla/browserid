@@ -1,0 +1,67 @@
+{
+  // where are the fonts found (relative to http://persona.org)
+  "root": "/common/fonts/",
+
+  // where to find a locale's fonts under the root. 
+  "locale_to_subdirs": {
+    "ca": "ca",
+    "cs": "cs",
+    "da": "da",
+    "de": "de",
+    "en": "en",
+    "es": "es",
+    "et": "et",
+    "fr": "fr",
+    "it": "it",
+    "it-ch": "extended",
+    "nl": "nl",
+    "pl": "pl",
+    "pt": "es",
+    "ro": "ro",
+    "ru": "cyrillic"
+  },
+
+  // what font types are enabled and what are the extensions of
+  // the font files.
+  //
+  // valid types are embedded-opentype, woff, truetype, svg
+  "font-types": {
+    "embedded-opentype": "eot",
+    "woff": "woff",
+    "truetype": "ttf",
+    "svg": "svg"
+  },
+
+  // The possible fonts. The name of the font must be the same as the font 
+  // declared in lib/static_resources and the same as found in 
+  // a locale-specific font directory.
+  "fonts": {
+    "opensans-regular": {
+      "fontFamily": "Open Sans",
+      "fontStyle": "normal",
+      "fontWeight": "400",
+      "local": [ "Open Sans", "OpenSans" ]
+    },
+
+    "opensans-light": {
+      "fontFamily": "Open Sans",
+      "fontStyle": "normal",
+      "fontWeight": "300",
+      "local": [ "Open Sans Light", "OpenSansLight" ]
+    },
+
+    "opensans-bold": {
+      "fontFamily": "Open Sans",
+      "fontStyle": "normal",
+      "fontWeight": "700",
+      "local": [ "Open Sans Bold", "OpenSansBold" ]
+    },
+
+    "opensans-italic": {
+      "fontFamily": "Open Sans",
+      "fontStyle": "italic",
+      "fontWeight": "400",
+      "local": [ "Open Sans Italic", "OpenSansItalic" ]
+    }
+  }
+}

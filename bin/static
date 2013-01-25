@@ -26,7 +26,9 @@ heartbeat = require('../lib/heartbeat.js'),
 logger = require('../lib/logging.js').logger,
 views = require('../lib/static/views.js'),
 toobusy = require('../lib/busy_middleware.js'),
-shutdown = require('../lib/shutdown.js');
+shutdown = require('../lib/shutdown.js'),
+font_config = require('../lib/font_config'),
+fonts = require('connect-fonts');
 
 var app = undefined;
 
@@ -109,6 +111,16 @@ app.use(function(req, res, next) {
   });
   next();
 });
+
+// Set up the font server that serves up browser/language specific 
+// CSS for requested @font-faces
+app.use(fonts.setup({
+  fonts: font_config.fonts,
+  locale_to_url_keys: font_config.locale_to_subdirs,
+  etags: true, // always set etags on the font file.
+  "cache-control": config.get('use_minified_resources'),
+  url_modifier: cachify.cachify
+}));
 
 // catch urls that express can't handle (issue #2887)
 app.use(function(req, res, next) {

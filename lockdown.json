@@ -77,6 +77,9 @@
   "connect-cookie-session": {
     "0.0.2": "cadd881d36e7d17fca102be77eded7f07846be1a"
   },
+  "connect-fonts": {
+    "0.0.8": "464b7088cd2861290f3e37d7e8662c4d0250d1c3"
+  },
   "connect-logger-statsd": {
     "0.0.1": "e1e350f0f6dc538a50a1868b4008806c45c409ea"
   },
@@ -199,11 +202,14 @@
   "node-inspector": {
     "0.2.0beta3": "2adb552da7757ff3d4ec549f5570799355952d20"
   },
+  "node-font-face-generator": {
+    "0.0.8": "5b83e5a153044a7dd62f547866bed89296b05510"
+  },
   "node-proxy": {
     "0.6.0": "41e64712dbd947aa9d9f466b5c0b5ee020bbcbbb"
   },
   "node-statsd": {
-    "0.0.2": "*"
+    "0.0.2": "ba96c26d4ec22b4f9501bb332fdf740db5a40ee7"
   },
   "nodemailer": {
     "0.3.21": "d9637a1d585f36fd30362c3036ce0692656fe771"
@@ -304,6 +310,9 @@
   "traverse": {
     "0.6.3": "a053ffa1b6179b9240ea16d74bfd604bd6b6e41b"
   },
+  "ua-parser": {
+    "0.2.4": "c25ef577be95350d0fe1d3361597282da4e9ba71"
+  },
   "uglify-js": {
     "1.0.6": "f0d3aafd463f26a437b9ebc19f4947ab7e8078aa",
     "1.2.5": "b542c2c76f78efb34b200b20177634330ff702b6",
@@ -356,5 +365,8 @@
   },
   "zeparser": {
     "0.0.5": "03726561bc268f2e5444f54c665b7fd4a8c029e2"
+  },
+  "yamlparser": {
+    "0.0.2": "e9f3e05e52762df751e4c522e0b6a43fff9ce1c4"
   }
 }
