@@ -63,6 +63,7 @@ BrowserID.TestHelpers = (function() {
 
       transport.setDelay(0);
       transport.setContextInfo("auth_level", undefined);
+      transport.setContextInfo("has_password", false);
       transport.useResult("valid");
 
       network.init({ cookiesEnabledOverride: true });
@@ -389,7 +390,7 @@ BrowserID.TestHelpers = (function() {
       });
     },
 
-    testInvalidPasswordAndAuthenticationPassword: function(msg, testInvalidPassword) {
+    testInvalidPasswordAndValidationPassword: function(msg, testInvalidPassword) {
       if (!testInvalidPassword) {
         testInvalidPassword = msg;
         msg = "";

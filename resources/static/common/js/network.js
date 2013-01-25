@@ -106,12 +106,16 @@ BrowserID.Network = (function() {
   }
 
   function completeAddressVerification(wsapiName, token, password, onComplete, onFailure) {
+      var data = {
+        token: token
+      };
+
+      // Only send the password along if it was actually given
+      if (password !== null) data.pass = password;
+
       post({
         url: wsapiName,
-        data: {
-          token: token,
-          pass: password
-        },
+        data: data,
         success: function(status, textStatus, jqXHR) {
           // If the user has successfully completed an address verification,
           // they are authenticated to the password status.
@@ -322,15 +326,13 @@ BrowserID.Network = (function() {
      * Request a password reset for the given email address.
      * @method requestPasswordReset
      * @param {string} email
-     * @param {string} password
      * @param {string} origin
      * @param {function} [onComplete] - Callback to call when complete.
      * @param {function} [onFailure] - Called on XHR failure.
      */
-    requestPasswordReset: function(email, password, origin, onComplete, onFailure) {
+    requestPasswordReset: function(email, origin, onComplete, onFailure) {
       var postData = {
         email: email,
-        pass: password,
         site : origin
       };
       stageAddressForVerification(postData, "/wsapi/stage_reset", onComplete, onFailure);
@@ -753,6 +755,50 @@ BrowserID.Network = (function() {
           complete(onFailure, "user not authenticated");
         }
       }, onFailure);
+    },
+
+    /**
+     * Request that an account transitions from a primary to a secondary. Used
+     * whenever a user has only primary addresses and one of the addresses
+     * belongs to an IdP which converts to a secondary.
+     * @method requestTransitionToSecondary
+     * @param {string} email
+     * @param {string} password
+     * @param {string} origin - site user is trying to sign in to.
+     * @param {function} [onComplete] - Callback to call when complete.
+     * @param {function} [onFailure] - Called on XHR failure.
+     */
+    requestTransitionToSecondary: function(email, password, origin, onComplete, onFailure) {
+      var postData = {
+        email: email,
+        pass: password,
+        site : origin
+      };
+      stageAddressForVerification(postData, "/wsapi/stage_transition", onComplete, onFailure);
+    },
+
+    /**
+     * Complete transition to secondary
+     * @method completeTransitionToSecondary
+     * @param {string} token - token to register for.
+     * @param {string} password
+     * @param {function} [onComplete] - Called when complete.
+     * @param {function} [onFailure] - Called on XHR failure.
+     */
+    completeTransitionToSecondary: completeAddressVerification.curry("/wsapi/complete_transition"),
+
+    /**
+     * Check the registration status of a transition to secondary
+     * @method checkTransitionToSecondary
+     * @param {function} [onsuccess] - called when complete.
+     * @param {function} [onfailure] - called on xhr failure.
+     */
+    checkTransitionToSecondary: function(email, onComplete, onFailure) {
+      get({
+        url: "/wsapi/transition_status?email=" + encodeURIComponent(email),
+        success: handleAddressVerifyCheckResponse.curry(onComplete),
+        error: onFailure
+      });
     }
   };
 

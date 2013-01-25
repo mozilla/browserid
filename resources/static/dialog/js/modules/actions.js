@@ -95,12 +95,8 @@ BrowserID.Modules.Actions = (function() {
       startService("required_email", info);
     },
 
-    doResetPassword: function(info) {
-      startService("set_password", _.extend(info, { password_reset: true }), "reset_password");
-    },
-
     doStageResetPassword: function(info) {
-      dialogHelpers.resetPassword.call(this, info.email, info.password, info.ready);
+      dialogHelpers.resetPassword.call(this, info.email, info.ready);
     },
 
     doConfirmResetPassword: function(info) {
@@ -113,6 +109,17 @@ BrowserID.Modules.Actions = (function() {
 
     doConfirmReverifyEmail: function(info) {
       startRegCheckService.call(this, info, "waitForEmailReverifyComplete", "reverify_email_confirmed");
+    },
+
+    doStageTransitionToSecondary: function(info) {
+      dialogHelpers.transitionToSecondary.call(this, info.email,
+          info.password, info.ready);
+    },
+
+    doConfirmTransitionToSecondary: function(info) {
+      startRegCheckService.call(this, info,
+          "waitForTransitionToSecondaryComplete",
+          "transition_to_secondary_confirmed");
     },
 
     doAssertionGenerated: function(info) {

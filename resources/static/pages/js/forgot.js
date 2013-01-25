@@ -18,33 +18,27 @@ BrowserID.forgot = (function() {
   function submit(oncomplete) {
     dom.hide(".notification");
 
-    var email = helpers.getAndValidateEmail("#email"),
-        pass = dom.getInner("#password"),
-        vpass = dom.getInner("#vpassword"),
-        validPass = email && validation.passwordAndValidationPassword(pass, vpass);
+    var email = helpers.getAndValidateEmail("#email");
+    if (!email) return complete(oncomplete);
 
-    if (email && validPass) {
-      user.requestPasswordReset(email, pass, function onSuccess(info) {
-        if (info.success) {
-          pageHelpers.emailSent("waitForPasswordResetComplete", email, oncomplete);
-        }
-        else {
-          var tooltipEls = {
-            throttle: "#could_not_add",
-            invalid_user: "#not_registered",
-            primary_address: "#primary_address"
-          };
+    user.requestPasswordReset(email, function onSuccess(info) {
+      if (info.success) {
+        pageHelpers.emailSent("waitForPasswordResetComplete", email, oncomplete);
+      }
+      else {
+        var tooltipEls = {
+          throttle: "#could_not_add",
+          invalid_email: "#not_registered",
+          primary_address: "#primary_address"
+        };
 
-          var tooltipEl = tooltipEls[info.reason];
-          if (tooltipEl) {
-            tooltip.showTooltip(tooltipEl);
-          }
-          complete(oncomplete);
+        var tooltipEl = tooltipEls[info.reason];
+        if (tooltipEl) {
+          tooltip.showTooltip(tooltipEl);
         }
-      }, pageHelpers.getFailure(bid.Errors.requestPasswordReset, oncomplete));
-    } else {
-      complete(oncomplete);
-    }
+        complete(oncomplete);
+      }
+    }, pageHelpers.getFailure(bid.Errors.requestPasswordReset, oncomplete));
   }
 
   function back(oncomplete) {
