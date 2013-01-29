@@ -21,7 +21,7 @@ var browser, primary, secondary;
 - setup: create account with 2 emails (primary and a secondary on same account) on persona.org, then:
 - verify that no email is selected on first login to a site
   - visit 123done & verify
-  - verify that the most recently used email for a given site is at top of dialog on next use:
+  - verify that the most recently used email for a given site is the only email shown on the next use.
     - log into 123done with one acct, sign out, open dialog to sign back in, verify.
 */
 
@@ -83,15 +83,22 @@ runner.run(module, {
       .wclick(CSS['myfavoritebeer.org'].signinButton)
       .wwin(CSS['persona.org'].windowName, done)
   },
-  "check first radio is not selected":function(done, el) {
-    browser.wgetAttribute(CSS['dialog'].firstEmail, 'selected', function(err, val) {
-      done(err || assert.ok(!val));
-    });
+  "check both addresses are displayed": function(done) {
+    browser.chain({onError: done})
+           .wfind(CSS['dialog'].firstEmail)
+           .wfind(CSS['dialog'].secondEmail, done)
+  },
+  "check first radio is not selected": function(done, el) {
+    browser.chain({onError: done})
+      .wgetAttribute(CSS['dialog'].firstEmail, 'selected', function(err, val) {
+        done(err || assert.ok(!val));
+      });
   },
   "check second radio is not selected": function(done) {
-    browser.wgetAttribute(CSS['dialog'].secondEmail, 'selected', function(err, val) {
-      done(err || assert.ok(!val));
-    });
+    browser.chain({onError: done})
+      .wgetAttribute(CSS['dialog'].secondEmail, 'selected', function(err, val) {
+        done(err || assert.ok(!val));
+      });
   }
   ,
   "sign in using primary, sign out, reload, click sign in, verify primary is selected": function(done) {
@@ -104,16 +111,36 @@ runner.run(module, {
       .wclick(CSS['myfavoritebeer.org'].signinButton)
       .wwin(CSS['persona.org'].windowName, done)
   },
+
+  // only one email address is displayed, it should be selected.
+  "check only one address is displayed": function(done) {
+    browser.chain({onError: done})
+      // wfind only returns a single element. We want all the elements. Wait
+      // for the emailAddress element to appear, then get all of them and check
+      // the count.
+      .wfind(CSS['dialog'].emailAddress)
+      .elementsByCssSelector(CSS['dialog'].emailAddress, function(err, els) {
+         done(err || assert.equal(els.length, 1));
+      });
+  },
+
+  "click button to open full email list": function(done) {
+    browser.chain({onError: done})
+      .wclick(CSS['dialog'].useAnotherEmail, done);
+  },
+
   // this time, the first radio should be selected
-  "check first radio is selected":function(done, el) {
-    browser.wgetAttribute(CSS['dialog'].firstEmail, 'selected', function(err, val) {
-      done(err || assert.ok(val));
-    });
+  "check first radio is selected": function(done, el) {
+    browser.chain({onError: done})
+      .wgetAttribute(CSS['dialog'].firstEmail, 'selected', function(err, val) {
+         done(err || assert.ok(val));
+       });
   },
   "check second radio is still not selected": function(done) {
-    browser.wgetAttribute(CSS['dialog'].secondEmail, 'selected', function(err, val) {
-      done(err || assert.ok(!val));
-    });
+    browser.chain({ onError: done })
+      .wgetAttribute(CSS['dialog'].secondEmail, 'selected', function(err, val) {
+        done(err || assert.ok(!val));
+      });
   }
 },
 {

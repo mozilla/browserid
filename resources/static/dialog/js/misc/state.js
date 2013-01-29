@@ -199,7 +199,7 @@ BrowserID.State = (function() {
     });
 
     handleState("password_set", function(msg, info) {
-      /* A password can be set for one of three reasons - 
+      /* A password can be set for one of three reasons -
        * 1) This is a new user
        * 2) A user is adding the first secondary address to an account that
        *    consists only of primary addresses
@@ -315,11 +315,24 @@ BrowserID.State = (function() {
       startAction("doPrimaryOffline", info);
     });
 
-    handleState("pick_email", function() {
-      startAction("doPickEmail", {
-        origin: self.hostname,
-        siteTOSPP: self.siteTOSPP && !user.getOriginEmail()
-      });
+    handleState("pick_email", function(msg, info) {
+      var originEmail = user.getOriginEmail(),
+          identities = user.getSortedEmailKeypairs();
+
+      // unless showOnlyOriginEmail is specified, show only the site email if
+      // there is more than one address and there is an origin email.
+      // Otherwise, show all addresses. This gives users with only one address
+      // the opportunity to add an address without needing to click on the "use
+      // another address" button.
+      var showOnlyOriginEmail = "showOnlyOriginEmail" in info
+                                  ? info.showOnlyOriginEmail
+                                  : (identities.length > 1 && !!originEmail);
+
+        startAction("doPickEmail", {
+          origin: self.hostname,
+          siteTOSPP: self.siteTOSPP && !originEmail,
+          showOnlyOriginEmail: showOnlyOriginEmail
+        });
     });
 
     handleState("email_chosen", function(msg, info) {
