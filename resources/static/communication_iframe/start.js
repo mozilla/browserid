@@ -32,8 +32,9 @@
   //  we may need to re-visit this)
   // network.cookiesEnabledOverride = true;
   network.cookiesEnabled(function(cookiesEnabled) {
-    // XXX per old comment above, could also be "if (!cookiesEnabled && !isIE)"
-    if (!cookiesEnabled) {
+    // TODO do we have a better way than browser sniffs
+    if (!cookiesEnabled && 
+        navigator.appName !== 'Microsoft Internet Explorer') {
       // XXX is there any reason to continue loading this page?
       chan.notify({ method: 'cookiesDisabled' })
     }
