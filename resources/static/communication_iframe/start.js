@@ -30,7 +30,11 @@
   // (NOTE: if we want to try to improve failure modes for users with
   //  a "disable 3rd party cookies"-like preference set in their browser,
   //  we may need to re-visit this)
-  // network.cookiesEnabledOverride = true;
+
+  // XXX mea maxima culpa.
+  if (navigator.appName !== 'Microsoft Internet Explorer')
+    network.cookiesEnabledOverride = true;
+
   network.cookiesEnabled(function(cookiesEnabled) {
     // TODO do we have a better way than browser sniffs
     if (!cookiesEnabled && 
