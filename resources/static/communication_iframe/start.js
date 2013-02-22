@@ -3,6 +3,7 @@
  * file, You can obtain one at http://mozilla.org/MPL/2.0/. */
 
 (function() {
+
   var bid = BrowserID,
       network = bid.Network,
       user = bid.User,
@@ -15,6 +16,13 @@
 
   network.init();
 
+  var chan = Channel.build({
+    window: window.parent,
+    origin: "*",
+    scope: "mozid_ni"
+  });
+
+  // XXX old comment, to be deleted before pushing:
   // Do not check to see if cookies are supported in the iframe.  Just
   // optimistically try to work by running network requests.  There are
   // cases (especially in IE) where our checks will fail but our actual
@@ -22,13 +30,14 @@
   // (NOTE: if we want to try to improve failure modes for users with
   //  a "disable 3rd party cookies"-like preference set in their browser,
   //  we may need to re-visit this)
-  network.cookiesEnabledOverride = false; //true;
-
-  var chan = Channel.build({
-    window: window.parent,
-    origin: "*",
-    scope: "mozid_ni"
-  });
+  // network.cookiesEnabledOverride = true;
+  network.cookiesEnabled(function(cookiesEnabled) {
+    // XXX per old comment above, could also be "if (!cookiesEnabled && !isIE)"
+    if (!cookiesEnabled) {
+      // XXX is there any reason to continue loading this page?
+      chan.notify({ method: 'cookiesDisabled' })
+    }
+  })
 
   var remoteOrigin;
 

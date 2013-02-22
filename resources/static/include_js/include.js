@@ -1061,6 +1061,11 @@
             if (observers.match) observers.match();
           });
 
+          commChan.bind('cookiesDisabled', function(trans) {
+            console.log('cookies disabled in the iframe. third-party cookie sadness.');
+            // XXX tell the dialog to redirect to busted cookies URL.
+          });
+
           if (defined(loggedInUser)) {
             commChan.notify({
               method: 'loggedInUser',
