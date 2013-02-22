@@ -32,7 +32,7 @@
   //  we may need to re-visit this)
 
   // XXX mea maxima culpa.
-  if (navigator.appName !== 'Microsoft Internet Explorer')
+  if (navigator.appName === 'Microsoft Internet Explorer')
     network.cookiesEnabledOverride = true;
 
   network.cookiesEnabled(function(cookiesEnabled) {
