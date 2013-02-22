@@ -3,7 +3,6 @@
  * file, You can obtain one at http://mozilla.org/MPL/2.0/. */
 
 (function() {
-
   var bid = BrowserID,
       network = bid.Network,
       user = bid.User,
@@ -22,27 +21,24 @@
     scope: "mozid_ni"
   });
 
-  // XXX old comment, to be deleted before pushing:
-  // Do not check to see if cookies are supported in the iframe.  Just
-  // optimistically try to work by running network requests.  There are
-  // cases (especially in IE) where our checks will fail but our actual
-  // requests will not.  issue #2183
-  // (NOTE: if we want to try to improve failure modes for users with
-  //  a "disable 3rd party cookies"-like preference set in their browser,
-  //  we may need to re-visit this)
-
-  // XXX mea maxima culpa.
-  if (navigator.appName === 'Microsoft Internet Explorer')
-    network.cookiesEnabledOverride = true;
-
+  // In order to warn the user about third-party cookies being disabled,
+  // try to set cookies from this third-party iframe & phone home if it's
+  // not possible. We'll alert the user on dialog open.
+  //
+  // IE is the exception; it'll fail to set cookies, but still actually allow
+  // network requests. In that case, we'll just ignore the cookie check.
+  // See #2183 for more (also see earlier revisions of this file).
+  // TODO do we need to make exceptions for other browsers?
   network.cookiesEnabled(function(cookiesEnabled) {
-    // TODO do we have a better way than browser sniffs
     if (!cookiesEnabled && 
         navigator.appName !== 'Microsoft Internet Explorer') {
-      // XXX is there any reason to continue loading this page?
       chan.notify({ method: 'cookiesDisabled' })
     }
   })
+
+  if (navigator.appName === 'Microsoft Internet Explorer') {
+    network.cookiesEnabledOverride = true;
+  }
 
   var remoteOrigin;
 

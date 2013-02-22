@@ -908,10 +908,7 @@
       }
     }
 
-    // XXX could be brittle/racey. depends on response from comm_iframe.
-    //     if it isn't set yet, maybe setTimeout and try again?
     function checkThirdPartyCookies() {
-      console.log('BrowserSupport found that thirdPartyCookiesDisabled was ' + !!thirdPartyCookiesDisabled);
       if (thirdPartyCookiesDisabled) return "THIRD_PARTY_COOKIES_DISABLED";
     }
 
@@ -1072,8 +1069,6 @@
           });
 
           commChan.bind('cookiesDisabled', function(trans) {
-            console.log('cookies disabled in the iframe. third-party cookie sadness. setting thirdPartyCookiesDisabled=true.');
-            // XXX tell the dialog to redirect to busted cookies URL.
             thirdPartyCookiesDisabled = true;
           });
 
@@ -1164,9 +1159,7 @@
       checkRenamed(options, "tosURL", "termsOfService");
       checkRenamed(options, "privacyURL", "privacyPolicy");
 
-      // maybe?
       options.thirdPartyCookiesDisabled = thirdPartyCookiesDisabled;
-      console.log('thirdPartyCookiesDisabled is ' + !!thirdPartyCookiesDisabled);
 
       if (options.termsOfService && !options.privacyPolicy) {
         warn("termsOfService ignored unless privacyPolicy also defined");
