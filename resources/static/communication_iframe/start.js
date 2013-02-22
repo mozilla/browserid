@@ -22,7 +22,7 @@
   // (NOTE: if we want to try to improve failure modes for users with
   //  a "disable 3rd party cookies"-like preference set in their browser,
   //  we may need to re-visit this)
-  network.cookiesEnabledOverride = true;
+  network.cookiesEnabledOverride = false; //true;
 
   var chan = Channel.build({
     window: window.parent,
@@ -47,6 +47,8 @@
 
   function checkAndEmit(oncomplete) {
     if (pause) return;
+    // debugger; // was this called by watchLoggedIn firing?
+    console.log('checkAndEmit called');
 
     // this will re-certify the user if neccesary
     user.getSilentAssertion(loggedInUser, function(email, assertion) {

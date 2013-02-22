@@ -247,10 +247,13 @@ BrowserID.Storage = (function() {
 
   function watchLoggedIn(origin, callback) {
     var lastState = getLoggedIn(origin);
+    console.log('storage.watchLoggedIn: lastState is ' + lastState);
 
     function checkState() {
       var currentState = getLoggedIn(origin);
+      console.log('storage.watchLoggedIn: currentState is ' + currentState);
       if (lastState !== currentState) {
+        console.log('storage.watchLoggedIn: state changed. firing callback.')
         callback();
         lastState = currentState;
       }
