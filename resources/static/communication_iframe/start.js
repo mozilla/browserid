@@ -57,8 +57,6 @@
 
   function checkAndEmit(oncomplete) {
     if (pause) return;
-    // debugger; // was this called by watchLoggedIn firing?
-    console.log('checkAndEmit called');
 
     // this will re-certify the user if neccesary
     user.getSilentAssertion(loggedInUser, function(email, assertion) {
