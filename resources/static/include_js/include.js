@@ -908,8 +908,12 @@
       }
     }
 
+    function checkThirdPartyCookies() {
+      if (thirdPartyCookiesDisabled) return "THIRD_PARTY_COOKIES_DISABLED";
+    }
+
     function isSupported() {
-      reason = explicitNosupport() || checkLocalStorage() || checkPostMessage() || checkJSON();
+      reason = explicitNosupport() || checkLocalStorage() || checkPostMessage() || checkJSON() || checkThirdPartyCookies();
 
       return !reason;
     }
@@ -1006,6 +1010,9 @@
       }
     }
 
+    // used in interalRequest to warn the dialog if third-party cookies
+    // are disabled. we get this info from the communication_iframe.
+    var thirdPartyCookiesDisabled;
 
     // this is for calls that are non-interactive
     function _open_hidden_iframe() {
@@ -1059,6 +1066,10 @@
 
           commChan.bind('match', function(trans, params) {
             if (observers.match) observers.match();
+          });
+
+          commChan.bind('cookiesDisabled', function(trans) {
+            thirdPartyCookiesDisabled = true;
           });
 
           if (defined(loggedInUser)) {
@@ -1148,6 +1159,8 @@
       checkRenamed(options, "tosURL", "termsOfService");
       checkRenamed(options, "privacyURL", "privacyPolicy");
 
+      options.thirdPartyCookiesDisabled = thirdPartyCookiesDisabled;
+
       if (options.termsOfService && !options.privacyPolicy) {
         warn("termsOfService ignored unless privacyPolicy also defined");
       }
@@ -1179,6 +1192,11 @@
         url = "unsupported_dialog";
 
         if(reason === "LOCALSTORAGE_DISABLED") {
+          url = "cookies_disabled";
+        }
+        // XXX we could add a more specific case to cookies_disabled
+        if(reason === "THIRD_PARTY_COOKIES_DISABLED") {
+          console.log('discovered third party cookeis disabled, redirecting dialog to error page');
           url = "cookies_disabled";
         }
 

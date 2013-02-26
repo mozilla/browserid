@@ -15,20 +15,30 @@
 
   network.init();
 
-  // Do not check to see if cookies are supported in the iframe.  Just
-  // optimistically try to work by running network requests.  There are
-  // cases (especially in IE) where our checks will fail but our actual
-  // requests will not.  issue #2183
-  // (NOTE: if we want to try to improve failure modes for users with
-  //  a "disable 3rd party cookies"-like preference set in their browser,
-  //  we may need to re-visit this)
-  network.cookiesEnabledOverride = true;
-
   var chan = Channel.build({
     window: window.parent,
     origin: "*",
     scope: "mozid_ni"
   });
+
+  // In order to warn the user about third-party cookies being disabled,
+  // try to set cookies from this third-party iframe & phone home if it's
+  // not possible. We'll alert the user on dialog open.
+  //
+  // IE is the exception; it'll fail to set cookies, but still actually allow
+  // network requests. In that case, we'll just ignore the cookie check.
+  // See #2183 for more (also see earlier revisions of this file).
+  // TODO do we need to make exceptions for other browsers?
+  network.cookiesEnabled(function(cookiesEnabled) {
+    if (!cookiesEnabled && 
+        navigator.appName !== 'Microsoft Internet Explorer') {
+      chan.notify({ method: 'cookiesDisabled' })
+    }
+  })
+
+  if (navigator.appName === 'Microsoft Internet Explorer') {
+    network.cookiesEnabledOverride = true;
+  }
 
   var remoteOrigin;
 
