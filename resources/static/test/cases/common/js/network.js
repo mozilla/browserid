@@ -493,6 +493,71 @@
   });
 
 
+  asyncTest("requestPasswordReset - true status", function() {
+    network.requestPasswordReset(TEST_EMAIL, "password", "origin", function onSuccess(status) {
+      ok(status, "password reset request success");
+      start();
+    }, testHelpers.unexpectedFailure);
+  });
+
+  asyncTest("requestPasswordReset with XHR failure", function() {
+    failureCheck(network.requestPasswordReset, TEST_EMAIL, "password", "origin");
+  });
+
+  asyncTest("completePasswordReset with valid token, no password required", function() {
+    network.completePasswordReset("token", undefined, function(registered) {
+      ok(registered);
+      start();
+    }, testHelpers.unexpectedFailure);
+  });
+
+  asyncTest("completePasswordReset with valid token, bad password", function() {
+    transport.useResult("badPassword");
+    network.completePasswordReset("token", "password",
+      testHelpers.unexpectedSuccess,
+      testHelpers.expectedXHRFailure);
+  });
+
+  asyncTest("completePasswordReset with valid token, password required", function() {
+    network.completePasswordReset("token", "password", function(registered) {
+      ok(registered);
+      start();
+    }, testHelpers.unexpectedFailure);
+  });
+
+  asyncTest("completePasswordReset with invalid token", function() {
+    transport.useResult("invalid");
+
+    network.completePasswordReset("token", "password", function(registered) {
+      equal(registered, false);
+      start();
+    }, testHelpers.unexpectedFailure);
+  });
+
+  asyncTest("completePasswordReset with XHR failure", function() {
+    failureCheck(network.completePasswordReset, "token", "password");
+  });
+
+  asyncTest("checkPasswordReset pending", testVerificationPending.curry("checkPasswordReset"));
+  asyncTest("checkPasswordReset mustAuth", testVerificationMustAuth.curry("checkPasswordReset"));
+  asyncTest("checkPasswordReset complete", testVerificationComplete.curry("checkPasswordReset"));
+
+
+  asyncTest("requestEmailReverify - true status", function() {
+    network.requestEmailReverify(TEST_EMAIL, "origin", function onSuccess(status) {
+      ok(status, "password reset request success");
+      start();
+    }, testHelpers.unexpectedFailure);
+  });
+
+  asyncTest("requestEmailReverify with XHR failure", function() {
+    failureCheck(network.requestEmailReverify, TEST_EMAIL, "origin");
+  });
+
+  asyncTest("checkEmailReverify pending", testVerificationPending.curry("checkEmailReverify"));
+  asyncTest("checkEmailReverify mustAuth", testVerificationMustAuth.curry("checkEmailReverify"));
+  asyncTest("checkEmailReverify complete", testVerificationComplete.curry("checkEmailReverify"));
+
   asyncTest("serverTime", function() {
     // I am forcing the server time to be 1.25 seconds off.
     transport.setContextInfo("server_time", new Date().getTime() - 1250);
@@ -532,8 +597,7 @@
 
   asyncTest("addressInfo with unknown secondary email", function() {
     transport.useResult("unknown_secondary");
-
-    network.addressInfo(TEST_EMAIL, function onComplete(data) {
+    network.addressInfo(TEST_EMAIL, 'default', function onComplete(data) {
       equal(data.type, "secondary", "type is secondary");
       equal(data.state, "unknown", "address is unknown to BrowserID");
       start();
@@ -543,7 +607,7 @@
   asyncTest("addressInfo with known seconday email", function() {
     transport.useResult("known_secondary");
 
-    network.addressInfo(TEST_EMAIL, function onComplete(data) {
+    network.addressInfo(TEST_EMAIL, 'default', function onComplete(data) {
       equal(data.type, "secondary", "type is secondary");
       equal(data.state, "known", "address is known to BrowserID");
       start();
@@ -553,7 +617,7 @@
   asyncTest("addressInfo with primary email", function() {
     transport.useResult("primary");
 
-    network.addressInfo(TEST_EMAIL, function onComplete(data) {
+    network.addressInfo(TEST_EMAIL, 'default', function onComplete(data) {
       equal(data.type, "primary", "type is primary");
       ok("auth" in data, "auth field exists");
       ok("prov" in data, "prov field exists");
@@ -562,7 +626,7 @@
   });
 
   asyncTest("addressInfo with XHR failure", function() {
-    failureCheck(network.addressInfo, TEST_EMAIL);
+    failureCheck(network.addressInfo, TEST_EMAIL, 'default');
   });
 
   asyncTest("changePassword happy case, expect complete callback with true status", function() {
