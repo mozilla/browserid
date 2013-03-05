@@ -61,6 +61,13 @@
    * options.silent defaults to false.
    */
   internal.get = function(origin, callback, options) {
+    if (typeof options === 'string') {
+      // Firefox forbids sending objects across the blood-brain barrier from
+      // gecko into userland JS.  So we just stringify and destringify our
+      // objects when calling from b2g native code.
+      options = JSON.parse(options);
+    }
+
     function complete(assertion) {
       assertion = assertionObjectToString(assertion);
       // If no assertion, give no reason why there was a failure.
@@ -125,7 +132,8 @@
       // User must be authenticated to get an assertion.
       if(authenticated) {
         user.setOrigin(origin);
-        user.getAssertion(email, user.getOrigin(), function(assertion) {
+        var forceIssuer = 'default';
+        user.getAssertion(email, user.getOrigin(), forceIssuer, function(assertion) {
           complete(assertion || null);
         }, complete.curry(null));
       }
@@ -154,5 +162,74 @@
   internal.logoutEverywhere = function(callback) {
     user.logoutUser(callback, callback.curry(null));
   };
+
+  internal.watch = function (callback, options, log) {
+    if (typeof options === 'string') options = JSON.parse(options);
+    internalWatch(callback, options, log);
+  };
+
+
+  function internalWatch (callback, options, log) {
+    var bid = BrowserID,
+        network = bid.Network,
+        user = bid.User,
+        storage = bid.Storage;
+
+    network.init();
+
+    log('internal watch options', options);
+    var remoteOrigin = options.origin;
+    var loggedInUser = options.loggedInUser;
+    user.setOrigin(remoteOrigin);
+
+    function checkAndEmit() {
+      log('checking and emitting');
+      // this will re-certify the user if neccesary
+      user.getSilentAssertion(loggedInUser, function(email, assertion) {
+        if (email) {
+          // only send login events when the assertion is defined - when
+          // the 'loggedInUser' is already logged in, it's false - that is
+          // when the site already has the user logged in and does not want
+          // the resources or cost required to generate an assertion
+          if (assertion) doLogin(assertion);
+          loggedInUser = email;
+        } else if (loggedInUser !== null) {
+          // only send logout events when loggedInUser is not null, which is an
+          // indicator that the site thinks the user is logged out
+          doLogout();
+          loggedInUser = null;
+        }
+        doReady();
+      }, function(err) {
+        log('silent return: err', err);
+        doLogout();
+        loggedInUser = null;
+        doReady();
+      }, log);
+    }
+
+    network.clearContext();
+    checkAndEmit();
+
+    function doReady (params) {
+      log('doReady');
+      callback({ method: 'ready' });
+    }
+
+    function doLogin (params) {
+      log('doLogin (with silent assertion)');
+      // Through the _internalParams, we signify to any RP callers that are 
+      // interested that this assertion was acquired without user interaction.
+      callback({ method: 'login', assertion: params, _internalParams: {silent: true} });
+    }
+
+    function doLogout () {
+      log('doLogout');
+      if (loggedInUser !== null) {
+        storage.setLoggedIn(remoteOrigin, false);
+        callback({ method: 'logout' });
+      }
+    }
+  }
 
 }());

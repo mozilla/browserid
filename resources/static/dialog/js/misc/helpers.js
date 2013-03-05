@@ -41,14 +41,14 @@
     }
   }
 
-  function getAssertion(email, callback) {
+  function getAssertion(email, forceIssuer, callback) {
     /*jshint validthis:true*/
     var self=this,
         wait = bid.Screens.wait;
 
     wait.show("wait", bid.Wait.generateKey);
 
-    user.getAssertion(email, user.getOrigin(), function(assert) {
+    user.getAssertion(email, user.getOrigin(), forceIssuer, function(assert) {
       assert = assert || null;
       wait.hide();
       self.publish("assertion_generated", {
@@ -81,9 +81,20 @@
     var self=this;
     user.createSecondaryUser(email, password, function(status) {
       if (status.success) {
-        var info = { email: email, password: password };
-        self.publish("user_staged", info, info);
-        complete(callback, true);
+        var msg = { email: email, password: password };
+        if (status.unverified) {
+          user.addressInfo(email, null, function(info) {
+            // modify the addressCache info to the new unverified state
+            info.state = "unverified";
+            msg.type = "secondary";
+            msg.unverified = true;
+            self.publish("unverified_created", msg, msg);
+            complete(callback, true);
+          }, self.getErrorDialog(errors.createUser, callback));
+        } else {
+          self.publish("user_staged", msg, msg);
+          complete(callback, true);
+        }
       }
       else {
         tooltip.showTooltip("#could_not_add");
@@ -144,7 +155,7 @@
       complete(callback, false);
     }
     else {
-      user.addressInfo(email, function(info) {
+      user.addressInfo(email, user.forceIssuer, function(info) {
         if (info.type === "primary") {
           info = _.extend(info, { email: email, add: true });
           self.publish("primary_user", info, info);
@@ -161,7 +172,7 @@
   function refreshEmailInfo(email, callback) {
     /*jshint validthis:true*/
     var self=this;
-    user.addressInfo(email, function (info) {
+    user.addressInfo(email, user.forceIssuer, function (info) {
       callback(_.extend({ email: email }, info));
     }, self.getErrorDialog(errors.addressInfo, callback));
   }

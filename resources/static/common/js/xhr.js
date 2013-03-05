@@ -192,6 +192,7 @@ BrowserID.XHR = (function() {
      * @method clearContext
      */
     clearContext: clearContext
+
   };
 }());
 

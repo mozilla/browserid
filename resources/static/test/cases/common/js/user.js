@@ -637,6 +637,117 @@
     }, testHelpers.unexpectedFailure);
   });
 
+  asyncTest("requestPasswordReset with known email - true status", function() {
+    var returnTo = "http://samplerp.org";
+    lib.setReturnTo(returnTo);
+
+    lib.requestPasswordReset("registered@testuser.com", "password", function(status) {
+      equal(status.success, true, "password reset for known user");
+      equal(storage.getReturnTo(), returnTo, "RP URL is stored for verification");
+
+      start();
+    }, testHelpers.unexpectedXHRFailure);
+  });
+
+  asyncTest("requestPasswordReset with unknown email - false status, invalid_user", function() {
+    lib.requestPasswordReset("unregistered@testuser.com", "password", function(status) {
+      equal(status.success, false, "password not reset for unknown user");
+      equal(status.reason, "invalid_user", "invalid_user is the reason");
+      start();
+    }, testHelpers.unexpectedXHRFailure);
+  });
+
+  asyncTest("requestPasswordReset with throttle - false status, throttle", function() {
+    xhr.useResult("throttle");
+    lib.requestPasswordReset("registered@testuser.com", "password", function(status) {
+      equal(status.success, false, "password not reset for throttle");
+      equal(status.reason, "throttle", "password reset was throttled");
+      start();
+    }, testHelpers.unexpectedXHRFailure);
+  });
+
+  asyncTest("requestPasswordReset with XHR failure", function() {
+    failureCheck(lib.requestPasswordReset, "registered@testuser.com", "password");
+  });
+
+  asyncTest("completePasswordReset with a good token", function() {
+    storage.addEmail(TEST_EMAIL);
+    storage.setReturnTo(testOrigin);
+
+    lib.completePasswordReset("token", "password", function onSuccess(info) {
+      testObjectValuesEqual(info, {
+        valid: true,
+        email: TEST_EMAIL,
+        returnTo: testOrigin
+      });
+
+      equal(storage.getReturnTo(), "", "initiating origin was removed");
+
+      start();
+    }, testHelpers.unexpectedXHRFailure);
+  });
+
+  asyncTest("completePasswordReset with a bad token", function() {
+    xhr.useResult("invalid");
+
+    lib.completePasswordReset("token", "password", function onSuccess(info) {
+      equal(info.valid, false, "bad token calls onSuccess with a false validity");
+      start();
+    }, testHelpers.unexpectedXHRFailure);
+  });
+
+  asyncTest("completePasswordReset with an XHR failure", function() {
+    xhr.useResult("ajaxError");
+
+    lib.completePasswordReset(
+      "token",
+      "password",
+      testHelpers.unexpectedSuccess,
+      testHelpers.expectedXHRFailure
+    );
+  });
+
+  asyncTest("requestEmailReverify with owned unverified email - false status", function() {
+    storage.addEmail(TEST_EMAIL);
+
+    var returnTo = "http://samplerp.org";
+    lib.setReturnTo(returnTo);
+    lib.requestEmailReverify(TEST_EMAIL, function(status) {
+      equal(status.success, true, "password reset for known user");
+      equal(storage.getReturnTo(), returnTo, "RP URL is stored for verification");
+
+      start();
+    }, testHelpers.unexpectedXHRFailure);
+  });
+
+  asyncTest("requestEmailReverify with unowned email - false status, invalid_user", function() {
+    lib.requestEmailReverify(TEST_EMAIL, function(status) {
+      testObjectValuesEqual(status, {
+        success: false,
+        reason: "invalid_email"
+      });
+      start();
+    }, testHelpers.unexpectedXHRFailure);
+  });
+
+  asyncTest("requestEmailReverify owned email with throttle - false status, throttle", function() {
+    xhr.useResult("throttle");
+    storage.addEmail(TEST_EMAIL);
+
+    lib.requestEmailReverify(TEST_EMAIL, function(status) {
+      testObjectValuesEqual(status, {
+        success: false,
+        reason: "throttle"
+      });
+      start();
+    }, testHelpers.unexpectedXHRFailure);
+  });
+
+  asyncTest("requestEmailReverify with XHR failure", function() {
+    storage.addEmail(TEST_EMAIL);
+    failureCheck(lib.requestEmailReverify, TEST_EMAIL);
+  });
+
   asyncTest("authenticate with valid credentials, also syncs email with server", function() {
     lib.authenticate(TEST_EMAIL, "testuser", function(authenticated) {
       equal(true, authenticated, "we are authenticated!");
@@ -808,9 +919,137 @@
     });
   });
 
+  asyncTest("addEmail", function() {
+    var returnTo = "http://samplerp.org";
+    lib.setReturnTo(returnTo);
+
+    lib.addEmail("testuser@testuser.com", "password", function(added) {
+      ok(added, "user was added");
+
+      var identities = lib.getStoredEmailKeypairs();
+      equal("testuser@testuser.com" in identities, false, "new email is not added until confirmation.");
+
+      equal(storage.getReturnTo(), returnTo, "RP URL is stored for verification");
+
+      start();
+    }, testHelpers.unexpectedXHRFailure);
+  });
+
+  asyncTest("addEmail with addition refused", function() {
+    xhr.useResult("throttle");
+
+    lib.addEmail("testuser@testuser.com", "password", function(added) {
+      equal(added, false, "user addition was refused");
+
+      var identities = lib.getStoredEmailKeypairs();
+      equal(false, "testuser@testuser.com" in identities, "Our new email is not added until confirmation.");
+
+      equal(typeof storage.getReturnTo(), "undefined", "initiatingOrigin is not stored");
+
+      start();
+    }, testHelpers.unexpectedXHRFailure);
+  });
+
+  asyncTest("addEmail with XHR failure", function() {
+    failureCheck(lib.addEmail, "testuser@testuser.com", "password");
+  });
+
+
+ asyncTest("waitForEmailValidation with `complete` backend response, user authenticated to assertion level - expect 'mustAuth'", function() {
+    testAddressVerificationPoll("password", "complete", "waitForEmailValidation", "complete");
+  });
+
+  asyncTest("waitForEmailValidation with assertion authentication, complete from backend - return mustAuth status", function() {
+    testAddressVerificationPoll("assertion", "complete", "waitForEmailValidation", "mustAuth");
+  });
+
+  asyncTest("waitForEmailValidation `mustAuth` response", function() {
+    testAddressVerificationPoll("assertion", "mustAuth", "waitForEmailValidation", "mustAuth");
+  });
+
+  asyncTest("waitForEmailValidation with `noRegistration` response", function() {
+    storage.setReturnTo(testOrigin);
+    xhr.useResult("noRegistration");
+
+    lib.waitForEmailValidation(
+      "registered@testuser.com",
+      testHelpers.unexpectedSuccess,
+      function(status) {
+        ok(storage.getReturnTo(), "staged on behalf of is cleared when validation completes");
+        ok(status, "noRegistration", "noRegistration response causes failure");
+        start();
+      });
+  });
+
+
+ asyncTest("waitForEmailValidation XHR failure", function() {
+    storage.setReturnTo(testOrigin);
+    xhr.useResult("ajaxError");
+
+    lib.waitForEmailValidation(
+      "registered@testuser.com",
+      testHelpers.unexpectedSuccess,
+      testHelpers.expectedXHRFailure
+    );
+  });
+
+
+  asyncTest("cancelEmailValidation: ~1 second", function() {
+    xhr.useResult("pending");
+
+    storage.setReturnTo(testOrigin);
+    lib.waitForEmailValidation(
+      "registered@testuser.com",
+      testHelpers.unexpectedSuccess,
+      testHelpers.unexpectedXHRFailure
+    );
+
+    setTimeout(function() {
+      lib.cancelUserValidation();
+      ok(storage.getReturnTo(), "staged on behalf of is not cleared when validation cancelled");
+      start();
+    }, 500);
+  });
+
+  asyncTest("verifyEmail with a good token - callback with email, returnTo, valid", function() {
+    storage.setReturnTo(testOrigin);
+    storage.addEmail(TEST_EMAIL);
+    lib.verifyEmail("token", "password", function onSuccess(info) {
+      testObjectValuesEqual(info, {
+        valid: true,
+        email: TEST_EMAIL,
+        returnTo: testOrigin
+      });
+      equal(storage.getReturnTo(), "", "initiating returnTo was removed");
+
+      start();
+    }, testHelpers.unexpectedXHRFailure);
+  });
+
+  asyncTest("verifyEmail with a bad token - callback with valid: false", function() {
+    xhr.useResult("invalid");
+
+    lib.verifyEmail("token", "password", function onSuccess(info) {
+      equal(info.valid, false, "bad token calls onSuccess with a false validity");
+
+      start();
+    }, testHelpers.unexpectedXHRFailure);
+  });
+
+  asyncTest("verifyEmail with an XHR failure", function() {
+    xhr.useResult("ajaxError");
+
+    lib.verifyEmail(
+      "token",
+      "password",
+      testHelpers.unexpectedSuccess,
+      testHelpers.expectedXHRFailure
+    );
+  });
+
   asyncTest("syncEmailKeypair with successful sync", function() {
-    lib.syncEmailKeypair("testemail@testemail.com", function(keypair) {
-      var identity = lib.getStoredEmailKeypair("testemail@testemail.com");
+    lib.syncEmailKeypair("testuser@testuser.com", function(keypair) {
+      var identity = lib.getStoredEmailKeypair("testuser@testuser.com");
 
       ok(identity, "we have an identity");
       ok(identity.priv, "a private key is on the identity");
@@ -824,10 +1063,10 @@
   asyncTest("syncEmailKeypair with invalid sync", function() {
     xhr.useResult("invalid");
     lib.syncEmailKeypair(
-      "testemail@testemail.com",
+      "testuser@testuser.com",
       testHelpers.unexpectedSuccess,
       function() {
-        var identity = lib.getStoredEmailKeypair("testemail@testemail.com");
+        var identity = lib.getStoredEmailKeypair("testuser@testuser.com");
         equal(typeof identity, "undefined", "Invalid email is not synced");
 
         start();
@@ -836,16 +1075,16 @@
   });
 
   asyncTest("syncEmailKeypair with XHR failure", function() {
-    failureCheck(lib.syncEmailKeypair, "testemail@testemail.com");
+    failureCheck(lib.syncEmailKeypair, "testuser@testuser.com");
   });
 
 
   asyncTest("removeEmail that is added", function() {
-    storage.addEmail("testemail@testemail.com", {pub: "pub", priv: "priv"});
+    storage.addEmail("testuser@testuser.com", {pub: "pub", priv: "priv"});
 
-    lib.removeEmail("testemail@testemail.com", function() {
+    lib.removeEmail("testuser@testuser.com", function() {
       var identities = lib.getStoredEmailKeypairs();
-      equal(false, "testemail@testemail.com" in identities, "Our new email is removed");
+      equal(false, "testuser@testuser.com" in identities, "Our new email is removed");
       start();
     }, testHelpers.unexpectedXHRFailure);
   });
@@ -853,17 +1092,17 @@
 
 
   asyncTest("removeEmail that is not added", function() {
-    lib.removeEmail("testemail@testemail.com", function() {
+    lib.removeEmail("testuser@testuser.com", function() {
       var identities = lib.getStoredEmailKeypairs();
-      equal(false, "testemail@testemail.com" in identities, "Our new email is removed");
+      equal(false, "testuser@testuser.com" in identities, "Our new email is removed");
       start();
     }, testHelpers.unexpectedXHRFailure);
   });
 
   asyncTest("removeEmail with XHR failure", function() {
-    storage.addEmail("testemail@testemail.com", {pub: "pub", priv: "priv"});
+    storage.addEmail("testuser@testuser.com", {pub: "pub", priv: "priv"});
 
-    failureCheck(lib.removeEmail, "testemail@testemail.com");
+    failureCheck(lib.removeEmail, "testuser@testuser.com");
   });
 
 
@@ -935,7 +1174,7 @@
 
   asyncTest("getAssertion with known email that has key", function() {
     lib.syncEmailKeypair(TEST_EMAIL, function() {
-      lib.getAssertion(TEST_EMAIL, lib.getOrigin(), function onSuccess(assertion) {
+      lib.getAssertion(TEST_EMAIL, lib.getOrigin(), 'default', function onSuccess(assertion) {
         testAssertion(assertion, start);
         equal(storage.site.get(testOrigin, "email"), TEST_EMAIL, "email address was persisted");
       }, testHelpers.unexpectedXHRFailure);
@@ -945,7 +1184,7 @@
 
   asyncTest("getAssertion with known secondary email that does not have a key", function() {
     storage.addEmail(TEST_EMAIL, { type: "secondary" });
-    lib.getAssertion(TEST_EMAIL, lib.getOrigin(), function onSuccess(assertion) {
+    lib.getAssertion(TEST_EMAIL, lib.getOrigin(), 'default', function onSuccess(assertion) {
       testAssertion(assertion, start);
       equal(storage.site.get(testOrigin, "email"), TEST_EMAIL, "email address was persisted");
     }, testHelpers.unexpectedXHRFailure);
@@ -960,6 +1199,7 @@
     lib.getAssertion(
       "unregistered@testuser.com",
       lib.getOrigin(),
+      'default',
       function(assertion) {
         testAssertion(assertion, start);
         equal(storage.site.get(testOrigin, "email"), "unregistered@testuser.com", "email address was persisted");
@@ -975,6 +1215,7 @@
     lib.getAssertion(
       "unregistered@testuser.com",
       lib.getOrigin(),
+      'default',
       function(assertion) {
         equal(assertion, null, "user must authenticate with IdP, no assertion");
         start();
@@ -984,7 +1225,7 @@
 
   asyncTest("getAssertion with unknown email", function() {
     lib.syncEmailKeypair(TEST_EMAIL, function() {
-      lib.getAssertion("testuser2@testuser.com", lib.getOrigin(), function onSuccess(assertion) {
+      lib.getAssertion("testuser2@testuser.com", lib.getOrigin(), 'default', function onSuccess(assertion) {
         equal(null, assertion, "email was unknown, we do not have an assertion");
         equal(storage.site.get(testOrigin, "email"), undefined, "email address was not set");
         start();
@@ -994,7 +1235,7 @@
 
   asyncTest("getAssertion with XHR failure", function() {
     storage.addEmail(TEST_EMAIL, {});
-    failureCheck(lib.getAssertion, TEST_EMAIL, lib.getOrigin());
+    failureCheck(lib.getAssertion, TEST_EMAIL, lib.getOrigin(), 'default');
   });
 
 
@@ -1085,13 +1326,14 @@
   });
 
   asyncTest("addressInfo with XHR Error", function() {
-    failureCheck(lib.addressInfo, TEST_EMAIL);
+    failureCheck(lib.addressInfo, TEST_EMAIL, 'default');
   });
 
   asyncTest("addressInfo with unknown secondary user", function() {
     xhr.useResult("unknown_secondary");
     lib.addressInfo(
       "unregistered@testuser.com",
+      'default',
       function(info) {
         equal(info.email, "unregistered@testuser.com", "correct address");
         equal(info.type, "secondary", "correct type");
@@ -1106,6 +1348,7 @@
     xhr.useResult("known_secondary");
     lib.addressInfo(
       "registered@testuser.com",
+      "default",
       function(info) {
         equal(info.type, "secondary", "correct type");
         equal(info.email, "registered@testuser.com", "correct email");
@@ -1121,6 +1364,7 @@
     provisioning.setStatus(provisioning.AUTHENTICATED);
     lib.addressInfo(
       "unregistered@testuser.com",
+      "default",
       function(info) {
         testObjectValuesEqual(info, {
           type: "primary",
@@ -1139,6 +1383,7 @@
     provisioning.setStatus(provisioning.AUTHENTICATED);
     lib.addressInfo(
       "registered@testuser.com",
+      "default",
       function(info) {
         testObjectValuesEqual(info, {
           type: "primary",
@@ -1157,6 +1402,7 @@
     provisioning.setStatus(provisioning.NOT_AUTHENTICATED);
     lib.addressInfo(
       "registered@testuser.com",
+      "default",
       function(info) {
         testObjectValuesEqual(info, {
           type: "primary",

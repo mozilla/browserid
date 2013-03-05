@@ -13,6 +13,9 @@ BrowserID.Modules.Dialog = (function() {
       helpers = bid.Helpers,
       win = window,
       startExternalDependencies = true,
+      TOSPP_SELECTOR = ".tospp a",
+      TOSPP_CLOSE_SELECTOR = "#tosppmodal .close",
+      IFRAME_PARENT_SELECTOR = "body",
       channel,
       sc;
 
@@ -146,6 +149,43 @@ BrowserID.Modules.Dialog = (function() {
   }
 
 
+  function showTOSPP(e) {
+    /*jshint validthis:true*/
+    var url = e.target.href;
+    var iframe;
+    var modal;
+    if (!this._tospp) {
+      this._tospp = {};
+      modal = this._tospp.modal = document.createElement('div');
+      modal.id = 'tosppmodal';
+
+      var close = document.createElement('span');
+      close.className = "close";
+      close.innerHTML = 'X';
+      close.onclick = closeTOSPP.bind(this);
+      modal.appendChild(close);
+
+      iframe = this._tospp.iframe = document.createElement('iframe');
+      iframe.id = 'tosppframe';
+      iframe.setAttribute('sandbox', '');
+      iframe.setAttribute('name', 'tosppframe');
+      dom.appendTo(iframe, modal);
+      dom.appendTo(modal, IFRAME_PARENT_SELECTOR);
+    } else {
+      iframe = this._tospp.iframe;
+      modal = this._tospp.modal;
+    }
+    modal.style.display = "block";
+    iframe.setAttribute('src', url);
+  }
+
+  function closeTOSPP() {
+    /*jshint validthis:true*/
+    if (this._tospp) {
+      this._tospp.modal.style.display = "none";
+    }
+  }
+
   var Dialog = bid.Modules.PageModule.extend({
     start: function(options) {
       var self=this;
@@ -170,6 +210,14 @@ BrowserID.Modules.Dialog = (function() {
       if (startExternalDependencies) {
         startChannel.call(self);
       }
+
+      // if B2G
+      //this.click(TOSPP_SELECTOR, showTOSPP);
+      $(TOSPP_SELECTOR).live('click', function(e) {
+        e.preventDefault();
+        showTOSPP.call(self, e);
+      });
+      // endif
 
       options.ready && _.defer(options.ready);
     },
@@ -255,6 +303,27 @@ BrowserID.Modules.Dialog = (function() {
         if (paramsFromRP.returnTo) {
           var returnTo = fixupReturnTo(origin_url, paramsFromRP.returnTo);
           user.setReturnTo(returnTo);
+        }
+
+        // forceIssuer is used by the Marketplace to disable primary support
+        // and replace fxos.login.persona.org as the issuer of certs
+        if (paramsFromRP.forceIssuer) {
+          // TODO check for valid domain
+          params.forceIssuer = paramsFromRP.forceIssuer;
+	}
+
+        // forceAuthentication is used by the Marketplace to ensure that the
+        // user knows the password to this account. We ignore any active session.
+        if (paramsFromRP.forceAuthentication &&
+            true === paramsFromRP.forceAuthentication) {
+          params.forceAuthentication = true;
+        }
+
+        // allowUnverified means that the user doesn't need to have
+        // verified their email address in order to send an assertion.
+        // if the user *has* verified, it will be a verified assertion.
+        if (paramsFromRP.allowUnverified) {
+          params.allowUnverified = true;
         }
 
         if (hash.indexOf("#AUTH_RETURN") === 0) {
