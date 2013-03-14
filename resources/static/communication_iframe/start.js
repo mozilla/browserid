@@ -24,6 +24,21 @@
   //  we may need to re-visit this)
   network.cookiesEnabledOverride = true;
 
+  // 1. try network.cookiesEnabled check.
+  // 2. see if we can read the cookie set by the dialog.
+  // if both checks fail, third-party cookie functionality is disabled,
+  // and we want to fall back gracefully by ceding session management
+  // to the RP. this means that a user might be logged out of persona.org
+  // but still have active logins across the web, if they have third-
+  // party cookies disabled in their browser.
+  // TODO if the user has cleared cookies/cache, but 3p cookies are accessible.
+  //      this check will always fail. Will that actually break login?
+  network.cookiesEnabled(function(err) {
+    if (err && document.cookie.indexOf("third-party-readable") == -1) {
+      // iframe falls back + agrees with whatever the RP page says.
+    }
+  });
+
   var chan = Channel.build({
     window: window.parent,
     origin: "*",

@@ -171,6 +171,8 @@ BrowserID.Modules.Dialog = (function() {
         startChannel.call(self);
       }
 
+      // TODO at this point, we can set the is-third-party-accessible cookie
+
       options.ready && _.defer(options.ready);
     },
 
