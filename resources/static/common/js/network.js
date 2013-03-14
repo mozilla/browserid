@@ -684,7 +684,7 @@ BrowserID.Network = (function() {
      * Check if the user's cookies are enabled
      * @method cookiesEnabled
      */
-    cookiesEnabled: function(onComplete, onFailure) {
+    cookiesEnabled: function(onComplete) {
       var enabled;
       try {
         // NOTE - The Android 3.3 and 4.0 default browsers will still pass
