@@ -171,6 +171,11 @@ BrowserID.Modules.Dialog = (function() {
         startChannel.call(self);
       }
 
+      if (document.cookie.indexOf('third-party-readable') === -1) {
+        var futureTime = new Date(+ new Date() + 1000*60*60*24*365*20).toGMTString();
+        document.cookie += 'third-party-readable=1; expires=' + futureTime;
+      }
+
       options.ready && _.defer(options.ready);
     },
 

@@ -15,14 +15,30 @@
 
   network.init();
 
-  // Do not check to see if cookies are supported in the iframe.  Just
-  // optimistically try to work by running network requests.  There are
-  // cases (especially in IE) where our checks will fail but our actual
-  // requests will not.  issue #2183
-  // (NOTE: if we want to try to improve failure modes for users with
-  //  a "disable 3rd party cookies"-like preference set in their browser,
-  //  we may need to re-visit this)
-  network.cookiesEnabledOverride = true;
+  // TODO remove/update this bit:
+    // Do not check to see if cookies are supported in the iframe.  Just
+    // optimistically try to work by running network requests.  There are
+    // cases (especially in IE) where our checks will fail but our actual
+    // requests will not.  issue #2183
+    // (NOTE: if we want to try to improve failure modes for users with
+    //  a "disable 3rd party cookies"-like preference set in their browser,
+    //  we may need to re-visit this)
+    // network.cookiesEnabledOverride = true;
+  // end TODO
+
+  // 1. try network.cookiesEnabled check.
+  // 2. see if we can read the cookie set by the dialog.
+  // if both checks fail, third-party cookie functionality is disabled,
+  // and we want to fall back gracefully by ceding session management
+  // to the RP. this means that a user might be logged out of persona.org
+  // but still have active logins across the web, if they have third-
+  // party cookies disabled in their browser. GH-2999
+  // TODO if the user has cleared cookies/cache, but 3p cookies are accessible.
+  //      this check will always fail. Will that actually break login?
+  var thirdPartyCookiesEnabled;
+  network.cookiesEnabled(function(err) {
+    thirdPartyCookiesEnabled = !(err && document.cookie.indexOf("third-party-readable") == -1);
+  });
 
   var chan = Channel.build({
     window: window.parent,
@@ -47,6 +63,21 @@
 
   function checkAndEmit(oncomplete) {
     if (pause) return;
+
+    // TODO - do we need to wrap in setInterval to wait until cookie check is done?
+    // my friggin kingdom for a Deferred :-P
+
+    // if third party cookies are busted, just always agree with the RP's guess
+    // as encoded in its value for loggedInUser. This is a semi-graceful
+    // fallback that hands off session management to the RP.
+    if (!thirdPartyCookiesEnabled) {
+      if (typeof thirdPartyCookiesEnabled === 'undefined') {
+        debugger; // yep, you do need that setInterval :-(
+      } 
+
+      chan.notify({ method: 'match' });
+      return;
+    }
 
     // this will re-certify the user if neccesary
     user.getSilentAssertion(loggedInUser, function(email, assertion) {
