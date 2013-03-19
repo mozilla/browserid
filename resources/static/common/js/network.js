@@ -660,7 +660,6 @@ BrowserID.Network = (function() {
      */
     setAllowUnverified: function(allow) {
       allow_unverified = allow;
-      xhr.setAllowUnverified(allow);
     },
 
     /**
