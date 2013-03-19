@@ -10,6 +10,7 @@ BrowserID.Network = (function() {
       context,
       server_time,
       domain_key_creation_time,
+      allow_unverified = false,
       code_version,
       mediator = bid.Mediator,
       xhr = bid.XHR,
@@ -44,8 +45,9 @@ BrowserID.Network = (function() {
     post({
       url: wsapiName,
       data: data,
-      success: function(status) {
-        complete(onComplete, status.success);
+      success: function(info) {
+        if (info.success) complete(onComplete, info);
+        else complete(onComplete, false);
       },
       error: function(info) {
         // 429 is throttling.
@@ -105,7 +107,8 @@ BrowserID.Network = (function() {
         data: {
           email: email,
           pass: password,
-          ephemeral: !storage.usersComputer.confirmed(email)
+          ephemeral: !storage.usersComputer.confirmed(email),
+          allowUnverified: allow_unverified
         },
         success: onComplete,
         error: onFailure
@@ -181,7 +184,8 @@ BrowserID.Network = (function() {
       var postData = {
         email: email,
         pass: password,
-        site : origin
+        site : origin,
+        allowUnverified: allow_unverified
       };
       stageAddressForVerification(postData, "/wsapi/stage_user", onComplete, onFailure);
     },
@@ -505,7 +509,8 @@ BrowserID.Network = (function() {
         data: _.extend(opts, {
           email: email,
           pubkey: pubkey.serialize(),
-          ephemeral: !storage.usersComputer.confirmed(email)
+          ephemeral: !storage.usersComputer.confirmed(email),
+          allowUnverified: allow_unverified
         }),
         success: onComplete,
         error: onFailure
@@ -645,6 +650,17 @@ BrowserID.Network = (function() {
         success: onComplete,
         error: onFailure
       });
+    },
+
+    /**
+     * Set whether the network should pass allowUnverified=true in
+     * its requests.
+     * @method setAllowUnverified
+     * @param {boolean} [allow] - True or false, to allow.
+     */
+    setAllowUnverified: function(allow) {
+      allow_unverified = allow;
+      xhr.setAllowUnverified(allow);
     },
 
     /**
