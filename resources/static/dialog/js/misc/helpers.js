@@ -41,14 +41,14 @@
     }
   }
 
-  function getAssertion(email, callback) {
+  function getAssertion(email, forceIssuer, callback) {
     /*jshint validthis:true*/
     var self=this,
         wait = bid.Screens.wait;
 
     wait.show("wait", bid.Wait.generateKey);
 
-    user.getAssertion(email, user.getOrigin(), function(assert) {
+    user.getAssertion(email, user.getOrigin(), forceIssuer, function(assert) {
       assert = assert || null;
       wait.hide();
       self.publish("assertion_generated", {
@@ -139,7 +139,7 @@
     var self=this;
 
     // go get the normalized address and then do the rest of the checks.
-    user.addressInfo(email, function(info) {
+    user.addressInfo(email, user.forceIssuer, function(info) {
       email = info.email;
 
       if (user.getStoredEmailKeypair(email)) {
@@ -162,7 +162,7 @@
   function refreshEmailInfo(email, callback) {
     /*jshint validthis:true*/
     var self=this;
-    user.addressInfo(email, function (info) {
+    user.addressInfo(email, user.forceIssuer, function (info) {
       callback(_.extend({ email: email }, info));
     }, self.getErrorDialog(errors.addressInfo, callback));
   }
