@@ -875,7 +875,7 @@ BrowserID.User = (function() {
      * @param {function} [onFailure] - Called on XHR failure.
      */
     requestTransitionToSecondary: function(email, password, onComplete, onFailure) {
-      User.addressInfo(email, user.forceIssuer, function(info) {
+      User.addressInfo(email, User.forceIssuer, function(info) {
         // user is not known.  Can't request a transition to secondary.
         if (info.state === "unknown") {
           complete(onComplete, { success: false, reason: "invalid_email" });
