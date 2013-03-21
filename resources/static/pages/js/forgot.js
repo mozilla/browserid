@@ -21,7 +21,7 @@ BrowserID.forgot = (function() {
     var email = helpers.getAndValidateEmail("#email");
     if (!email) return complete(oncomplete);
 
-    user.addressInfo(email, function(info) {
+    user.addressInfo(email, 'default', function(info) {
       email = info.email;
       user.requestPasswordReset(email, function(info) {
         if (info.success) {
