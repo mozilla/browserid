@@ -35,20 +35,15 @@ BrowserID.Storage = (function() {
   // issues do not become a factor. See issue #2206
   setDefaultValues();
 
-  function emailsStorageKey(issuer, cb) {
-    if (!! issuer)
+  function emailsStorageKey(issuer) {
+    if (issuer && issuer !== "default")
       return 'forceIssuerEmails';
     else
       return 'emails';
   }
 
-  function storeEmails(emails) {
-    storage[emailsStorageKey(null)] = JSON.stringify(emails);
-  }
-
-  function storeForceIssuerEmails(emails, forceIssuer) {
-    if (! forceIssuer) forceIssuer = 'issuer.domain';
-    storage[emailsStorageKey(forceIssuer)] = JSON.stringify(emails);
+  function storeEmails(emails, issuer) {
+    storage[emailsStorageKey(issuer)] = JSON.stringify(emails);
   }
 
   function clear() {
@@ -89,9 +84,9 @@ BrowserID.Storage = (function() {
     });
   }
 
-  function getEmails() {
+  function getEmails(issuer) {
     try {
-      var emails = JSON.parse(storage[emailsStorageKey(null)] || "{}");
+      var emails = JSON.parse(storage[emailsStorageKey(issuer)] || "{}");
       if (emails !== null)
         return emails;
     } catch(e) {
@@ -102,48 +97,28 @@ BrowserID.Storage = (function() {
     return {};
   }
 
-  function getForceIssuerEmails(forceIssuer) {
-    var emails = {};
-    try {
-      emails = JSON.parse(storage[emailsStorageKey(forceIssuer)] || "{}");
-    } catch(e) {}
-    return emails || {};
+  function getEmailCount(issuer) {
+    return _.size(getEmails(issuer));
   }
 
-  function getEmailCount() {
-    return _.size(getEmails());
-  }
-
-  function getEmail(email) {
-    var ids = getEmails();
+  function getEmail(email, issuer) {
+    var ids = getEmails(issuer);
 
     return ids && ids[email];
   }
 
-  function getForceIssuerEmail(email, forceIssuer) {
-    var ids = getForceIssuerEmails(forceIssuer);
-    return ids && ids[email];
-  }
-
-  function addEmail(email, obj) {
-    var emails = getEmails();
+  function addEmail(email, obj, issuer) {
+    var emails = getEmails(issuer);
     obj = obj || {};
     emails[email] = obj;
-    storeEmails(emails);
+    storeEmails(emails, issuer);
   }
 
-  function addForceIssuerEmail(email, forceIssuer, obj) {
-    var emails = getForceIssuerEmails(forceIssuer);
-    obj = obj || {};
-    emails[email] = obj;
-    storeForceIssuerEmails(emails);
-  }
-
-  function removeEmail(email) {
-    var emails = getEmails();
+  function removeEmail(email, issuer) {
+    var emails = getEmails(issuer);
     if(emails[email]) {
       delete emails[email];
-      storeEmails(emails);
+      storeEmails(emails, issuer);
 
       // remove any sites associated with this email address.
       var siteInfo = JSON.parse(storage.siteInfo || "{}");
@@ -168,21 +143,13 @@ BrowserID.Storage = (function() {
     }
   }
 
-  function removeForceIssuerEmail(email) {
-    var emails = getForceIssuerEmails();
-    if(emails[email]) {
-      delete emails[email];
-      storeForceIssuerEmails(emails);
-    }
-  }
-
-  function invalidateEmail(email) {
-    var id = getEmail(email);
+  function invalidateEmail(email, issuer) {
+    var id = getEmail(email, issuer);
     if (id) {
       delete id.priv;
       delete id.pub;
       delete id.cert;
-      addEmail(email, id);
+      addEmail(email, id, issuer);
     }
     else {
       throw new Error("unknown email address");
@@ -468,17 +435,16 @@ BrowserID.Storage = (function() {
      * @method addEmail
      */
     addEmail: addEmail,
-    addForceIssuerEmail: addForceIssuerEmail,
     /**
      * Get all email addresses and their associated key pairs
      * @method getEmails
      */
     getEmails: getEmails,
-    getForceIssuerEmails: getForceIssuerEmails,
 
     /**
      * Get the number of stored emails
      * @method getEmailCount
+     * @param {string} [issuer]
      * @return {number}
      */
     getEmailCount: getEmailCount,
@@ -489,7 +455,6 @@ BrowserID.Storage = (function() {
      * @method getEmail
      */
     getEmail: getEmail,
-    getForceIssuerEmail: getForceIssuerEmail,
     /**
      * Remove an email address, its key pairs, and any sites associated with
      * email address.
@@ -497,7 +462,6 @@ BrowserID.Storage = (function() {
      * @method removeEmail
      */
     removeEmail: removeEmail,
-    removeForceIssuerEmail: removeForceIssuerEmail,
     /**
      * Remove the key information for an email address.
      * @throws "unknown email address" if email address is not known.
