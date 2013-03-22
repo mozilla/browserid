@@ -24,7 +24,7 @@ BrowserID.User = (function() {
       stagedPassword,
       userid,
       auth_status,
-      forceIssuer;
+      forceIssuer = "default";
 
   function prepareDeps() {
     /*globals require:true*/
@@ -259,8 +259,6 @@ BrowserID.User = (function() {
    * @method persistEmailKeypair
    * @param {string} email - Email address to persist.
    * @param {object} keypair - Key pair to save
-   * @param {string} forceIssuer - IdP that should back the assertion.
-   *                   Value is a hostname or the string 'default'.
    * @param {function} [onComplete] - Called on successful completion.
    * @param {function} [onFailure] - Called on error.
    */
@@ -268,7 +266,7 @@ BrowserID.User = (function() {
     // XXX This needs to be looked at to make sure caching does not bite us.
     // I would rather pass in the unverified flag so that caching does not
     // cause problems here.
-    User.addressInfo(email, User.forceIssuer, function(info) {
+    User.addressInfo(email, function(info) {
       var now = new Date();
       var email_obj = storage.getEmails()[email] || {
         created: now
@@ -326,10 +324,9 @@ BrowserID.User = (function() {
    * @method certifyEmailKeypair
    */
   function certifyEmailKeypair(email, keypair, onComplete, onFailure) {
-    network.certKey(email, keypair.publicKey, User.forceIssuer, function(cert) {
+    network.certKey(email, keypair.publicKey, forceIssuer, function(cert) {
       // emails that *we* certify are always secondary emails
-      var forceIssuer = User.forceIssuer;
-      if ('default' !== forceIssuer) {
+      if (!User.isDefaultIssuer()) {
         persistForceIssuerEmailKeypair(email, keypair, cert, forceIssuer, onComplete, onFailure);
       } else {
         persistEmailKeypair(email, keypair, cert, onComplete, onFailure);
@@ -352,7 +349,7 @@ BrowserID.User = (function() {
   }
 
   function persistForceIssuerEmail(options) {
-    storage.addForceIssuerEmail(options.email, User.forceIssuer, {
+    storage.addForceIssuerEmail(options.email, forceIssuer, {
       created: new Date(),
       verified: options.verified
     });
@@ -413,7 +410,7 @@ BrowserID.User = (function() {
 
     setAuthenticationStatus(authenticated && type, status.userid);
     if (authenticated) {
-      if ('default' !== forceIssuer) User.forceIssuerEmail = email;
+      if (!User.isDefaultIssuer()) User.forceIssuerEmail = email;
 
       User.syncEmails(function() {
         complete(onComplete, authenticated);
@@ -437,6 +434,10 @@ BrowserID.User = (function() {
         pollDuration = config.pollDuration;
       }
       // END TESTING API
+
+      if (config.forceIssuer) {
+        forceIssuer = config.forceIssuer;
+      }
     },
 
     reset: function() {
@@ -445,6 +446,7 @@ BrowserID.User = (function() {
       registrationComplete = false;
       pollDuration = POLL_DURATION;
       stagedEmail = stagedPassword = userid = auth_status = null;
+      forceIssuer = "default";
     },
 
     resetCaches: function() {
@@ -503,6 +505,18 @@ BrowserID.User = (function() {
 
     getReturnTo: function() {
       return this.returnTo;
+    },
+
+    setIssuer: function(issuer) {
+      forceIssuer = issuer;
+    },
+
+    getIssuer: function() {
+      return forceIssuer;
+    },
+
+    isDefaultIssuer: function() {
+      return forceIssuer === "default";
     },
 
     /**
@@ -589,7 +603,7 @@ BrowserID.User = (function() {
           persistEmailKeypair(email, authInfo.keypair, authInfo.cert,
             function() {
               // We are getting an assertion for persona.org.
-              User.getAssertion(email, "https://login.persona.org", User.forceIssuer, function(assertion) {
+              User.getAssertion(email, "https://login.persona.org", function(assertion) {
                 if (assertion) {
                   onComplete("primary.verified", {
                     assertion: assertion
@@ -782,7 +796,7 @@ BrowserID.User = (function() {
      * @param {function} [onFailure] - Called on XHR failure.
      */
     requestPasswordReset: function(email, onComplete, onFailure) {
-      User.addressInfo(email, 'default', function(info) {
+      User.addressInfo(email, function(info) {
         // user is not known.  Can't request a password reset.
         if (info.state === "unknown") {
           complete(onComplete, { success: false, reason: "invalid_email" });
@@ -878,7 +892,7 @@ BrowserID.User = (function() {
      * @param {function} [onFailure] - Called on XHR failure.
      */
     requestTransitionToSecondary: function(email, password, onComplete, onFailure) {
-      User.addressInfo(email, User.forceIssuer, function(info) {
+      User.addressInfo(email, function(info) {
         // user is not known.  Can't request a transition to secondary.
         if (info.state === "unknown") {
           complete(onComplete, { success: false, reason: "invalid_email" });
@@ -989,8 +1003,8 @@ BrowserID.User = (function() {
           var emails_to_remove_pair = [_.difference(client_emails, server_emails)];
           var emails_to_update_pair = [_.intersection(client_emails, server_emails)];
 
-          if (!! User.forceIssuer && 'default' !== User.forceIssuer) {
-            var force_issuer_identities = storage.getForceIssuerEmails(User.forceIssuer);
+          if (!User.isDefaultIssuer()) {
+            var force_issuer_identities = storage.getForceIssuerEmails(forceIssuer);
             var force_issuer_emails = _.keys(force_issuer_identities);
             emails_to_add_pair.push(_.difference(server_emails, force_issuer_emails));
             emails_to_remove_pair.push(_.difference(force_issuer_emails, server_emails));
@@ -1074,14 +1088,12 @@ BrowserID.User = (function() {
      * @method authenticate
      * @param {string} email - Email address to authenticate.
      * @param {string} password - Password.
-     * @param {string} forceIssuer - IdP that should back the assertion.
-     *                   Value is a hostname or the string 'default'.
      * @param {function} [onComplete] - Called on completion with status. true
      * if user is authenticated, false otw.
      * @param {function} [onFailure] - Called on error.
      */
     authenticate: function(email, password, onComplete, onFailure) {
-      network.authenticate(email, password,
+      etwork.authenticate(email, password,
           handleAuthenticationResponse.curry(email, "password", onComplete,
               onFailure), onFailure);
     },
@@ -1135,7 +1147,7 @@ BrowserID.User = (function() {
      *        if type is secondary.
      * @param {function} [onFailure] - Called on XHR failure.
      */
-    addressInfo: function(email, issuer, onComplete, onFailure) {
+    addressInfo: function(email, onComplete, onFailure) {
       function complete(info) {
         // key off of both the normalized email entered typed email so
         // that the cache is maximally effective.
@@ -1289,8 +1301,6 @@ BrowserID.User = (function() {
      * server a keypair for the given email address.
      * @method syncEmailKeypair
      * @param {string} email - Email address.
-     * @param {string} forceIssuer - IdP that should back the assertion.
-     *                   Value is a hostname or the string 'default'.
      * @param {function} [onComplete] - Called on completion.  Called with
      * status parameter - true if successful, false otw.
      * @param {function} [onFailure] - Called on error.
@@ -1315,12 +1325,10 @@ BrowserID.User = (function() {
      * @method getAssertion
      * @param {string} email - Email to get assertion for.
      * @param {string} audience - Audience to use for the assertion.
-     * @param {string} forceIssuer - IdP that should back the assertion.
-     *                   Value is a hostname or the string 'default'.
      * @param {function} [onComplete] - Called with assertion, null otw.
      * @param {function} [onFailure] - Called on error.
      */
-    getAssertion: function(email, audience, forceIssuer, onComplete, onFailure) {
+    getAssertion: function(email, audience, onComplete, onFailure) {
       // we use the current time from the browserid servers
       // to avoid issues with clock drift on user's machine.
       // (issue #329)
@@ -1332,7 +1340,7 @@ BrowserID.User = (function() {
             assertion,
             self=this;
 
-        if ('default' === forceIssuer)
+        if (User.isDefaultIssuer())
           storedID = storage.getEmail(email);
         else
           storedID = storage.getForceIssuerEmail(email, forceIssuer);
@@ -1369,14 +1377,14 @@ BrowserID.User = (function() {
           }
           else {
             // TODO what will the type of forceIssuer email addresses be?
-            if (storedID.type === "primary" && 'default' === User.forceIssuer) {
+            if (storedID.type === "primary" && User.isDefaultIssuer()) {
               // first we have to get the address info, then attempt
               // a provision, then if the user is provisioned, go and get an
               // assertion.
-              User.addressInfo(email, User.forceIssuer, function(info) {
+              User.addressInfo(email, function(info) {
                 User.provisionPrimaryUser(email, info, function(status) {
                   if (status === "primary.verified") {
-                    User.getAssertion(email, audience, User.forceIssuer, onComplete, onFailure);
+                    User.getAssertion(email, audience, onComplete, onFailure);
                   }
                   else {
                     complete(null);
@@ -1388,7 +1396,7 @@ BrowserID.User = (function() {
               // we have no key for this identity, go generate the key,
               // sync it and then get the assertion recursively.
               User.syncEmailKeypair(email, function(status) {
-                User.getAssertion(email, audience, forceIssuer, onComplete, onFailure);
+                User.getAssertion(email, audience, onComplete, onFailure);
               }, onFailure);
             }
           }
@@ -1478,7 +1486,7 @@ BrowserID.User = (function() {
           var loggedInEmail = storage.getLoggedIn(origin);
           if (loggedInEmail !== siteSpecifiedEmail) {
             if (loggedInEmail) {
-              User.getAssertion(loggedInEmail, origin, User.forceIssuer, function(assertion) {
+              User.getAssertion(loggedInEmail, origin, function(assertion) {
                 onComplete(assertion ? loggedInEmail : null, assertion);
               }, onFailure);
             } else {
@@ -1592,6 +1600,5 @@ BrowserID.User = (function() {
     currentOrigin += ':' + window.location.port;
   }
   User.setOrigin(currentOrigin);
-  User.forceIssuer = 'default';
   return User;
 }());

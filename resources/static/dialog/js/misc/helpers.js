@@ -41,14 +41,14 @@
     }
   }
 
-  function getAssertion(email, forceIssuer, callback) {
+  function getAssertion(email, callback) {
     /*jshint validthis:true*/
     var self=this,
         wait = bid.Screens.wait;
 
     wait.show("wait", bid.Wait.generateKey);
 
-    user.getAssertion(email, user.getOrigin(), forceIssuer, function(assert) {
+    user.getAssertion(email, user.getOrigin(), function(assert) {
       assert = assert || null;
       wait.hide();
       self.publish("assertion_generated", {
@@ -83,7 +83,7 @@
       if (status.success) {
         var msg = { email: email, password: password };
         if (status.unverified) {
-          user.addressInfo(email, null, function(info) {
+          user.addressInfo(email, function(info) {
             // modify the addressCache info to the new unverified state
             info.state = "unverified";
             msg.type = "secondary";
@@ -150,7 +150,7 @@
     var self=this;
 
     // go get the normalized address and then do the rest of the checks.
-    user.addressInfo(email, user.forceIssuer, function(info) {
+    user.addressInfo(email, function(info) {
       email = info.email;
 
       if (user.getStoredEmailKeypair(email)) {
@@ -173,7 +173,7 @@
   function refreshEmailInfo(email, callback) {
     /*jshint validthis:true*/
     var self=this;
-    user.addressInfo(email, user.forceIssuer, function (info) {
+    user.addressInfo(email, function (info) {
       callback(_.extend({ email: email }, info));
     }, self.getErrorDialog(errors.addressInfo, callback));
   }

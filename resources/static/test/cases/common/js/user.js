@@ -379,8 +379,6 @@
   function testKnownSecondaryUser(email, normalizedEmail) {
     lib.addressInfo(
       email,
-      // XXX remove default from the signature.
-      "default",
       function(info) {
         testObjectValuesEqual(info, {
           type: "secondary",
@@ -398,8 +396,6 @@
     provisioning.setStatus(provisioning.AUTHENTICATED);
     lib.addressInfo(
       email,
-      // XXX remove default from the signature.
-      "default",
       function(info) {
         testObjectValuesEqual(info, {
           type: "primary",
@@ -418,8 +414,6 @@
     provisioning.setStatus(provisioning.NOT_AUTHENTICATED);
     lib.addressInfo(
       email,
-      // XXX remove default from the signature.
-      "default",
       function(info) {
         testObjectValuesEqual(info, {
           type: "primary",
@@ -996,7 +990,7 @@
 
   asyncTest("getAssertion with known email that has key", function() {
     lib.syncEmailKeypair(TEST_EMAIL, function() {
-      lib.getAssertion(TEST_EMAIL, lib.getOrigin(), 'default', function onSuccess(assertion) {
+      lib.getAssertion(TEST_EMAIL, lib.getOrigin(), function onSuccess(assertion) {
         testAssertion(assertion, start);
         equal(storage.site.get(testOrigin, "email"), TEST_EMAIL, "email address was persisted");
       }, testHelpers.unexpectedXHRFailure);
@@ -1006,7 +1000,7 @@
 
   asyncTest("getAssertion with known secondary email that does not have a key", function() {
     storage.addEmail(TEST_EMAIL, { type: "secondary" });
-    lib.getAssertion(TEST_EMAIL, lib.getOrigin(), 'default', function onSuccess(assertion) {
+    lib.getAssertion(TEST_EMAIL, lib.getOrigin(), function onSuccess(assertion) {
       testAssertion(assertion, start);
       equal(storage.site.get(testOrigin, "email"), TEST_EMAIL, "email address was persisted");
     }, testHelpers.unexpectedXHRFailure);
@@ -1021,7 +1015,6 @@
     lib.getAssertion(
       "unregistered@testuser.com",
       lib.getOrigin(),
-      'default',
       function(assertion) {
         testAssertion(assertion, start);
         equal(storage.site.get(testOrigin, "email"), "unregistered@testuser.com", "email address was persisted");
@@ -1037,7 +1030,6 @@
     lib.getAssertion(
       "unregistered@testuser.com",
       lib.getOrigin(),
-      'default',
       function(assertion) {
         equal(assertion, null, "user must authenticate with IdP, no assertion");
         start();
@@ -1047,7 +1039,7 @@
 
   asyncTest("getAssertion with unknown email", function() {
     lib.syncEmailKeypair(TEST_EMAIL, function() {
-      lib.getAssertion("testuser2@testuser.com", lib.getOrigin(), 'default', function onSuccess(assertion) {
+      lib.getAssertion("testuser2@testuser.com", lib.getOrigin(), function onSuccess(assertion) {
         equal(null, assertion, "email was unknown, we do not have an assertion");
         equal(storage.site.get(testOrigin, "email"), undefined, "email address was not set");
         start();
@@ -1057,7 +1049,7 @@
 
   asyncTest("getAssertion with XHR failure", function() {
     storage.addEmail(TEST_EMAIL, {});
-    failureCheck(lib.getAssertion, TEST_EMAIL, lib.getOrigin(), 'default');
+    failureCheck(lib.getAssertion, TEST_EMAIL, lib.getOrigin());
   });
 
 
@@ -1148,14 +1140,13 @@
   });
 
   asyncTest("addressInfo with XHR Error", function() {
-    failureCheck(lib.addressInfo, TEST_EMAIL, 'default');
+    failureCheck(lib.addressInfo, TEST_EMAIL);
   });
 
   asyncTest("addressInfo with unknown secondary user", function() {
     xhr.useResult("unknown_secondary");
     lib.addressInfo(
       "unregistered@testuser.com",
-      'default',
       function(info) {
         equal(info.email, "unregistered@testuser.com", "correct address");
         equal(info.type, "secondary", "correct type");

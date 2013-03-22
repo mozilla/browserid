@@ -117,8 +117,9 @@ BrowserID.State = (function() {
       self.hostname = info.hostname;
       self.siteName = info.siteName || info.hostname;
       self.siteTOSPP = !!(info.privacyPolicy && info.termsOfService);
-      self.forceIssuer = user.forceIssuer = (!!info.forceIssuer ? info.forceIssuer : 'default');
-      
+      var forceIssuer = (!!info.forceIssuer ? info.forceIssuer : 'default');
+      user.setIssuer(forceIssuer);
+
       self.allowUnverified = info.allowUnverified;
       network.setAllowUnverified(info.allowUnverified);
 
@@ -170,7 +171,6 @@ BrowserID.State = (function() {
       _.extend(info, {
         siteName: self.siteName,
         siteTOSPP: self.siteTOSPP,
-        forceIssuer: self.forceIssuer,
         allowUnverified: self.allowUnverified
       });
 
@@ -369,13 +369,10 @@ BrowserID.State = (function() {
       var email = info.email,
           record;
 
-      // qunit tests won't have run start state... reinit selfIssuer
-      self.forceIssuer = self.forceIssuer || 'default';
-
-      if ('default' === self.forceIssuer)
+      if (user.isDefaultIssuer())
         record = storage.getEmail(email);
       else
-        record = storage.getForceIssuerEmail(email, self.forceIssuer);
+        record = storage.getForceIssuerEmail(email, user.getIssuer());
 
       // Maybe use a second global variable so we know which email address was chosen?
       self.email = user.forceIssuerEmail = email;
@@ -413,9 +410,9 @@ BrowserID.State = (function() {
           redirectToState("primary_user", info);
         }
       }
-      else if ('default' !== self.forceIssuer && !record.cert) {
+      else if (!user.isDefaultIssuer() && !record.cert) {
         // TODO: Duplicates some of the logic in the authentication action module.
-        user.addressInfo(info.email, self.forceIssuer, function (serverInfo) {
+        user.addressInfo(info.email, function (serverInfo) {
           // We'll end up in this state again, but we want to see serverInfo.state change
           user.resetCaches();
           if (serverInfo.state === "transition_no_password") {
@@ -516,9 +513,7 @@ BrowserID.State = (function() {
     });
 
     handleState("generate_assertion", function(msg, info) {
-      var issuer = self.forceIssuer || 'default';
-      startAction("doGenerateAssertion", _.extend({ forceIssuer: issuer },
-                                                  info));
+      startAction("doGenerateAssertion", info);
     });
 
     handleState("forgot_password", function(msg, info) {

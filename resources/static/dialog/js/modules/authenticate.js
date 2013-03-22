@@ -16,7 +16,6 @@ BrowserID.Modules.Authenticate = (function() {
       dom = bid.DOM,
       lastEmail = "",
       addressInfo,
-      forceIssuer,
       hints = ["returning","start","addressInfo"],
       CONTENTS_SELECTOR = "#formWrap .contents",
       AUTH_FORM_SELECTOR = "#authentication_form",
@@ -46,7 +45,7 @@ BrowserID.Modules.Authenticate = (function() {
 
   function hasPassword(info) {
     /*jshint validthis:true*/
-    return (info && info.email && info.type === "secondary" && 
+    return (info && info.email && info.type === "secondary" &&
       (info.state === "known" ||
        info.state === "transition_to_secondary" ||
        info.state === "unverified" && this.allowUnverified));
@@ -79,7 +78,7 @@ BrowserID.Modules.Authenticate = (function() {
     }
     else {
       showHint("addressInfo");
-      user.addressInfo(email, this.forceIssuer, onAddressInfo,
+      user.addressInfo(email, onAddressInfo,
         self.getErrorDialog(errors.addressInfo));
     }
 
@@ -93,11 +92,11 @@ BrowserID.Modules.Authenticate = (function() {
       else if ("primary" === info.type) {
         self.close("primary_user", info, info);
       }
-      else if (!!self.forceIssuer && 'default' !== self.forceIssuer) {
+      else if (!user.isDefaultIssuer()) {
         if (hasPassword.call(self, info)) {
           enterPasswordState.call(self);
         } else {
-          createFxAccount.call(self, self.forceIssuer);
+          createFxAccount.call(self);
         }
       }
       else if (hasPassword.call(self, info)) {
@@ -134,11 +133,11 @@ BrowserID.Modules.Authenticate = (function() {
     }
   }
 
-  function createFxAccount(callback, forceIssuer) {
+  function createFxAccount(callback) {
     /*jshint validthis: true*/
     var self=this,
         email = getEmail();
-    
+
     if (email) {
       self.close("new_fxaccount", { email: email, fxaccount: true }, { email: email });
     } else {
@@ -254,7 +253,6 @@ BrowserID.Modules.Authenticate = (function() {
 
       var self=this;
 
-      self.forceIssuer = options.forceIssuer;
       self.allowUnverified = options.allowUnverified;
 
       dom.addClass(BODY_SELECTOR, AUTHENTICATION_CLASS);

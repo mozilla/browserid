@@ -54,7 +54,7 @@ BrowserID.signIn = (function() {
 
     if (email) {
       dom.setAttr('#email', 'disabled', 'disabled');
-      user.addressInfo(email, 'default', function(info) {
+      user.addressInfo(email, function(info) {
         dom.removeAttr('#email', 'disabled');
         addressInfo = info;
         email = info.email;

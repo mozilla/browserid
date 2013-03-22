@@ -132,8 +132,8 @@
       // User must be authenticated to get an assertion.
       if(authenticated) {
         user.setOrigin(origin);
-        var forceIssuer = 'default';
-        user.getAssertion(email, user.getOrigin(), forceIssuer, function(assertion) {
+        user.setIssuer('default');
+        user.getAssertion(email, user.getOrigin(), function(assertion) {
           complete(assertion || null);
         }, complete.curry(null));
       }
@@ -226,7 +226,7 @@
 
     function doLogin (params) {
       log('doLogin (with silent assertion)');
-      // Through the _internalParams, we signify to any RP callers that are 
+      // Through the _internalParams, we signify to any RP callers that are
       // interested that this assertion was acquired without user interaction.
       callback({ method: 'login', assertion: params, _internalParams: {silent: true} });
     }
