@@ -379,6 +379,8 @@
   function testKnownSecondaryUser(email, normalizedEmail) {
     lib.addressInfo(
       email,
+      // XXX remove default from the signature.
+      "default",
       function(info) {
         testObjectValuesEqual(info, {
           type: "secondary",
@@ -396,6 +398,8 @@
     provisioning.setStatus(provisioning.AUTHENTICATED);
     lib.addressInfo(
       email,
+      // XXX remove default from the signature.
+      "default",
       function(info) {
         testObjectValuesEqual(info, {
           type: "primary",
@@ -414,6 +418,8 @@
     provisioning.setStatus(provisioning.NOT_AUTHENTICATED);
     lib.addressInfo(
       email,
+      // XXX remove default from the signature.
+      "default",
       function(info) {
         testObjectValuesEqual(info, {
           type: "primary",
@@ -864,8 +870,8 @@
   });
 
   asyncTest("syncEmailKeypair with successful sync", function() {
-    lib.syncEmailKeypair("testemail@testemail.com", function(keypair) {
-      var identity = lib.getStoredEmailKeypair("testemail@testemail.com");
+    lib.syncEmailKeypair("testuser@testuser.com", function(keypair) {
+      var identity = lib.getStoredEmailKeypair("testuser@testuser.com");
 
       ok(identity, "we have an identity");
       ok(identity.priv, "a private key is on the identity");
@@ -879,10 +885,10 @@
   asyncTest("syncEmailKeypair with invalid sync", function() {
     xhr.useResult("invalid");
     lib.syncEmailKeypair(
-      "testemail@testemail.com",
+      "testuser@testuser.com",
       testHelpers.unexpectedSuccess,
       function() {
-        var identity = lib.getStoredEmailKeypair("testemail@testemail.com");
+        var identity = lib.getStoredEmailKeypair("testuser@testuser.com");
         equal(typeof identity, "undefined", "Invalid email is not synced");
 
         start();
@@ -891,7 +897,7 @@
   });
 
   asyncTest("syncEmailKeypair with XHR failure", function() {
-    failureCheck(lib.syncEmailKeypair, "testemail@testemail.com");
+    failureCheck(lib.syncEmailKeypair, "testuser@testuser.com");
   });
 
 
