@@ -174,12 +174,11 @@ suite.addBatch({
   }
 });
 
-// Run the "forgot_email" flow with first address. 
+// Run the "forgot_email" flow with first address.
 suite.addBatch({
   "reset password on first account": {
     topic: wsapi.post('/wsapi/stage_reset', {
       email: 'first@fakeemail.com',
-      pass: 'secondfakepass',
       site:'https://otherfakesite.com'
     }),
     "works": function(err, r) {
@@ -329,12 +328,11 @@ suite.addBatch({
   }
 });
 
-// Run the "forgot_email" flow with first address. 
+// Run the "forgot_email" flow with first address.
 suite.addBatch({
   "reset password on first account": {
     topic: wsapi.post('/wsapi/stage_reset', {
       email: 'first@fakeemail.com',
-      pass: 'secondfakepass',
       site:'https://otherfakesite.com'
     }),
     "works": function(err, r) {
@@ -453,7 +451,7 @@ suite.addBatch({
 
 // Now we have an account with an unverified email.  Let's attempt to reverify our other email
 // address
-// Run the "forgot_email" flow with first address. 
+// Run the "forgot_email" flow with first address.
 suite.addBatch({
   "reverify a non-existent email": {
     topic: wsapi.post('/wsapi/stage_reverify', {
