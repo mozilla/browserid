@@ -44,7 +44,9 @@
     network.cookiesEnabled(function(enabled) {
       if (!enabled) {
         // cookies are disabled, call onready and do nothing more.
-        loggedInUser = null;
+        // By not setting loggedInUser to null, the RP can call .logout
+        // a single time and have the .onlogout callback fired, which in
+        // turn allows the RP to sign the user out of their site.
         return oncomplete && oncomplete();
       }
 
@@ -103,7 +105,12 @@
     // logout have been called before. This allows the user to be force logged
     // out.
     if (loggedInUser !== null) {
-      storage.setLoggedIn(remoteOrigin, false);
+      // Some browsers (Chrome) disable access to localStorage if access
+      // to cookies is disabled. Ignore any localStorage exceptions for now
+      // and allow the site to log the user out.
+      try {
+        storage.setLoggedIn(remoteOrigin, false);
+      } catch (e) { }
       loggedInUser = null;
       chan.notify({ method: 'logout' });
     }
