@@ -122,6 +122,12 @@ BrowserID.Modules.Dialog = (function() {
     return returnTo;
   }
 
+  function fixupIssuer(url) {
+    // XXX do something awesome here.
+    console.warn("Sane issuer checks are needed");
+    return url;
+  }
+
   function validateRPAPI(rpAPI) {
     var VALID_RP_API_VALUES = [
       "watch_without_onready",
@@ -260,9 +266,8 @@ BrowserID.Modules.Dialog = (function() {
         // forceIssuer is used by the Marketplace to disable primary support
         // and replace fxos.login.persona.org as the issuer of certs
         if (paramsFromRP.forceIssuer) {
-          // TODO check for valid domain
-          params.forceIssuer = paramsFromRP.forceIssuer;
-	}
+          params.forceIssuer = fixupIssuer(paramsFromRP.forceIssuer);
+	      }
 
         // forceAuthentication is used by the Marketplace to ensure that the
         // user knows the password to this account. We ignore any active session.
