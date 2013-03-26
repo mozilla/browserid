@@ -1052,7 +1052,7 @@ BrowserID.User = (function() {
      * @param {function} [onFailure] - Called on error.
      */
     authenticate: function(email, password, onComplete, onFailure) {
-      etwork.authenticate(email, password,
+      network.authenticate(email, password,
           handleAuthenticationResponse.curry(email, "password", onComplete,
               onFailure), onFailure);
     },
@@ -1119,7 +1119,7 @@ BrowserID.User = (function() {
         return complete(addressCache[email]);
       }
 
-      network.addressInfo(email, function(info) {
+      network.addressInfo(email, forceIssuer, function(info) {
         // update the email with the normalized email if it is available.
         // The normalized email is stored in the cache.
         var normalizedEmail = info.normalizedEmail || email;

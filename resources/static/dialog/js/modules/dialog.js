@@ -124,7 +124,7 @@ BrowserID.Modules.Dialog = (function() {
 
   function fixupIssuer(url) {
     // XXX do something awesome here.
-    console.warn("Sane issuer checks are needed");
+    window.console.warn("Sane issuer checks are needed");
     return url;
   }
 
@@ -267,7 +267,7 @@ BrowserID.Modules.Dialog = (function() {
         // and replace fxos.login.persona.org as the issuer of certs
         if (paramsFromRP.forceIssuer) {
           params.forceIssuer = fixupIssuer(paramsFromRP.forceIssuer);
-	      }
+        }
 
         // forceAuthentication is used by the Marketplace to ensure that the
         // user knows the password to this account. We ignore any active session.

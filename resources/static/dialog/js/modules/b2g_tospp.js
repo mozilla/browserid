@@ -74,6 +74,7 @@ BrowserID.Modules.B2gTosPp = (function() {
   }
 
   function removeTOSPP() {
+    /*jshint validthis:true*/
     var tosppEl = this._tospp;
     if (tosppEl) {
       dom.removeElement(tosppEl);
