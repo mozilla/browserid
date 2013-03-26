@@ -10,7 +10,12 @@
       internal = bid.internal = bid.internal || {},
       user = bid.User,
       storage = bid.Storage,
+      network = bid.Network,
       moduleManager = bid.module;
+
+  network.init();
+  network.clearContext();
+
 
   // given an object containing an assertion, extract the assertion string,
   // as the internal API is supposed to return a string assertion, not an
@@ -119,6 +124,15 @@
     controller.get(origin, options, complete, complete);
   }
 
+  function setOrigin(origin) {
+    user.setOrigin(origin);
+    // B2G and marketplace use special issuers that disable primaries. Go see
+    // if the current domain uses a special issuer, if it does, set the issuer
+    // in user.js.
+    var issuer = storage.site.get(user.getOrigin(), "issuer");
+    user.setIssuer(issuer || 'default');
+  }
+
   /*
    * Get an assertion without user interaction - internal use
    */
@@ -128,11 +142,11 @@
       callback && callback(assertion || null);
     }
 
+    setOrigin(origin);
+
     user.checkAuthenticationAndSync(function(authenticated) {
       // User must be authenticated to get an assertion.
       if(authenticated) {
-        user.setOrigin(origin);
-        user.setIssuer('default');
         user.getAssertion(email, user.getOrigin(), function(assertion) {
           complete(assertion || null);
         }, complete.curry(null));
@@ -154,7 +168,7 @@
       callback && callback(status);
     }
 
-    user.setOrigin(origin);
+    setOrigin(origin);
     user.logout(callback, complete.curry(null));
   };
 
@@ -179,16 +193,13 @@
 
   function internalWatch (callback, options, log) {
     var bid = BrowserID,
-        network = bid.Network,
         user = bid.User,
         storage = bid.Storage;
-
-    network.init();
 
     log('internal watch options', options);
     var remoteOrigin = options.origin;
     var loggedInUser = options.loggedInUser;
-    user.setOrigin(remoteOrigin);
+    setOrigin(remoteOrigin);
 
     function checkAndEmit() {
       log('checking and emitting');
@@ -216,7 +227,6 @@
       }, log);
     }
 
-    network.clearContext();
     checkAndEmit();
 
     function doReady (params) {

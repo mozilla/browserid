@@ -46,10 +46,6 @@
     }
   });
 
-  test("make sure internal api namespace is there", function() {
-    ok(bid.internal, "BrowserID.internal exists");
-  });
-
   asyncTest("setPersistent unauthenticated user", function() {
     internal.setPersistent(ORIGIN, function(status) {
       strictEqual(status, null, "user is not authenticated should not succeed in setting persistent");
@@ -242,5 +238,29 @@
     });
 
   });
+
+  asyncTest(".watch - authenticated user requests an assertion with saved issuer - assertion generated with cert for that issuer", function() {
+    user.authenticate(TEST_EMAIL, TEST_PASSWORD, function() {
+      storage.setLoggedIn(ORIGIN, TEST_EMAIL);
+      storage.site.set(ORIGIN, "email", TEST_EMAIL);
+      storage.site.set(ORIGIN, "issuer", "fxos_issuer");
+
+      internal.watch(function(resp) {
+        if (resp.method === "login") {
+          ok(resp.assertion);
+        }
+        else if (resp.method === "ready") {
+          start();
+        }
+        else {
+          ok(false, "unexpected method call: " + resp.method);
+        }
+      }, {
+        origin: ORIGIN,
+        loggedInUser: "testuser2@testuser.com"
+      }, console.log);
+    });
+  });
+
 
 }());
