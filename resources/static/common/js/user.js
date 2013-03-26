@@ -24,7 +24,8 @@ BrowserID.User = (function() {
       stagedPassword,
       userid,
       auth_status,
-      forceIssuer = "default";
+      forceIssuer = "default",
+      allowUnverified = false;
 
   function prepareDeps() {
     /*globals require:true*/
@@ -297,9 +298,10 @@ BrowserID.User = (function() {
    * @method certifyEmailKeypair
    */
   function certifyEmailKeypair(email, keypair, onComplete, onFailure) {
-    network.certKey(email, keypair.publicKey, forceIssuer, function(cert) {
-      persistEmailKeypair(email, keypair, cert, onComplete, onFailure);
-    }, onFailure);
+    network.certKey(email, keypair.publicKey.serialize(), forceIssuer, allowUnverified,
+      function(cert) {
+        persistEmailKeypair(email, keypair, cert, onComplete, onFailure);
+      }, onFailure);
   }
 
   /**
@@ -408,6 +410,7 @@ BrowserID.User = (function() {
       pollDuration = POLL_DURATION;
       stagedEmail = stagedPassword = userid = auth_status = null;
       forceIssuer = "default";
+      allowUnverified = false;
     },
 
     resetCaches: function() {
@@ -481,6 +484,16 @@ BrowserID.User = (function() {
     },
 
     /**
+     * Set whether the network should pass allowUnverified=true in
+     * its requests.
+     * @method setAllowUnverified
+     * @param {boolean} [allow] - True or false, to allow.
+     */
+    setAllowUnverified: function(allow) {
+      allowUnverified = allow;
+    },
+
+    /**
      * Return the user's userid, which will an integer if the user
      * is authenticated, undefined otherwise.
      *
@@ -503,8 +516,8 @@ BrowserID.User = (function() {
      */
     createSecondaryUser: function(email, password, onComplete, onFailure) {
       stageAddressVerification(email, password,
-        network.createUser.bind(network, email, password, origin),
-        onComplete, onFailure);
+        network.createUser.bind(network, email, password,
+            origin, allowUnverified), onComplete, onFailure);
     },
 
     /**
@@ -1052,7 +1065,7 @@ BrowserID.User = (function() {
      * @param {function} [onFailure] - Called on error.
      */
     authenticate: function(email, password, onComplete, onFailure) {
-      network.authenticate(email, password,
+      network.authenticate(email, password, allowUnverified,
           handleAuthenticationResponse.curry(email, "password", onComplete,
               onFailure), onFailure);
     },
