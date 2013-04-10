@@ -37,7 +37,7 @@ primary.checkSupport(domain, function(err, r) {
   console.log('Public Key:\t\t', JSON.stringify(r.publicKey, null, "  "));
 
   var authopts = {
-      xframe: false
+    xframe: false
   };
   getResource('auth', r.urls.auth, authopts, function () {
     getResource('prov', r.urls.prov, {
@@ -52,56 +52,62 @@ primary.checkSupport(domain, function(err, r) {
  */
 function getResource(mode, url, opts, cb) {
   var path = urlp.parse(url).path;
-  var body = "",
-      r = https.request({
+  var options = {
     host: domain,
     path: path,
     method: 'GET'
-  }, checkResource(url, opts, body));
-  r.on('data', function (chunk) {
-    body += chunk;
-  });
-  r.on('error', function (e) {
-    console.log("ERROR: ", e.message);
-  });
-  r.on('close', function () {
-    var includes = {
-      'auth': '/authentication_api.js',
-      'prov': '/provisioning_api.js'
-    };
-    if (body.indexOf(util.format("https://login.persona.org%s", includes[mode])) == -1 &&
-        body.indexOf(util.format("https://login.anosrep.org%s", includes[mode])) == -1 &&
-        body.indexOf(util.format("https://login.dev.anosrep.org%s", includes[mode])) == -1) {
-        console.log(util.format("WARNING: No https://persona.org/%s script tag detected", includes[mode]));
-    }
-    if (cb) {
-        cb();
-    }
-  });
-  r.end();
-};
+  };
 
-/**
- * Called once we have a response.
- *
- * Do the provisioning and signin resources look kosher?
- */
-function checkResource (url, opts, body) {
-  return function (resp) {
-    // Their are no X-Frame options
-    if (resp.statusCode != 200) {
-      console.log("ERROR: HTTP status code=", resp.statusCode, url);
-    } else {
+  var req = https.request(options, function(res) {
+    if (res.statusCode !== 200) {
+      return console.log("ERROR: HTTP status code=", res.statusCode, url);
+    }
+
+    var body = '';
+    res.setEncoding('utf8');
+    res.on('data', function (chunk) {
+      body += chunk;
+    });
+
+    res.on('end', function () {
+      // There are no X-Frame options.
       if (opts.xframe === true) {
-        var xframe = und.filter(Object.keys(resp.headers), function (header) {
-          return header.toLowerCase() == 'x-frame-options';
+        var xframe = und.filter(Object.keys(res.headers), function (header) {
+          return header.toLowerCase() === 'x-frame-options';
         });
-        if (xframe.length == 1) {
-          console.log("ERROR: X-Frame-Options=", resp.headers[xframe[0]], ", BrowserID will not be able to communicate with your site." +
-              " Suppress X-Frame-Options for ", url);
+
+        if (xframe.length === 1) {
+          console.log("ERROR: X-Frame-Options=", res.headers[xframe[0]],
+                      ", BrowserID will not be able to communicate with your site." +
+                      " Suppress X-Frame-Options for ", url);
         }
       }
-      resp.setEncoding('utf8');
-    }
-  };
-};
+
+      // Do the provisioning and signin resources look kosher?
+      var includes = {
+        'auth': '/authentication_api.js',
+        'prov': '/provisioning_api.js'
+      };
+
+      if (body.indexOf(util.format("https://login.persona.org%s", includes[mode])) === -1 &&
+          body.indexOf(util.format("https://login.anosrep.org%s", includes[mode])) === -1 &&
+          body.indexOf(util.format("https://login.dev.anosrep.org%s", includes[mode])) === -1 &&
+          body.indexOf(util.format("https://browserid.org%s", includes[mode])) === -1 &&
+          body.indexOf(util.format("https://diresworb.org%s", includes[mode])) === -1) {
+        console.log(util.format("WARNING: No https://login.persona.org%s script tag detected", includes[mode]));
+      }
+
+      if (cb) {
+        cb();
+      }
+    });
+  });
+
+  req.on('error', function(e) {
+    console.log('ERROR:', e.message);
+    return cb(e);
+  });
+
+  req.end();
+}
+
