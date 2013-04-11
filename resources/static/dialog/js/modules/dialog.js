@@ -122,6 +122,12 @@ BrowserID.Modules.Dialog = (function() {
     return returnTo;
   }
 
+  function fixupIssuer(url) {
+    // XXX do something awesome here.
+    window.console.warn("Sane issuer checks are needed");
+    return url;
+  }
+
   function validateRPAPI(rpAPI) {
     var VALID_RP_API_VALUES = [
       "watch_without_onready",
@@ -217,6 +223,10 @@ BrowserID.Modules.Dialog = (function() {
           self.publish("kpi_data", { rp_api: rpAPI });
         }
 
+        if (paramsFromRP.inlineTermsOfService === true) {
+          params.inlineTermsOfService = true;
+        }
+
         if (paramsFromRP.requiredEmail) {
           helpers.log("requiredEmail has been deprecated");
         }
@@ -255,6 +265,26 @@ BrowserID.Modules.Dialog = (function() {
         if (paramsFromRP.returnTo) {
           var returnTo = fixupReturnTo(origin_url, paramsFromRP.returnTo);
           user.setReturnTo(returnTo);
+        }
+
+        // forceIssuer is used by the Marketplace to disable primary support
+        // and replace fxos.login.persona.org as the issuer of certs
+        if (paramsFromRP.forceIssuer) {
+          params.forceIssuer = fixupIssuer(paramsFromRP.forceIssuer);
+        }
+
+        // forceAuthentication is used by the Marketplace to ensure that the
+        // user knows the password to this account. We ignore any active session.
+        if (paramsFromRP.forceAuthentication &&
+            true === paramsFromRP.forceAuthentication) {
+          params.forceAuthentication = true;
+        }
+
+        // allowUnverified means that the user doesn't need to have
+        // verified their email address in order to send an assertion.
+        // if the user *has* verified, it will be a verified assertion.
+        if (paramsFromRP.allowUnverified) {
+          params.allowUnverified = true;
         }
 
         if (hash.indexOf("#AUTH_RETURN") === 0) {

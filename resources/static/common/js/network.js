@@ -15,6 +15,7 @@ BrowserID.Network = (function() {
       xhr = bid.XHR,
       post = xhr.post,
       get = xhr.get,
+      // XXX get this out of here!
       storage = bid.Storage;
 
   function onContextChange(msg, result) {
@@ -44,8 +45,9 @@ BrowserID.Network = (function() {
     post({
       url: wsapiName,
       data: data,
-      success: function(status) {
-        complete(onComplete, status.success);
+      success: function(info) {
+        if (info.success) complete(onComplete, info);
+        else complete(onComplete, false);
       },
       error: function(info) {
         // 429 is throttling.
@@ -99,13 +101,15 @@ BrowserID.Network = (function() {
      * with status parameter - true if authenticated, false otw.
      * @param {function} [onFailure] - called on XHR failure
      */
-    authenticate: function(email, password, onComplete, onFailure) {
+    authenticate: function(email, password, allowUnverified,
+        onComplete, onFailure) {
       post({
         url: "/wsapi/authenticate_user",
         data: {
           email: email,
           pass: password,
-          ephemeral: !storage.usersComputer.confirmed(email)
+          ephemeral: !storage.usersComputer.confirmed(email),
+          allowUnverified: allowUnverified
         },
         success: onComplete,
         error: onFailure
@@ -174,14 +178,17 @@ BrowserID.Network = (function() {
      * @param {string} email
      * @param {string} password
      * @param {string} origin - site user is trying to sign in to.
+     * @param {boolean} allowUnverified
      * @param {function} [onComplete] - Callback to call when complete.
      * @param {function} [onFailure] - Called on XHR failure.
      */
-    createUser: function(email, password, origin, onComplete, onFailure) {
+    createUser: function(email, password, origin, allowUnverified,
+        onComplete, onFailure) {
       var postData = {
         email: email,
         pass: password,
-        site : origin
+        site : origin,
+        allowUnverified: allowUnverified
       };
       stageAddressForVerification(postData, "/wsapi/stage_user", onComplete, onFailure);
     },
@@ -453,6 +460,7 @@ BrowserID.Network = (function() {
      * (is it a primary or a secondary)
      * @method addressInfo
      * @param {string} email - Email address to check.
+     * @param {string} issuer - Force a specific Issuer by specifing a domain. null for default.
      * @param {function} [onComplete] - Called with an object on success,
      *   containing these properties:
      *     type: <secondary|primary>
@@ -461,9 +469,11 @@ BrowserID.Network = (function() {
      *     prov: string - url to embed for silent provisioning - present if type is secondary
      * @param {function} [onFailure] - Called on XHR failure.
      */
-    addressInfo: function(email, onComplete, onFailure) {
+    addressInfo: function(email, issuer, onComplete, onFailure) {
+      issuer = issuer || 'default';
       get({
-        url: "/wsapi/address_info?email=" + encodeURIComponent(email),
+        url: "/wsapi/address_info?email=" + encodeURIComponent(email) +
+             "&issuer=" + encodeURIComponent(issuer),
         success: function(data, textStatus, xhr) {
           complete(onComplete, data);
         },
@@ -495,14 +505,17 @@ BrowserID.Network = (function() {
      * Certify the public key for the email address.
      * @method certKey
      */
-    certKey: function(email, pubkey, onComplete, onFailure) {
+    certKey: function(email, pubkey, forceIssuer, allowUnverified,
+        onComplete, onFailure) {
+      var opts = 'default' === forceIssuer ? {} : {forceIssuer: forceIssuer};
       post({
         url: "/wsapi/cert_key",
-        data: {
+        data: _.extend(opts, {
           email: email,
-          pubkey: pubkey.serialize(),
-          ephemeral: !storage.usersComputer.confirmed(email)
-        },
+          pubkey: pubkey,
+          ephemeral: !storage.usersComputer.confirmed(email),
+          allowUnverified: allowUnverified
+        }),
         success: onComplete,
         error: onFailure
       });

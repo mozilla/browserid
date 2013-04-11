@@ -25,7 +25,7 @@ if (process.env['PUBLIC_URL']) {
   }));
 }
 
-exampleServer.use(express.static(path.join(__dirname, "..", "example", "rp")));
+exampleServer.use(express.static(path.join(__dirname, "..", "example", "b2g")));
 
 exampleServer.use(express.bodyParser());
 
@@ -81,7 +81,7 @@ exampleServer.post('/process_assertion', function(req, res, next) {
 });
 
 exampleServer.listen(
-  process.env['PORT'] || 10001,
+  process.env['PORT'] || 10013,
   process.env['HOST'] || process.env['IP_ADDRESS'] || "127.0.0.1",
   function() {
     var addy = exampleServer.address();

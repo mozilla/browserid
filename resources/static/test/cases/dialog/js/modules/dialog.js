@@ -277,7 +277,7 @@
       }
     });
   });
-  
+
   asyncTest("#AUTH_RETURN with add=true should not call usedAddressAsPrimary", function() {
     winMock.location.hash = "#AUTH_RETURN";
     winMock.sessionStorage.primaryVerificationFlow = JSON.stringify({
@@ -434,6 +434,15 @@
     {
       termsOfService: HTTPS_TEST_DOMAIN + "/tos.html",
       privacyPolicy: HTTPS_TEST_DOMAIN + "/privacy.html"
+    });
+  });
+
+  asyncTest("get with valid inlineTermsOfService - pass on inlineTermsOfService", function() {
+    testExpectGetSuccess({
+      inlineTermsOfService: true
+    },
+    {
+      inlineTermsOfService: true
     });
   });
 

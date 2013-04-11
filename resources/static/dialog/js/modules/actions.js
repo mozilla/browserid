@@ -95,6 +95,13 @@ BrowserID.Modules.Actions = (function() {
       startService("required_email", info);
     },
 
+    doAuthenticateWithUnverifiedEmail: function(info) {
+      var self = this;
+      dialogHelpers.authenticateUser.call(this, info.email, info.password, function() {
+        self.publish("authenticated", info);
+      });
+    },
+
     doStageResetPassword: function(info) {
       dialogHelpers.resetPassword.call(this, info.email, info.ready);
     },
@@ -138,9 +145,13 @@ BrowserID.Modules.Actions = (function() {
       user.logoutUser(self.publish.bind(self, "logged_out"), self.getErrorDialog(errors.logoutUser));
     },
 
-    doCheckAuth: function() {
+    doCheckAuth: function(info) {
       var self=this;
-      user.checkAuthenticationAndSync(function(authenticated) {
+
+      info = info || {};
+      user.checkAuthenticationAndSync(function (authenticated) {
+        // Does the RP want us to force the user to authenticate?
+        authenticated = info.forceAuthentication ? false : authenticated;
         self.publish("authentication_checked", {
           authenticated: authenticated
         });

@@ -32,34 +32,55 @@
    * run. Run each test for each method.
    */
   var stagingMethods = {
-    createUser: true,
-    addSecondaryEmail: true,
-    requestPasswordReset: false,
-    requestEmailReverify: false,
-    requestTransitionToSecondary: true,
+    createUser: {
+      password: true,
+      unverified: true
+    },
+    addSecondaryEmail: {
+      password: true
+    },
+    requestPasswordReset: {
+      password: false
+    },
+    requestEmailReverify: {
+      password: false
+    },
+    requestTransitionToSecondary: {
+      password: true
+    },
   };
 
-  function getStagingMethodArgs(email, onComplete, usePassword) {
-      var args = [email, "origin", onComplete, testHelpers.unexpectedFailure];
-      if (usePassword) {
-        args.splice(1, 0, "password");
-      }
-      return args;
+  function getStagingMethodArgs(email, onComplete, config, onFailure) {
+    var args = [email];
+
+    if (config.password) {
+      args.push("password");
+    }
+
+    args.push("origin");
+
+    if (config.unverified) {
+      args.push(false);
+    }
+
+    args.push(onComplete, onFailure || testHelpers.unexpectedFailure);
+    return args;
   }
 
   var stagingTests = {
-    testStagingMethodSuccess: function(stagingMethod, usePassword) {
+    testStagingMethodSuccess: function(stagingMethod, config) {
       asyncTest(stagingMethod + " success", function() {
         var onComplete = function(status) {
-          equal(status, true, stagingMethod + " request success");
+          equal(status.success, true, stagingMethod + " request success");
           start();
         };
 
-        network[stagingMethod].apply(network, getStagingMethodArgs(TEST_EMAIL, onComplete, usePassword));
+        network[stagingMethod].apply(network,
+            getStagingMethodArgs(TEST_EMAIL, onComplete, config));
       });
     },
 
-    testStagingMethodInvalid: function(stagingMethod, usePassword) {
+    testStagingMethodInvalid: function(stagingMethod, config) {
       asyncTest(stagingMethod + " invalid", function() {
         transport.useResult("invalid");
         var onComplete = function(status) {
@@ -67,11 +88,11 @@
           start();
         };
 
-        network[stagingMethod].apply(network, getStagingMethodArgs("invaliduser", onComplete, usePassword));
+        network[stagingMethod].apply(network, getStagingMethodArgs("invaliduser", onComplete, config));
       });
     },
 
-    testStagingMethodThrottled: function(stagingMethod, usePassword) {
+    testStagingMethodThrottled: function(stagingMethod, config) {
       asyncTest(stagingMethod + " throttled", function() {
         transport.useResult("throttle");
 
@@ -80,26 +101,25 @@
           start();
         };
 
-        network[stagingMethod].apply(network, getStagingMethodArgs(TEST_EMAIL, onComplete, usePassword));
+        network[stagingMethod].apply(network, getStagingMethodArgs(TEST_EMAIL, onComplete, config));
       });
     },
 
-    testStagingMethodFailure: function(stagingMethod, usePassword) {
+    testStagingMethodFailure: function(stagingMethod, config) {
       asyncTest(stagingMethod + " XHR failure", function() {
-        if (usePassword) {
-          failureCheck(network[stagingMethod], TEST_EMAIL, "password", "origin");
-        }
-        else {
-          failureCheck(network[stagingMethod], TEST_EMAIL, "origin");
-        }
+        transport.useResult("ajaxError");
+        network[stagingMethod].apply(network,
+            getStagingMethodArgs(TEST_EMAIL, testHelpers.unexpectedSuccess,
+                config, testHelpers.expectedFailure));
       });
     }
   };
 
   for(var stagingMethod in stagingMethods) {
-    var usePassword = stagingMethods[stagingMethod];
+    var config = stagingMethods[stagingMethod];
+
     for( var stagingTest in stagingTests) {
-      stagingTests[stagingTest](stagingMethod, usePassword);
+      stagingTests[stagingTest](stagingMethod, config);
     }
   }
 
@@ -239,7 +259,7 @@
 
 
   asyncTest("authenticate with valid user", function() {
-    network.authenticate(TEST_EMAIL, "testuser", function onSuccess(status) {
+    network.authenticate(TEST_EMAIL, "testuser", false, function(status) {
       equal(status.success, true, "valid authentication");
       start();
     }, testHelpers.unexpectedXHRFailure);
@@ -247,18 +267,19 @@
 
   asyncTest("authenticate with invalid user", function() {
     transport.useResult("invalid");
-    network.authenticate(TEST_EMAIL, "invalid", function onSuccess(status) {
+    network.authenticate(TEST_EMAIL, "invalid", false, function(status) {
       equal(status.success, false, "invalid authentication");
       start();
     }, testHelpers.unexpectedXHRFailure);
   });
 
   asyncTest("authenticate with XHR failure after context already setup", function() {
-    failureCheck(network.authenticate, TEST_EMAIL, "ajaxError");
+    failureCheck(network.authenticate, TEST_EMAIL, false, "ajaxError");
   });
 
   asyncTest("authenticateWithAssertion with valid email/assertioni, returns true status", function() {
-    network.authenticateWithAssertion(TEST_EMAIL, "test_assertion", function(status) {
+    network.authenticateWithAssertion(TEST_EMAIL, "test_assertion",
+        function(status) {
       equal(status.success, true, "user authenticated, status set to true");
       start();
     }, testHelpers.unexpectedXHRFailure);
@@ -267,14 +288,16 @@
   asyncTest("authenticateWithAssertion with invalid email/assertion", function() {
     transport.useResult("invalid");
 
-    network.authenticateWithAssertion(TEST_EMAIL, "test_assertion", function(status) {
+    network.authenticateWithAssertion(TEST_EMAIL, "test_assertion",
+        function(status) {
       equal(status.success, false, "user not authenticated, status set to false");
       start();
     }, testHelpers.unexpectedXHRFailure);
   });
 
   asyncTest("authenticateWithAssertion with XHR failure", function() {
-    failureCheck(network.authenticateWithAssertion, TEST_EMAIL, "test_assertion");
+    failureCheck(network.authenticateWithAssertion, TEST_EMAIL,
+        "test_assertion");
   });
 
   asyncTest("logout", function() {
@@ -455,8 +478,7 @@
 
   asyncTest("addressInfo with unknown secondary email", function() {
     transport.useResult("unknown_secondary");
-
-    network.addressInfo(TEST_EMAIL, function onComplete(data) {
+    network.addressInfo(TEST_EMAIL, 'default', function onComplete(data) {
       equal(data.type, "secondary", "type is secondary");
       equal(data.state, "unknown", "address is unknown to BrowserID");
       start();
@@ -466,7 +488,7 @@
   asyncTest("addressInfo with known seconday email", function() {
     transport.useResult("known_secondary");
 
-    network.addressInfo(TEST_EMAIL, function onComplete(data) {
+    network.addressInfo(TEST_EMAIL, 'default', function onComplete(data) {
       equal(data.type, "secondary", "type is secondary");
       equal(data.state, "known", "address is known to BrowserID");
       start();
@@ -476,7 +498,7 @@
   asyncTest("addressInfo with primary email", function() {
     transport.useResult("primary");
 
-    network.addressInfo(TEST_EMAIL, function onComplete(data) {
+    network.addressInfo(TEST_EMAIL, 'default', function onComplete(data) {
       equal(data.type, "primary", "type is primary");
       ok("auth" in data, "auth field exists");
       ok("prov" in data, "prov field exists");
@@ -485,7 +507,7 @@
   });
 
   asyncTest("addressInfo with XHR failure", function() {
-    failureCheck(network.addressInfo, TEST_EMAIL);
+    failureCheck(network.addressInfo, TEST_EMAIL, 'default');
   });
 
   asyncTest("changePassword happy case, expect complete callback with true status", function() {
@@ -549,7 +571,7 @@
   });
 
   asyncTest("prolongSession with authenticated user, success - call complete", function() {
-    network.authenticate(TEST_EMAIL, "password", function() {
+    network.authenticate(TEST_EMAIL, "password", false, function() {
       network.prolongSession(function() {
         ok(true, "prolongSession completed");
         start();
@@ -577,7 +599,7 @@
   });
 
   asyncTest("usedAddressAsPrimary success - call success", function () {
-    network.authenticate(TEST_EMAIL, "password", function() {
+    network.authenticate(TEST_EMAIL, "password", false, function() {
       transport.useResult("primaryTransition");
       network.usedAddressAsPrimary(TEST_EMAIL, function (status) {
         ok(status.success);
@@ -587,13 +609,21 @@
   });
 
   asyncTest("usedAddressAsPrimary success - call no-op", function () {
-    network.authenticate(TEST_EMAIL, "password", function() {
+    network.authenticate(TEST_EMAIL, "password", false, function() {
       transport.useResult("primary");
       network.usedAddressAsPrimary(TEST_EMAIL, function (status) {
         equal(status.success, false);
         start();
       }, testHelpers.unexpectedXHRFailure);
     });
+  });
+
+  asyncTest("certKey success", function() {
+    network.certKey("testuser@testuser.com", "pubkey",
+        "default", false, function(cert) {
+      ok(cert);
+      start();
+    }, testHelpers.unexpectedXHRFailure);
   });
 
 }());

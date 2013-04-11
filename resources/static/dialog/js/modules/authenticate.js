@@ -44,16 +44,18 @@ BrowserID.Modules.Authenticate = (function() {
   }
 
   function hasPassword(info) {
+    /*jshint validthis:true*/
     return (info && info.email && info.type === "secondary" &&
-      (info.state === "known" || info.state === "transition_to_secondary" ));
+      (info.state === "known" ||
+       info.state === "transition_to_secondary" ||
+       info.state === "unverified" && this.allowUnverified));
   }
 
   function initialState(info) {
     /*jshint validthis: true*/
     var self=this;
-
     self.submit = checkEmail;
-    if (hasPassword(info)) {
+    if (hasPassword.call(self, info)) {
       addressInfo = info;
       enterPasswordState.call(self, info.ready);
     }
@@ -68,7 +70,6 @@ BrowserID.Modules.Authenticate = (function() {
     /*jshint validthis: true*/
     var email = getEmail(),
         self = this;
-
     if (!email) return;
 
     dom.setAttr(EMAIL_SELECTOR, 'disabled', 'disabled');
@@ -78,7 +79,7 @@ BrowserID.Modules.Authenticate = (function() {
     else {
       showHint("addressInfo");
       user.addressInfo(email, onAddressInfo,
-          self.getErrorDialog(errors.addressInfo));
+        self.getErrorDialog(errors.addressInfo));
     }
 
     function onAddressInfo(info) {
@@ -91,7 +92,14 @@ BrowserID.Modules.Authenticate = (function() {
       else if ("primary" === info.type) {
         self.close("primary_user", info, info);
       }
-      else if (hasPassword(info)) {
+      else if (!user.isDefaultIssuer()) {
+        if (hasPassword.call(self, info)) {
+          enterPasswordState.call(self);
+        } else {
+          createFxAccount.call(self);
+        }
+      }
+      else if (hasPassword.call(self, info)) {
         enterPasswordState.call(self);
       } else if ("transition_no_password" === info.state) {
         transitionNoPassword.call(self, info);
@@ -122,6 +130,18 @@ BrowserID.Modules.Authenticate = (function() {
     if (email) {
       var data = { email: email, transition_no_password: true };
       self.close("transition_no_password", data, data);
+    }
+  }
+
+  function createFxAccount(callback) {
+    /*jshint validthis: true*/
+    var self=this,
+        email = getEmail();
+
+    if (email) {
+      self.close("new_fxaccount", { email: email, fxaccount: true }, { email: email });
+    } else {
+      complete(callback);
     }
   }
 
@@ -173,6 +193,7 @@ BrowserID.Modules.Authenticate = (function() {
     /*jshint validthis: true*/
     var self=this;
     addressInfo = null;
+
     if (!dom.is(EMAIL_SELECTOR, ":disabled")) {
       self.publish("enter_email");
       dom.setInner(AUTHENTICATION_LABEL, dom.getInner(EMAIL_LABEL));
@@ -189,7 +210,7 @@ BrowserID.Modules.Authenticate = (function() {
     dom.setInner(PASSWORD_SELECTOR, "");
 
     self.submit = authenticate;
-    var labelSelector = (addressInfo.state === "known") ? PASSWORD_LABEL : TRANSITION_TO_SECONDARY_LABEL;
+    var labelSelector = (addressInfo.state === "transition_to_secondary") ? TRANSITION_TO_SECONDARY_LABEL : PASSWORD_LABEL;
     if (labelSelector === TRANSITION_TO_SECONDARY_LABEL) {
       dom.setInner(IDP_SELECTOR, helpers.getDomainFromEmail(addressInfo.email));
     }
@@ -231,6 +252,8 @@ BrowserID.Modules.Authenticate = (function() {
       lastEmail = options.email || "";
 
       var self=this;
+
+      self.allowUnverified = options.allowUnverified;
 
       dom.addClass(BODY_SELECTOR, AUTHENTICATION_CLASS);
       dom.addClass(BODY_SELECTOR, FORM_CLASS);

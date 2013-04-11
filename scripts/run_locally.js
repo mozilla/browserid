@@ -37,6 +37,11 @@ var daemonsToRun = {
     PORT: 10011,
     HOST: HOST
   },
+  b2g: {
+    path: path.join(__dirname, "..", "scripts", "serve_b2g.js"),
+    PORT: 10013,
+    HOST: HOST
+  },
   proxy: { },
   browserid: { },
   static: { },

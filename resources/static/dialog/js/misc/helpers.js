@@ -79,9 +79,20 @@
     var self=this;
     user.createSecondaryUser(email, password, function(status) {
       if (status.success) {
-        var info = { email: email, password: password };
-        self.publish("user_staged", info, info);
-        complete(callback, true);
+        var msg = { email: email, password: password };
+        if (status.unverified) {
+          user.addressInfo(email, function(info) {
+            // modify the addressCache info to the new unverified state
+            info.state = "unverified";
+            msg.type = "secondary";
+            msg.unverified = true;
+            self.publish("unverified_created", msg, msg);
+            complete(callback, true);
+          }, self.getErrorDialog(errors.createUser, callback));
+        } else {
+          self.publish("user_staged", msg, msg);
+          complete(callback, true);
+        }
       }
       else {
         tooltip.showTooltip("#could_not_add");
