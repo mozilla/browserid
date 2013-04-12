@@ -81,7 +81,7 @@
           requiredEmail: data.requiredEmail || false,
           siteName: data.siteName,
           idpName: data.idpName
-        }
+        };
 
         function renderForm(tmpl) {
           self.renderForm(tmpl, view);
@@ -121,6 +121,6 @@
   }
 
   BrowserID.Modules.UpgradeToPrimaryUser = makeModule('upgrade');
-  BrowserID.Modules.VerifyPrimaryUser = makeModule('verify')
+  BrowserID.Modules.VerifyPrimaryUser = makeModule('verify');
 
 }());
