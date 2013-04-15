@@ -11,13 +11,34 @@ BrowserID.Screens = (function() {
       BODY = "body";
 
   function Screen(target, className) {
+    target = target + " .contents";
     return {
       show: function(template, vars) {
         var self=this;
 
-        renderer.render(target + " .contents", template, vars);
+        renderer.render(target, template, vars);
         dom.addClass(BODY, className);
         dom.fireEvent(window, "resize");
+
+        /* First, try focusing the first visible button.
+         * Then, try to focus an input. If there is no input,
+         * then no action will be taken and the button will
+         * remain focused.
+         */
+
+        var buttons = dom.getDescendentElements(
+                          "button:visible:not(:disabled)", target);
+        var inputs = dom.getDescendentElements(
+                          "input:visible:not(:disabled)", target);
+
+        if (inputs.length) {
+          dom.blur("*:focus");
+          dom.focus(inputs.get(0));
+        }
+        else if (buttons.length) {
+          dom.blur("*:focus");
+          dom.focus(buttons.get(0));
+        }
 
         // extendedInfo takes care of info that is on a screen but hidden by
         // default.  When the user clicks the "open extended info" button, it

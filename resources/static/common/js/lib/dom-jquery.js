@@ -322,7 +322,22 @@ BrowserID.DOM = ( function() {
          * @param {selelector || element} elementToFocus
          */
         focus: function( elementToFocus ) {
-          jQuery( elementToFocus ).focus();
+          try {
+            jQuery( elementToFocus ).focus();
+          } catch(e) {
+            // IE8 is awesome and can except if an element it doesn't believe
+            // can be focused is attempted to be focused.
+            if (window.console) window.console.log(String(e));
+          }
+        },
+
+        /**
+         * Blur an element
+         * @method blur
+         * @param {selelector || element} elementToBlur
+         */
+        blur: function( elementToBlur ) {
+          jQuery( elementToBlur ).blur();
         },
 
         /**

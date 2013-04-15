@@ -320,12 +320,15 @@ BrowserID.TestHelpers = (function() {
         ok(true, msg || selector + " is focused");
       }
       else {
+        $(focusedEl).blur();
         // In some environments such as PhantomJS, input elements cannot be
         // checked for focus.  Make a temporary input element which we can
         // check to see if it is possible to focus. If it is possible, this is
         // a failure.  If it is not possible, print a message and continue.
         // Remove the element when complete.
-        var input = $("<input type='radio' />").appendTo("body").focus();
+        var input = $("<input type='radio' />");
+        input.appendTo("body")
+        input.focus();
         if (input.is(":focus")) {
           ok(false, msg || selector + " is focused");
           // refocus the original input element.

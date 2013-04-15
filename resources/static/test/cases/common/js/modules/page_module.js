@@ -21,7 +21,8 @@
       WAIT_CONTENTS_SELECTOR = "#wait .contents",
       WAIT_SHOWN_SELECTOR = "body.waiting",
       BODY_SELECTOR = "body",
-      FIRST_INPUT_SELECTOR = "input:visible:eq(0)",
+      FIRST_INPUT_SELECTOR = FORM_CONTENTS_SELECTOR + " input:visible",
+      FIRST_BUTTON_SELECTOR = FORM_CONTENTS_SELECTOR + " button:visible",
       mediator = bid.Mediator;
 
   function testRenderMessagingScreen(renderer, contentEl) {
@@ -63,17 +64,23 @@
     equal(html, "", "with no template specified, no text is loaded");
   });
 
-  test("renderForm with template with input element - render the correct dialog, focus first input element", function() {
+  test("renderForm with template with input element and button - render the correct dialog, focus first input element", function() {
     createController();
 
-    controller.renderForm("test_template_with_input", {
-      title: "Test title",
-      message: "Test message"
-    });
+    controller.renderForm("test_template_with_input", {});
 
     var html = el.find(FORM_CONTENTS_SELECTOR).html();
     ok(html.length, "with template specified, form text is loaded");
     testElementFocused(FIRST_INPUT_SELECTOR);
+  });
+
+  test("renderForm with template with button only - focus the button", function() {
+    createController();
+
+    controller.renderForm("test_template_no_input", {});
+
+    var html = el.find(FORM_CONTENTS_SELECTOR).html();
+    testElementFocused(FIRST_BUTTON_SELECTOR);
   });
 
   test("renderError renders an error screen", function() {

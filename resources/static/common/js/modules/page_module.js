@@ -59,11 +59,6 @@ BrowserID.Modules.PageModule = (function() {
 
       screens.form.show(template, data);
       self.hideWarningScreens();
-      dom.focus("input:visible:not(:disabled):eq(0)");
-      // XXX jQuery.  bleck.
-      if($("*:focus").length === 0) {
-        dom.focus("button:visible:eq(0)");
-      }
     },
 
     // the wait, error and delay screens make up the warning screens.

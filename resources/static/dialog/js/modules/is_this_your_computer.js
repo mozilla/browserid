@@ -20,10 +20,6 @@ BrowserID.Modules.IsThisYourComputer = (function() {
 
       self.renderWait("is_this_your_computer", options);
 
-      // renderWait does not automatically focus the first input element or
-      // button, so it must be done manually.
-      dom.focus("#this_is_my_computer");
-
       self.click("#this_is_my_computer", self.yes);
       self.click("#this_is_not_my_computer", self.no);
 
