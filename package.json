@@ -53,7 +53,7 @@
         "node-inspector": "0.2.0beta3"
     },
     "scripts": {
-        "preinstall": "node ./scripts/lockdown",
+        "preinstall": "npm install lockdown; node ./node_modules/lockdown/lockdown.js",
         "postinstall": "node ./scripts/postinstall.js",
         "postupdate": "node ./scripts/postinstall.js",
         "test": "./scripts/test",
