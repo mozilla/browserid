@@ -19,6 +19,7 @@ BrowserID.manageAccount = (function() {
       complete = helpers.complete,
       doc = document,
       tooltip = bid.Tooltip,
+      noAlert = process.env['PERSONA_NO_ALERT'],
       authLevel;
 
   function syncAndDisplayEmails(oncomplete) {
