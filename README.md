@@ -45,6 +45,11 @@ BrowserID needs the following dependencies before it can run:
 * g++
 
 For detailed instructions for your specific operating system, check out the `SETUP` docs in the `docs/` folder.
+A script is also available at `scripts/setup_node.sh`. Run it with `./scripts/setup_node.sh install <directory_browserid> <directory_nvm>` and it will :
+
+* clone this repository in `<directory_browserid>`
+* install `nvm` (a tool to manage Node.Js versions) in `<directory_nvm>` (must be __writable__ by the user which runs the script)
+* install all the dependencies needed by Node and all the Node.Js modules needed by Persona to run.
 
 ### Running BrowserID Locally
 
