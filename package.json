@@ -54,7 +54,7 @@
         "htmlparser": "1.7.6"
     },
     "scripts": {
-        "preinstall": "node ./scripts/lockdown",
+        "preinstall": "npm install lockdown && node ./node_modules/lockdown/lockdown.js",
         "postinstall": "node ./scripts/postinstall.js",
         "postupdate": "node ./scripts/postinstall.js",
         "test": "./scripts/test",
