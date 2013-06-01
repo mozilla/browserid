@@ -46,8 +46,8 @@ install ()
 	echo ". $2/nvm/nvm.sh" >> ~/.bashrc
 	source $2/nvm/nvm.sh
 
-	nvm install 0.8.12
-	nvm alias default 0.8.12
+	nvm install 0.10.9
+	nvm alias default 0.10.9
 	cd $1/browserid
 	npm install
 
