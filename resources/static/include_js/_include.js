@@ -115,9 +115,15 @@
     // Is there a native implementation on this platform?
     // If so, hook navigator.id onto it.
     if (navigator.mozId) {
-      navigator.id = navigator.mozId;
-    } else {
-      navigator.id = {};
+      for (var key in navigator.mozId) {
+        // Setting navigator.id = navigator.mozId makes navigator.id immutable,
+        // making it impossible to dynamically add properties or functions to
+        // the navigator.id object. The initial revision of FirefoxOS does not
+        // have the primary API built in, so the shimmed primary API must be
+        // used. To allow for this, use a client-side created navigator.id.
+        // This is FirefoxOS, we know Function.prototype.bind exists there.
+        navigator.id[key] = navigator.mozId[key].bind(navigator.mozId);
+      }
     }
   }
 
