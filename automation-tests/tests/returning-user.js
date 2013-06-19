@@ -63,9 +63,12 @@ runner.run(module, {
       .wclick(CSS['123done.org'].signinButton)
       .wwin(CSS['persona.org'].windowName)
       .wclick(CSS['dialog'].useNewEmail)
+      .wclick(CSS['dialog'].newEmail) // Click this text field to help IE8.
       .wtype(CSS['dialog'].newEmail, secondary)
       .wclick(CSS['dialog'].addNewEmailButton)
+      .wclick(CSS['dialog'].choosePassword) // Click this text field to help IE8.
       .wtype(CSS['dialog'].choosePassword, secondary.split('@')[0])
+      .wclick(CSS['dialog'].choosePassword) // Click this text field to help IE8.
       .wtype(CSS['dialog'].verifyPassword, secondary.split('@')[0])
       .wclick(CSS['dialog'].createUserButton, done)
   },

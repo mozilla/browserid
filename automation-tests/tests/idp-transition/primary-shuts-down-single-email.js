@@ -73,6 +73,7 @@ runner.run(module, {
       .wclick(CSS['123done.org'].signinButton)
       .wwin(CSS['dialog'].windowName)
       .wclick(CSS['dialog'].signInButton)
+      .wclick(CSS['dialog'].choosePassword) // Click this text field to help IE8.
       .wtype(CSS['dialog'].choosePassword, 'password')
       .wtype(CSS['dialog'].verifyPassword, 'password')
       .wclick(CSS['dialog'].createUserButton, done);
