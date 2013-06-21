@@ -47,6 +47,43 @@ pre {
 }
 
 </style>
+<script>
+navigator.id = navigator.id || {}; // important: does include.js bail if navigator.id, navigator.id.watch, or navigator.id.get is defined?
+navigator.id.q = [];
+
+function makeQueueable(funcName) {
+  var f = function() { navigator.id.q.push({func: funcName, args: arguments}) }
+  f.isQueueable = true; // so we can check it was overwritten
+  return f;
+}
+navigator.id.watch = makeQueueable('watch');
+navigator.id.get = makeQueueable('get');
+
+var scr = document.createElement('script');
+scr.async = true;
+scr.src = 'https://login.persona.org/include.js';
+scr.onload = scr.onreadystatechange = function() {
+  var rdyState = scr.readyState;
+  if (!rdyState || /loaded|complete/.test(rdyState)) {
+    var pollCount = 0;
+    function onParsed() {
+      if (navigator.id.watch.isQueueable || navigator.id.get.isQueueable) {
+        pollCount++;
+        if (pollCount > 200) { throw new Error('include.js failed to load after 10 sec') }
+        return setTimeout(onParsed, 50); // bail till ready, todo verify it's acutally needed to wait for parse time.
+      }
+      while (navigator.id.q.length) {
+        var next = navigator.id.q.shift();
+        navigator.id[next.func].apply(null, next.args);
+      }
+      scr.onload = null;
+      scr.onreadystatechange = null;
+    }
+  }
+};
+var entry = document.getElementsByTagName('script')[0];
+entry.parentNode.insertBefore(scr, entry);
+</script>
 </head>
 <body>
 <div class="title">
@@ -125,7 +162,6 @@ pre {
 </body>
 
 <script src="jquery-min.js"></script>
-<script src="https://login.persona.org/include.js"></script>
 <script>
 
 try {
