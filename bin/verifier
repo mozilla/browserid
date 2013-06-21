@@ -120,14 +120,14 @@ function doVerification(req, resp, next) {
     return resp.json({ status: "failure", reason: reason}, 400);
   }
 
-  var startTime = new Date();
+  var startTime = Date.now();
   cc.enqueue({
     assertion: assertion,
     audience: audience,
     forceIssuer: forceIssuer,
     allowUnverified: !!allowUnverified
   }, function (err, r) {
-    var reqTime = new Date - startTime;
+    var reqTime = Date.now() - startTime;
     statsd.timing('assertion_verification_time', reqTime);
 
     // consider "application" errors to be the same as harder errors
