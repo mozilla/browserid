@@ -21,10 +21,28 @@ BrowserID.Modules.Actions = (function() {
 
     // Only one service outside of the main dialog allowed.
     if(runningService) {
-      serviceManager.stop(runningService);
+      try {
+        serviceManager.stop(runningService);
+      } catch (e) {
+        // stop() throws if module wasn't running, no action needed,
+        // but IE8 can't do try/finally without a dummy catch. see eg
+        // http://webbugtrack.blogspot.com/2007/11/bug-184-catch-to-try-catch-finally-in.html
+      } finally {
+        runningService = null;
+      }
     }
 
-    var module = serviceManager.start(name, options);
+    var module;
+    try {
+      module = serviceManager.start(name, options);
+    } catch (e) {
+      // module failed to start or was already running.
+      // we must parse the error message to determine which.
+      if (e.message.indexOf('already running') > -1) {
+        runningService = name;
+      }
+    }
+
     if(module) {
       runningService = name;
     }
