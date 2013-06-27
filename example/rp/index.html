@@ -48,16 +48,22 @@ pre {
 
 </style>
 <script>
-navigator.id = navigator.id || {}; // important: does include.js bail if navigator.id, navigator.id.watch, or navigator.id.get is defined?
-navigator.idq = [];
-
+// first part of the async snippet. has to be loaded before other scripts relying on persona.
+// if include.js is loaded async, does it need to be separate?
+// yes I think, because the RP might require in a content script and get a 'navigator.id.foo is undefined' error.
+if (navigator.id || navigator.mozId) { return; }
+navigator.id = {}; navigator.idq = [];
 function makeQueueable(funcName) {
   var f = function() { navigator.idq.push({func: funcName, args: arguments}) }
   f.isQueueable = true; // so we can check it was overwritten
   return f;
 }
-navigator.id.watch = makeQueueable('watch');
+// stub out the API
 navigator.id.get = makeQueueable('get');
+navigator.id.getVerifiedEmail = makeQueueable('getVerifiedEmail');
+navigator.id.logout = makeQueueable('logout');
+navigator.id.request = makeQueueable('request');
+navigator.id.watch = makeQueueable('watch');
 </script>
 
 </head>
@@ -240,32 +246,57 @@ $(document).ready(function() {
 </script>
 
 <script>
-var scr = document.createElement('script');
-scr.async = true;
-scr.src = 'https://login.persona.org/include.js';
-scr.onload = scr.onreadystatechange = function() {
-  var rdyState = scr.readyState;
-  // if (!rdyState || /loaded|complete/.test(rdyState)) {
-  if (!rdyState || /loaded|complete/.test(rdyState)) {
-    var pollCount = 0;
-    function onParsed() {
-      if (navigator.id.watch.isQueueable || navigator.id.get.isQueueable) {
-        pollCount++;
-        if (pollCount > 200) { throw new Error('include.js failed to load after 10 sec') }
-        return setTimeout(onParsed, 50); // bail till ready, todo verify it's acutally needed to wait for parse time.
+// TODO: maybe a blog post on this stuff, eh?
+// TODO: instead of just loading in regular flow, wait until 'onload' or other
+//       event fires. this is possible, but tricky in IE8.
+// WIP refs: 
+//  disqus embed: http://help.disqus.com/customer/portal/articles/472097-universal-embed-code
+//  ga embed: https://developers.google.com/analytics/devguides/collection/gajs/
+//  meebo embed: https://github.com/meebo/embed-code/blob/master/embed-code.js
+//  lightningjs embed (so crufty): https://github.com/olark/lightningjs/blob/master/lightningjs-embed.js
+//  great SO answer on custom IE8 events, need to confirm accurate with wrox book: http://stackoverflow.com/questions/13435008/how-to-trigger-a-custom-javascript-event-in-ie8
+
+/* to make onScriptLoaded smaller + look like something not to be tampered with,
+   we can set some vars (nid = navigator.id, nidw = nid.watch, nidq = navigator.idq),
+   then minify it:
+
+   function onScriptLoaded(e){var t=navigator.id,n=t.watch,r=navigator.idq;return function(){
+   var i=e.readyState;if(!i||/loaded|complete/.test(i)){var o=0;function u(){if(n.isQueueable){
+   o++;if(o>200){throw new Error("include.js failed to load after 10 sec")}return setTimeout(u,50)
+   }while(r.length){var i=r.shift();t[i.func].apply(navigator.id,i.args)}delete navigator.idq;
+   e.onload=null;e.onreadystatechange=null}u()}}}
+
+*/
+function onScriptLoaded(s) {
+  return function() {
+    var rdyState = s.readyState;
+    if (!rdyState || /loaded|complete/.test(rdyState)) {
+      var pollCount = 0;
+      function onParsed() {
+        if (navigator.id.watch.isQueueable) {
+          pollCount++;
+          if (pollCount > 200) { throw new Error('include.js failed to load after 10 sec') }
+          return setTimeout(onParsed, 50); // bail till ready, todo verify it's actually needed to wait for parse time.
+        }
+        while (navigator.idq.length) {
+          var next = navigator.idq.shift();
+          navigator.id[next.func].apply(navigator.id, next.args);
+        }
+        delete navigator.idq;
+        s.onload = null;
+        s.onreadystatechange = null;
       }
-      while (navigator.idq.length) {
-        var next = navigator.idq.shift();
-        navigator.id[next.func].apply(navigator.id, next.args);
-      }
-      delete navigator.idq;
-      scr.onload = null;
-      scr.onreadystatechange = null;
+      onParsed()
     }
-    onParsed()
-  }
-};
-var entry = document.getElementsByTagName('script')[0];
-entry.parentNode.insertBefore(scr, entry);
+  };
+}
+
+var scr = document.createElement('script'); scr.async = true; scr.type = 'text/javascript';
+scr.src = 'https://login.persona.org/include.js'; scr.onload = scr.onreadystatechange = onScriptLoaded(scr);
+// GA snippet and 3pJS book
+var entry = document.getElementsByTagName('script')[0]; entry.parentNode.insertBefore(scr, entry);
+// cleaner, how disqus currently does it:
+// (document.getElementsByTagName('head')[0] || document.getElementsByTagName('body')[0]).appendChild(scr);
+}
 </script>
 </html>
