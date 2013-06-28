@@ -85,7 +85,7 @@ function onScriptLoaded(s) {
         // if navigator.id's reference has been replaced by the shim,
         // _qd will no longer be available.
         if (nav.id._qd) {
-          // bail till ready, back off slowly with no timeout because EDGE/2G
+          // bail till ready, back off slowly with no timeout
           return setTimeout(onParsed, parseWait+=50);
         }
         while (next = idq.shift()) {
