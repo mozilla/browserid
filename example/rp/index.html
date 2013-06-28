@@ -60,8 +60,12 @@ var api = ['get','getVerifiedEmail','logout','request','watch'],
     parseWait = 50,
     next,
     doc = document,
-    isIE = !!doc.attachEvent,
-    scr = doc.createElement('script');
+    readyState = 'readyState',
+    attachEvent = 'attachEvent',
+    DOMContentLoaded = 'DOMContentLoaded',
+    isIE = !!doc[attachEvent],
+    scr = doc.createElement('script'),
+    onreadystatechange = 'onreadystatechange';
 
 // stub out the API
 while(funcName = api.pop()) {
@@ -75,7 +79,7 @@ id._qd = id._shimmed = true;
 
 function onScriptLoaded(s) {
   return function() {
-    rdyState = s.readyState;
+    rdyState = s[readyState];
     if (!rdyState || /loaded|complete/.test(rdyState)) {
       (function onParsed() {
         // if navigator.id's reference has been replaced by the shim,
@@ -87,7 +91,7 @@ function onScriptLoaded(s) {
         while (next = idq.shift()) {
           nav.id[next.f].apply(nav.id, next.a);
         }
-        s.onload = s.onreadystatechange = null;
+        s.onload = s[onreadystatechange] = null;
       }());
     }
   };
@@ -95,21 +99,21 @@ function onScriptLoaded(s) {
 
 // insert script on DOMContentReady with IE8 fallback
 function addScript() {
-  isIE ? doc.detachEvent('onreadystatechange', addScript) :
-    doc.removeEventListener('DOMContentLoaded', addScript, false);
+  isIE ? doc.detachEvent(onreadystatechange, addScript) :
+    doc.removeEventListener(DOMContentLoaded, addScript, false);
   scr.async = true; scr.type = 'text/javascript';
-  scr.src = 'https://login.persona.org/include.js'; scr.onload = scr.onreadystatechange = onScriptLoaded(scr);
+  scr.src = 'https://login.persona.org/include.js'; scr.onload = scr[onreadystatechange] = onScriptLoaded(scr);
   doc.getElementsByTagName('script')[0].parentNode.appendChild(scr);
 }
 
-isIE ? doc.attachEvent('onreadystatechange', function() { if (doc.readyState === 'complete') addScript() }) :
-  doc.addEventListener('DOMContentLoaded', addScript, false);
+isIE ? doc[attachEvent](onreadystatechange, function() { if (doc[readyState] === 'complete') addScript() }) :
+  doc.addEventListener(DOMContentLoaded, addScript, false);
 }
 }());
 
-/* uglified version: 916 bytes, and I'm sure we could shrink it further.
+/* uglified version: 853 bytes, and I bet we could shrink it further.
 
-(function(){function l(b){return function(){f=b.readyState,(!f||/loaded|complete/.test(f))&&function c(){if(a.id._qd)return setTimeout(c,g+=50);for(;h=d.shift();)a.id[h.f].apply(a.id,h.a);b.onload=b.onreadystatechange=null}()}}function m(){j?i.detachEvent("onreadystatechange",m):i.removeEventListener("DOMContentLoaded",m,!1),k.async=!0,k.type="text/javascript",k.src="https://login.persona.org/include.js",k.onload=k.onreadystatechange=l(k),i.getElementsByTagName("script")[0].parentNode.appendChild(k)}var a=navigator;if(!a.id&&!a.mozId){for(var c,f,h,b=["get","getVerifiedEmail","logout","request","watch"],d=[],e=a.id={},g=50,i=document,j=!!i.attachEvent,k=i.createElement("script");c=b.pop();)e[c]=function(a){return function(){d.push({f:a,a:arguments})}}(c);e._qd=e._shimmed=!0,j?i.attachEvent("onreadystatechange",function(){"complete"===i.readyState&&m()}):i.addEventListener("DOMContentLoaded",m,!1)}})();
+(function(){function p(b){return function(){f=b[j],(!f||/loaded|complete/.test(f))&&function c(){if(a.id._qd)return setTimeout(c,g+=50);for(;h=d.shift();)a.id[h.f].apply(a.id,h.a);b.onload=b[o]=null}()}}function q(){m?i.detachEvent(o,q):i.removeEventListener(l,q,!1),n.async=!0,n.type="text/javascript",n.src="https://login.persona.org/include.js",n.onload=n[o]=p(n),i.getElementsByTagName("script")[0].parentNode.appendChild(n)}var a=navigator;if(!a.id&&!a.mozId){for(var c,f,h,b=["get","getVerifiedEmail","logout","request","watch"],d=[],e=a.id={},g=50,i=document,j="readyState",k="attachEvent",l="DOMContentLoaded",m=!!i[k],n=i.createElement("script"),o="onreadystatechange";c=b.pop();)e[c]=function(a){return function(){d.push({f:a,a:arguments})}}(c);e._qd=e._shimmed=!0,m?i[k](o,function(){"complete"===i[j]&&q()}):i.addEventListener(l,q,!1)}})();
 
 */
 </script>
