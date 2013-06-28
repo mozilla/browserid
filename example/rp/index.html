@@ -48,22 +48,70 @@ pre {
 
 </style>
 <script>
-// first part of the async snippet. has to be loaded before other scripts relying on persona.
-// if include.js is loaded async, does it need to be separate?
-// yes I think, because the RP might require in a content script and get a 'navigator.id.foo is undefined' error.
-if (navigator.id || navigator.mozId) { return; }
-navigator.id = {}; navigator.idq = [];
-function makeQueueable(funcName) {
-  var f = function() { navigator.idq.push({func: funcName, args: arguments}) }
-  f.isQueueable = true; // so we can check it was overwritten
-  return f;
-}
+// unminified async snippet
+(function() {
+var nav=navigator;
+if (!nav.id && !nav.mozId) {
+var api = ['get','getVerifiedEmail','logout','request','watch'],
+    funcName,
+    idq = [],
+    id = nav.id = {},
+    rdyState,
+    parseWait = 50,
+    next,
+    doc = document,
+    isIE = !!doc.attachEvent,
+    scr = doc.createElement('script');
+
 // stub out the API
-navigator.id.get = makeQueueable('get');
-navigator.id.getVerifiedEmail = makeQueueable('getVerifiedEmail');
-navigator.id.logout = makeQueueable('logout');
-navigator.id.request = makeQueueable('request');
-navigator.id.watch = makeQueueable('watch');
+while(funcName = api.pop()) {
+  id[funcName] = (function(funcName) {
+    return function() { idq.push({f: funcName, a: arguments}); };
+  }(funcName));
+}
+// _qd is a marker for us to keep track of whether the shim has overridden
+// id. _shimmed forces the shim to overwrite id when it loads
+id._qd = id._shimmed = true;
+
+function onScriptLoaded(s) {
+  return function() {
+    rdyState = s.readyState;
+    if (!rdyState || /loaded|complete/.test(rdyState)) {
+      (function onParsed() {
+        // if navigator.id's reference has been replaced by the shim,
+        // _qd will no longer be available.
+        if (nav.id._qd) {
+          // bail till ready, back off slowly with no timeout because EDGE/2G
+          return setTimeout(onParsed, parseWait+=50);
+        }
+        while (next = idq.shift()) {
+          nav.id[next.f].apply(nav.id, next.a);
+        }
+        s.onload = s.onreadystatechange = null;
+      }());
+    }
+  };
+}
+
+// insert script on DOMContentReady with IE8 fallback
+function addScript() {
+  isIE ? doc.detachEvent('onreadystatechange', addScript) :
+    doc.removeEventListener('DOMContentLoaded', addScript, false);
+  scr.async = true; scr.type = 'text/javascript';
+  scr.src = 'https://login.persona.org/include.js'; scr.onload = scr.onreadystatechange = onScriptLoaded(scr);
+  doc.getElementsByTagName('script')[0].parentNode.appendChild(scr);
+}
+
+isIE ? doc.attachEvent('onreadystatechange', function() { if (doc.readyState === 'complete') addScript() }) :
+  doc.addEventListener('DOMContentLoaded', addScript, false);
+}
+}());
+
+/* uglified version: 916 bytes, and I'm sure we could shrink it further.
+
+(function(){function l(b){return function(){f=b.readyState,(!f||/loaded|complete/.test(f))&&function c(){if(a.id._qd)return setTimeout(c,g+=50);for(;h=d.shift();)a.id[h.f].apply(a.id,h.a);b.onload=b.onreadystatechange=null}()}}function m(){j?i.detachEvent("onreadystatechange",m):i.removeEventListener("DOMContentLoaded",m,!1),k.async=!0,k.type="text/javascript",k.src="https://login.persona.org/include.js",k.onload=k.onreadystatechange=l(k),i.getElementsByTagName("script")[0].parentNode.appendChild(k)}var a=navigator;if(!a.id&&!a.mozId){for(var c,f,h,b=["get","getVerifiedEmail","logout","request","watch"],d=[],e=a.id={},g=50,i=document,j=!!i.attachEvent,k=i.createElement("script");c=b.pop();)e[c]=function(a){return function(){d.push({f:a,a:arguments})}}(c);e._qd=e._shimmed=!0,j?i.attachEvent("onreadystatechange",function(){"complete"===i.readyState&&m()}):i.addEventListener("DOMContentLoaded",m,!1)}})();
+
+*/
 </script>
 
 </head>
@@ -243,60 +291,5 @@ $(document).ready(function() {
   $('#loggedInUser').val(storage.loggedInUser ? storage.loggedInUser : "");
 });
 
-</script>
-
-<script>
-// TODO: maybe a blog post on this stuff, eh?
-// TODO: instead of just loading in regular flow, wait until 'onload' or other
-//       event fires. this is possible, but tricky in IE8.
-// WIP refs: 
-//  disqus embed: http://help.disqus.com/customer/portal/articles/472097-universal-embed-code
-//  ga embed: https://developers.google.com/analytics/devguides/collection/gajs/
-//  meebo embed: https://github.com/meebo/embed-code/blob/master/embed-code.js
-//  lightningjs embed (so crufty): https://github.com/olark/lightningjs/blob/master/lightningjs-embed.js
-//  great SO answer on custom IE8 events, need to confirm accurate with wrox book: http://stackoverflow.com/questions/13435008/how-to-trigger-a-custom-javascript-event-in-ie8
-
-/* to make onScriptLoaded smaller + look like something not to be tampered with,
-   we can set some vars (nid = navigator.id, nidw = nid.watch, nidq = navigator.idq),
-   then minify it:
-
-   function onScriptLoaded(e){var t=navigator.id,n=t.watch,r=navigator.idq;return function(){
-   var i=e.readyState;if(!i||/loaded|complete/.test(i)){var o=0;function u(){if(n.isQueueable){
-   o++;if(o>200){throw new Error("include.js failed to load after 10 sec")}return setTimeout(u,50)
-   }while(r.length){var i=r.shift();t[i.func].apply(navigator.id,i.args)}delete navigator.idq;
-   e.onload=null;e.onreadystatechange=null}u()}}}
-
-*/
-function onScriptLoaded(s) {
-  return function() {
-    var rdyState = s.readyState;
-    if (!rdyState || /loaded|complete/.test(rdyState)) {
-      var pollCount = 0;
-      function onParsed() {
-        if (navigator.id.watch.isQueueable) {
-          pollCount++;
-          if (pollCount > 200) { throw new Error('include.js failed to load after 10 sec') }
-          return setTimeout(onParsed, 50); // bail till ready, todo verify it's actually needed to wait for parse time.
-        }
-        while (navigator.idq.length) {
-          var next = navigator.idq.shift();
-          navigator.id[next.func].apply(navigator.id, next.args);
-        }
-        delete navigator.idq;
-        s.onload = null;
-        s.onreadystatechange = null;
-      }
-      onParsed()
-    }
-  };
-}
-
-var scr = document.createElement('script'); scr.async = true; scr.type = 'text/javascript';
-scr.src = 'https://login.persona.org/include.js'; scr.onload = scr.onreadystatechange = onScriptLoaded(scr);
-// GA snippet and 3pJS book
-var entry = document.getElementsByTagName('script')[0]; entry.parentNode.insertBefore(scr, entry);
-// cleaner, how disqus currently does it:
-// (document.getElementsByTagName('head')[0] || document.getElementsByTagName('body')[0]).appendChild(scr);
-}
 </script>
 </html>
