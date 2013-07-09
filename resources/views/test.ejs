@@ -13,14 +13,6 @@
     <script src="/common/js/lib/html5shim.js"></script>
   <![endif]-->
   <style>
-    #qunit-fixture {
-      position: absolute;
-      top: -1000px;
-      left: 100px;
-      right: 100px;
-      height: 300px;
-    }
-
     .tooltip {
       display: none;
     }
@@ -39,13 +31,6 @@
 	</head>
 	<body>
 
-		<h1 id="qunit-header">Persona Test Suite</h1>
-		<h2 id="qunit-banner"></h2>
-		<div id="qunit-testrunner-toolbar"></div>
-		<h2 id="qunit-userAgent"></h2>
-		<ol id="qunit-tests"></ol>
-		<div id="qunit-test-area"></div>
-
     <div id="qunit-fixture">
         <a href="#" onclick="$('#contents').hide(); return false;">Close</a>
         <h3>Test Contents, this will be updated and can be safely ignored</h3>
@@ -59,19 +44,10 @@
         <div id="page_head">
         </div>
 
-        <div id="authentication_form">
-          <input type="text" id="authentication_email" />
-          <input type="password" id="authentication_password" class="returning" />
-          <label for="authentication_email"></label>
-          <span class="label email_state">enter email</span>
-          <span class="label transition_to_secondary"><strong class="authentication_idp_name"></strong> transition</span>
-          <span class="label password_state">enter password</span>
-          <button class="continue" disabled>Next!</button>
-        </div>
-
         <div id="controller_head">
           <div id="formWrap">
-              <div class="contents"></div>
+            <div class="contents">
+            </div>
           </div>
 
           <div id="load">
@@ -91,6 +67,17 @@
           </div>
         </div>
 
+        <div id="authentication_form">
+          <input type="text" id="authentication_email" />
+          <input type="password" id="authentication_password" class="returning" />
+          <label for="authentication_email"></label>
+          <span class="label email_state">enter email</span>
+          <span class="label transition_to_secondary"><strong class="authentication_idp_name"></strong> transition</span>
+          <span class="label password_state">enter password</span>
+          <button class="continue" disabled>Next!</button>
+        </div>
+
+
         <div id="needsTooltip">Tooltip Anchor</div>
 
         <div id="shortTooltip" class="tooltip" for="needsTooltip">
@@ -101,6 +88,13 @@
           This is a long tooltip.  This should remain on the screen for about 5 seconds.
         </div>
     </div>
+
+		<h1 id="qunit-header">Persona Test Suite</h1>
+		<h2 id="qunit-banner"></h2>
+		<div id="qunit-testrunner-toolbar"></div>
+		<h2 id="qunit-userAgent"></h2>
+		<ol id="qunit-tests"></ol>
+		<div id="qunit-test-area"></div>
 
 
     <script type="text/html" id="templateUser">

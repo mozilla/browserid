@@ -20,15 +20,7 @@ BrowserID.Modules.PickEmail = (function() {
 
   function pickEmailState(event) {
     /*jshint validthis: true*/
-    var self=this,
-        // focus the first radio button by default.
-        focusSelector = "input[type=radio]:eq(0)";
-
-    // unless a radio button is checked, then focus it.
-    if (dom.getElements("input[type=radio]:checked").length) {
-      focusSelector = "input[type=radio]:checked";
-    }
-    dom.focus(focusSelector);
+    var self=this;
 
     self.submit = signIn;
   }
@@ -146,12 +138,6 @@ BrowserID.Modules.PickEmail = (function() {
       }
 
       dom.getElements(BODY_SELECTOR).css("opacity", "1");
-      if (dom.getElements("#selectEmail input[type=radio]:visible").length === 0) {
-        // If there is only one email address, the radio button is never shown,
-        // instead focus the sign in button so that the user can click enter.
-        // issue #412
-        dom.focus("#signInButton");
-      }
 
       self.click(ADD_EMAIL_SELECTOR, addEmail);
       // The click function does not pass the event to the function.  The event
