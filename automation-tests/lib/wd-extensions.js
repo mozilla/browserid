@@ -253,7 +253,8 @@ wd.prototype.wgetAttribute = function(opts, attribute, cb) {
 // wait for an element to be displayed, then type in it.
 wd.prototype.wtype = function(opts, text, cb) {
   var self = this;
-  self.waitForDisplayed(opts, function(err, el) {
+  // IE8 can't type into an element unless it is already focused.
+  self.wclick(opts, function(err, el) {
     if (err) return cb(err);
     self.type(el, text, cb);
   });
