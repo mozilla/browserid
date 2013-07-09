@@ -32,6 +32,12 @@ BrowserID.Modules.CheckRegistration = (function() {
       self.hideWarningScreens();
       self.renderWait("confirm_email", templateData);
 
+      /**
+       * Focus an element in the screen so screen readers can read the text
+       * see issue #2731
+       */
+      self.focus();
+
       self.email = options.email;
       self.verifier = options.verifier;
       self.verificationMessage = options.verificationMessage;
