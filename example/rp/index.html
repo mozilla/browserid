@@ -47,6 +47,77 @@ pre {
 }
 
 </style>
+<script>
+// unminified async snippet
+(function() {
+var nav=navigator;
+if (!nav.id && !nav.mozId) {
+var api = ['get','getVerifiedEmail','logout','request','watch'],
+    funcName,
+    idq = [],
+    id = nav.id = {},
+    rdyState,
+    parseWait = 50,
+    next,
+    doc = document,
+    readyState = 'readyState',
+    attachEvent = 'attachEvent',
+    DOMContentLoaded = 'DOMContentLoaded',
+    isIE = !!doc[attachEvent],
+    scr = doc.createElement('script'),
+    onreadystatechange = 'onreadystatechange';
+
+// stub out the API
+while(funcName = api.pop()) {
+  id[funcName] = (function(funcName) {
+    return function() { idq.push({f: funcName, a: arguments}); };
+  }(funcName));
+}
+// _qd is a marker for us to keep track of whether the shim has overridden
+// id. _shimmed forces the shim to overwrite id when it loads
+id._qd = id._shimmed = true;
+
+function onScriptLoaded(s) {
+  return function() {
+    rdyState = s[readyState];
+    if (!rdyState || /loaded|complete/.test(rdyState)) {
+      (function onParsed() {
+        // if navigator.id's reference has been replaced by the shim,
+        // _qd will no longer be available.
+        if (nav.id._qd) {
+          // bail till ready, back off slowly with no timeout
+          return setTimeout(onParsed, parseWait+=50);
+        }
+        while (next = idq.shift()) {
+          nav.id[next.f].apply(nav.id, next.a);
+        }
+        s.onload = s[onreadystatechange] = null;
+      }());
+    }
+  };
+}
+
+// insert script on DOMContentReady with IE8 fallback
+function addScript() {
+  isIE ? doc.detachEvent(onreadystatechange, addScript) :
+    doc.removeEventListener(DOMContentLoaded, addScript, false);
+  scr.async = true; scr.type = 'text/javascript';
+  scr.src = 'https://login.persona.org/include.js'; scr.onload = scr[onreadystatechange] = onScriptLoaded(scr);
+  doc.getElementsByTagName('script')[0].parentNode.appendChild(scr);
+}
+
+isIE ? doc[attachEvent](onreadystatechange, function() { if (doc[readyState] === 'complete') addScript() }) :
+  doc.addEventListener(DOMContentLoaded, addScript, false);
+}
+}());
+
+/* uglified version: 853 bytes, and I bet we could shrink it further.
+
+(function(){function p(b){return function(){f=b[j],(!f||/loaded|complete/.test(f))&&function c(){if(a.id._qd)return setTimeout(c,g+=50);for(;h=d.shift();)a.id[h.f].apply(a.id,h.a);b.onload=b[o]=null}()}}function q(){m?i.detachEvent(o,q):i.removeEventListener(l,q,!1),n.async=!0,n.type="text/javascript",n.src="https://login.persona.org/include.js",n.onload=n[o]=p(n),i.getElementsByTagName("script")[0].parentNode.appendChild(n)}var a=navigator;if(!a.id&&!a.mozId){for(var c,f,h,b=["get","getVerifiedEmail","logout","request","watch"],d=[],e=a.id={},g=50,i=document,j="readyState",k="attachEvent",l="DOMContentLoaded",m=!!i[k],n=i.createElement("script"),o="onreadystatechange";c=b.pop();)e[c]=function(a){return function(){d.push({f:a,a:arguments})}}(c);e._qd=e._shimmed=!0,m?i[k](o,function(){"complete"===i[j]&&q()}):i.addEventListener(l,q,!1)}})();
+
+*/
+</script>
+
 </head>
 <body>
 <div class="title">
@@ -130,7 +201,6 @@ pre {
 </body>
 
 <script src="jquery-min.js"></script>
-<script src="https://login.persona.org/include.js"></script>
 <script>
 
 try {
@@ -234,5 +304,4 @@ $(document).ready(function() {
 });
 
 </script>
-
 </html>
