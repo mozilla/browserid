@@ -9,7 +9,7 @@
 
       <ul class="inputs">
           <li>
-              <input id="newEmail" name="newEmail" type="email" autocapitalize="off" autocorrect="off" spellcheck="false" maxlength="254" <% if (typeof email !== "undefined") { %> value="<%= email %>" <% } %> placeholder="<%= gettext("email address") %>"/>
+              <input id="newEmail" name="newEmail" type="email" autocapitalize="off" autocorrect="off" spellcheck="false" maxlength="254" <% if (typeof email !== "undefined") { %> value="<%= email %>" <% } %> placeholder="<%= gettext("email address") %>" />
 
               <div id="email_format" class="tooltip" for="newEmail">
                 <%= gettext('Must be an email address') %>

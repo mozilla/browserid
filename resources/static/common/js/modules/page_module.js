@@ -56,18 +56,46 @@ BrowserID.Modules.PageModule = (function() {
       self.click(CANCEL_DIALOG_SELECTOR, cancelDialog);
     },
 
-    renderForm: function(template, data) {
+    renderForm: function(template, data, done) {
       var self=this;
 
       dom.removeClass("body", "rptospp");
 
       screens.form.show(template, data);
       self.hideWarningScreens();
-      dom.focus("input:visible:not(:disabled):eq(0)");
-      // XXX jQuery.  bleck.
-      if($("*:focus").length === 0) {
-        dom.focus("button:visible:eq(0)");
-      }
+
+      // IE8 has issues focusing if the screen has not yet been properly
+      // rendered. Give the rendering thread a moment, then focus.
+      // See
+      // http://www.mkyong.com/javascript/focus-is-not-working-in-ie-solution/
+      self.focus();
+      setTimeout(function() {
+        self.focus(null, done);
+      }, 100);
+    },
+
+    /**
+     * Focus the specified element OR one of the pre-defined set of form
+     * elements.
+     * Pre-defined element search order:
+     *   1) visible element with data-autofocus=true
+     *   2) visible, enabled input element
+     *   3) visible button
+     * @method focus
+     * @param {string || element} [el] - element to focus
+     * @param {function} [done] - called with boolean, true if element
+     *   was found to focus, false otw.
+     */
+    focus: function(el, done) {
+      if (el) return complete(done, dom.focus(el));
+
+      if (dom.focus("[data-autofocus=true]:visible:eq(0)"))
+        return complete(done, true);
+
+      if (dom.focus("input:visible:not(:disabled):eq(0)"))
+        return complete(done, true);
+
+      complete(done, dom.focus("button:visible:eq(0)"));
     },
 
     // the laoding wait, error and delay screens make up the warning screens.

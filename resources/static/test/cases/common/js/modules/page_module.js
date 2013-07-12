@@ -58,24 +58,48 @@
   test("page controller with no template causes no side effects", function() {
     createController();
 
-    var html = el.find(FORM_CONTENTS_SELECTOR).html();
+    var html = el.find(FORM_CONTENTS_SELECTOR).html().trim();
     equal(html, "", "with no template specified, no text is loaded");
 
     html = el.find(WAIT_CONTENTS_SELECTOR).html();
     equal(html, "", "with no template specified, no text is loaded");
   });
 
-  test("renderForm with template with input element - render the correct dialog, focus first input element", function() {
+  asyncTest("renderForm with template with input element - " +
+      "render the correct dialog, focus first input element", function() {
     createController();
 
     controller.renderForm("test_template_with_input", {
       title: "Test title",
       message: "Test message"
+    }, function() {
+      var html = el.find(FORM_CONTENTS_SELECTOR).html();
+      ok(html.length, "with template specified, form text is loaded");
+      testElementFocused("#templateInput");
+      start();
     });
+  });
 
-    var html = el.find(FORM_CONTENTS_SELECTOR).html();
-    ok(html.length, "with template specified, form text is loaded");
-    testElementFocused(FIRST_INPUT_SELECTOR);
+  asyncTest("renderForm with template with element with data-autofocus=true - " + "render the correct dialog, focus element", function() {
+    createController();
+
+    controller.renderForm("test_template_data_autofocus", {}, function() {
+      var html = el.find(FORM_CONTENTS_SELECTOR).html();
+      ok(html.length, "with template specified, form text is loaded");
+      testElementFocused("#autofocused");
+      start();
+    });
+  });
+
+  asyncTest("focus focuses element", function() {
+    createController();
+
+    controller.renderForm("test_template_data_autofocus", {}, function() {
+      controller.focus("#templateInput", function() {
+        testElementFocused("#templateInput");
+        start();
+      });
+    });
   });
 
   test("renderError renders an error screen", function() {

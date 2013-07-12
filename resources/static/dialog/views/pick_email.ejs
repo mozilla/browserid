@@ -16,7 +16,8 @@
               <li>
                   <label for="<%= id %>" class="<% if (emailAddress === siteEmail) { %> preselected selected<% } %> selectable" title="<%= emailAddress %>" >
                     <input type="radio" name="email" id="<%= id %>" value="<%= emailAddress %>"
-                        <% if (emailAddress === siteEmail || identities.length === 1) { %> checked="checked" <% } %>
+                        <% if (emailAddress === siteEmail || identities.length === 1) { %> checked="checked" data-autofocus="true" <% } %>
+                        <% if (!(siteEmail || index)) { %> data-autofocus="true" <% } %>
                       />
                     <%= emailAddress %>
                   </label>

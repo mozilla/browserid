@@ -324,6 +324,8 @@ BrowserID.DOM = ( function() {
         focus: function( elementToFocus ) {
           var el = jQuery( elementToFocus );
 
+          if ( el.is( ':focus' ) ) return true;
+
           // IE8 blows up when trying to focus an invisible or disabled
           // element. Keep that from happening. See issue #3385
           if ( el.is( ':visible' ) && el.is( ':enabled' ) ) {
@@ -337,6 +339,8 @@ BrowserID.DOM = ( function() {
             }
 
             el.focus();
+
+            return el.is(":focus");
           }
         },
 
