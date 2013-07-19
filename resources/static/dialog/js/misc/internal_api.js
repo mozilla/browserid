@@ -118,9 +118,13 @@
       // first, check the required email field, if that is not specified, go
       // check if an email is associated with this site. If that is not
       // available, there is not enough information to continue.
-      var requiredEmail = options.requiredEmail || storage.site.get(origin, "email");
+      // if options.origin is available, check login from that url instead of origin for assertion
+      var login_origin = options.origin || origin;
+      var requiredEmail = options.requiredEmail
+                       || storage.site.get(login_origin, "logged_in"); //get the logged in user (required for silent get)
       if(requiredEmail) {
-        getSilent(origin, requiredEmail, complete);
+        // always get assertion for origin passed, never options.origin
+        getSilent(origin, requiredEmail, complete, options.payload);
       }
       else {
         complete();
@@ -156,7 +160,7 @@
   /*
    * Get an assertion without user interaction - internal use
    */
-  function getSilent(origin, email, callback) {
+  function getSilent(origin, email, callback, payload) {
     function complete(assertion) {
       assertion = assertionObjectToString(assertion);
       callback && callback(assertion || null);
@@ -169,7 +173,7 @@
       if(authenticated) {
         user.getAssertion(email, user.getOrigin(), function(assertion) {
           complete(assertion || null);
-        }, complete.curry(null));
+        }, complete.curry(null), payload);
       }
       else {
         complete(null);
