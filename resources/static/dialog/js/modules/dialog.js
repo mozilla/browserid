@@ -249,7 +249,7 @@ BrowserID.Modules.Dialog = (function() {
       user.setOrigin(origin_url);
 
       // By default, a dialog is an orphan. It is only not an orphan if an
-      // assertion is generated. When an asseriton is generated, orphaned will
+      // assertion is generated. When an assertion is generated, orphaned will
       // be set to false (currently in state.js).
       var kpis = {
         orphaned: true
