@@ -304,14 +304,16 @@ BrowserID.Modules.Dialog = (function() {
         }
 
         if (paramsFromRP.siteLogo) {
-          // Until we have our head around the dangers of data uris and images
-          // that come from other domains, only allow absolute paths from the
-          // origin.
-          params.siteLogo = fixupAbsolutePath(origin_url, paramsFromRP.siteLogo);
+          // Regularize URL; throws error if input is relative.
+          params.siteLogo = fixupURL(origin_url, paramsFromRP.siteLogo);
           // To avoid mixed content errors, only allow siteLogos to be served
           // from https RPs
           /*jshint newcap:false*/
           if (URLParse(origin_url).scheme !== "https") {
+            throw new Error("only https sites can specify a siteLogo");
+          }
+          // XXX eliminate previous? This test has some overlap with it.
+          if (URLParse(params.siteLogo).scheme !== "https") {
             throw new Error("only https sites can specify a siteLogo");
           }
         }
