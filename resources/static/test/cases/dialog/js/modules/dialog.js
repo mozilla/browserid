@@ -451,9 +451,23 @@
     testExpectGetFailure({siteLogo: URL});
   });
 
-  asyncTest("get with data-uri: siteLogo - not allowed", function() {
-    // XXX We want this to work (? modulo FAKEDATA ?)
-    var URL = "data:image/png,FAKEDATA";
+  asyncTest("get with data:image/<whitelist>;... siteLogo - allowed", function() {
+    var URL = "data:image/png;base64,FAKEDATA";
+    createController({
+      ready: function() {
+        var siteLogo = URL
+        var retval = controller.get(HTTPS_TEST_DOMAIN, {
+          siteLogo: siteLogo
+        });
+        equal(typeof retval, "undefined", "no error expected");
+        testErrorNotVisible();
+        start();
+      }
+    });
+  });
+
+  asyncTest("get with data:<not image>... siteLogo - not allowed", function() {
+    var URL = "data:text/html;base64,FAKEDATA";
     testExpectGetFailure({siteLogo: URL});
   });
 
@@ -500,7 +514,7 @@
 
   asyncTest("get with absolute path and http RP - not allowed", function() {
     var siteLogo = '/i/card.png';
-    testExpectGetFailure({ siteLogo: siteLogo }, "only https sites can specify a siteLogo", HTTP_TEST_DOMAIN);
+    testExpectGetFailure({ siteLogo: siteLogo }, "siteLogos can only be served from https and data schemes.", HTTP_TEST_DOMAIN);
   });
 
   asyncTest("get with absolute path that is too long - not allowed", function() {
