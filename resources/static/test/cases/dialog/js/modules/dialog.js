@@ -87,7 +87,7 @@
         }
 
         // If a parameter is not properly escaped, scriptRun will be true.
-        equal(typeof window.scriptRun, "undefined", "script was not run");
+        testHelpers.testUndefined(window.scriptRun);
 
         testErrorVisible();
         start();
@@ -115,7 +115,7 @@
         var retval = controller.get(domain || HTTPS_TEST_DOMAIN, options);
         testHelpers.testObjectValuesEqual(startInfo, expected);
 
-        equal(typeof retval, "undefined", "no error expected");
+        testHelpers.testUndefined(retval);
         testErrorNotVisible();
 
         done && done();
@@ -323,7 +323,7 @@
           error = e;
         }
 
-        equal(typeof error, "undefined", "unexpected error thrown when unloading window (" + error + ")");
+        testHelpers.testUndefined(error);
         start();
       }
     });
@@ -459,7 +459,7 @@
         var retval = controller.get(HTTPS_TEST_DOMAIN, {
           siteLogo: siteLogo
         });
-        equal(typeof retval, "undefined", "no error expected");
+        testHelpers.testUndefined(retval);
         testErrorNotVisible();
         start();
       }
@@ -483,7 +483,7 @@
         var retval = controller.get(HTTPS_TEST_DOMAIN, {
           siteLogo: siteLogo
         });
-        equal(typeof retval, "undefined", "no error expected");
+        testHelpers.testUndefined(retval);
         testErrorNotVisible();
         start();
       }
@@ -505,7 +505,7 @@
         testHelpers.testObjectValuesEqual(startInfo, {
           siteLogo: siteLogo
         });
-        equal(typeof retval, "undefined", "no error expected");
+        testHelpers.testUndefined(retval);
         testErrorNotVisible();
         start();
       }
@@ -545,7 +545,7 @@
         testHelpers.testObjectValuesEqual(startInfo, {
           siteLogo: encodeURI(HTTPS_TEST_DOMAIN + siteLogo)
         });
-        equal(typeof retval, "undefined", "no error expected");
+        testHelpers.testUndefined(retval);
         testErrorNotVisible();
         start();
       }
@@ -569,7 +569,7 @@
         testHelpers.testObjectValuesEqual(startInfo, {
           siteLogo: siteLogo
         });
-        equal(typeof retval, "undefined", "no error expected");
+        testHelpers.testUndefined(retval);
         testErrorNotVisible();
         start();
       }
