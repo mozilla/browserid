@@ -309,18 +309,18 @@ BrowserID.Modules.Dialog = (function() {
         var dataUriRegex = /^data:(.+)\/(.+);base64,(.*)$/;
         var dataMatches = null;
         // who needs a shared mimetype parsing library?
-        var imageMimeTypes = {'png': 1, 'gif': 1, 'jpg': 1, 'jpeg':1, 'svg': 1}
+        var imageMimeTypes = {'png': 1, 'gif': 1, 'jpg': 1, 'jpeg':1, 'svg': 1};
         if (paramsFromRP.siteLogo) {
           dataMatches = paramsFromRP.siteLogo.match(dataUriRegex);
           if (dataMatches) {
-	    if ((dataMatches[1].toLowerCase() === 'image')
+            if ((dataMatches[1].toLowerCase() === 'image')
                  &&
                 (dataMatches[2].toLowerCase() in imageMimeTypes)) {
                 ; // Good to go.
             } else {
               throw new Error("bad data URI for siteLogo: " + paramsFromRP.siteLogo.slice(0, 15) + " ...");
             }
-	  } else {
+          } else {
             // Regularize URL; throws error if input is relative.
             params.siteLogo = fixupURL(origin_url, paramsFromRP.siteLogo);
             /*jshint newcap:false*/
