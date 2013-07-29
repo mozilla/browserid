@@ -249,7 +249,7 @@ BrowserID.Modules.Dialog = (function() {
       user.setOrigin(origin_url);
 
       // By default, a dialog is an orphan. It is only not an orphan if an
-      // assertion is generated. When an asseriton is generated, orphaned will
+      // assertion is generated. When an assertion is generated, orphaned will
       // be set to false (currently in state.js).
       var kpis = {
         orphaned: true
@@ -303,16 +303,32 @@ BrowserID.Modules.Dialog = (function() {
           params.privacyPolicy = fixupURL(origin_url, paramsFromRP.privacyPolicy);
         }
 
+        var validLogoSchemes = {"https": 1, 'data': 1};
+        // 'data:image/png;base64,iV...' -> ['data:image/png;base64,iV...', 'image', 'png', ...]
+        // ... therefore mimetype -> [1]/[2]
+        var dataUriRegex = /^data:(.+)\/(.+);base64,(.*)$/;
+        var dataMatches = null;
+        // who needs a shared mimetype parsing library?
+        var imageMimeTypes = {'png': 1, 'gif': 1, 'jpg': 1, 'jpeg':1, 'svg': 1}
         if (paramsFromRP.siteLogo) {
-          // Until we have our head around the dangers of data uris and images
-          // that come from other domains, only allow absolute paths from the
-          // origin.
-          params.siteLogo = fixupAbsolutePath(origin_url, paramsFromRP.siteLogo);
-          // To avoid mixed content errors, only allow siteLogos to be served
-          // from https RPs
-          /*jshint newcap:false*/
-          if (URLParse(origin_url).scheme !== "https") {
-            throw new Error("only https sites can specify a siteLogo");
+          dataMatches = paramsFromRP.siteLogo.match(dataUriRegex);
+          if (dataMatches) {
+	    if ((dataMatches[1].toLowerCase() === 'image')
+                 &&
+                (dataMatches[2].toLowerCase() in imageMimeTypes)) {
+                ; // Good to go.
+            } else {
+              throw new Error("bad data URI for siteLogo: " + paramsFromRP.siteLogo.slice(0, 15) + " ...");
+            }
+	  } else {
+            // Regularize URL; throws error if input is relative.
+            params.siteLogo = fixupURL(origin_url, paramsFromRP.siteLogo);
+            /*jshint newcap:false*/
+            if (!(URLParse(params.siteLogo).scheme in validLogoSchemes)) {
+              // This is kind of misleading as URLParse won't actually recognize
+              // the data scheme.
+              throw new Error("siteLogos can only be served from " + _.keys(validLogoSchemes).join(' and ') + " schemes.");
+            }
           }
         }
 

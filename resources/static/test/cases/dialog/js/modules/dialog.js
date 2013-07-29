@@ -443,32 +443,78 @@
 
   asyncTest("get with relative siteLogo - not allowed", function() {
     var URL = "logo.png";
-    testMustBeAbsolutePath({ siteLogo: URL }, URL);
+    testExpectGetFailure({siteLogo: URL});
   });
 
   asyncTest("get with javascript: siteLogo - not allowed", function() {
     var URL = "javascript:alert('xss')";
-    testMustBeAbsolutePath({ siteLogo: URL }, URL);
+    testExpectGetFailure({siteLogo: URL});
   });
 
-  asyncTest("get with data-uri: siteLogo - not allowed", function() {
-    var URL = "data:image/png,FAKEDATA";
-    testMustBeAbsolutePath({ siteLogo: URL }, URL);
+  asyncTest("get with data:image/<whitelist>;... siteLogo - allowed", function() {
+    var URL = "data:image/png;base64,FAKEDATA";
+    createController({
+      ready: function() {
+        var siteLogo = URL
+        var retval = controller.get(HTTPS_TEST_DOMAIN, {
+          siteLogo: siteLogo
+        });
+        equal(typeof retval, "undefined", "no error expected");
+        testErrorNotVisible();
+        start();
+      }
+    });
+  });
+
+  asyncTest("get with data:<not image>... siteLogo - not allowed", function() {
+    var URL = "data:text/html;base64,FAKEDATA";
+    testExpectGetFailure({siteLogo: URL});
   });
 
   asyncTest("get with http: siteLogo - not allowed", function() {
     var URL = HTTP_TEST_DOMAIN + "://logo.png";
-    testMustBeAbsolutePath({ siteLogo: URL }, URL);
+    testExpectGetFailure({siteLogo: URL});
   });
 
-  asyncTest("get with https: siteLogo - not allowed", function() {
-    var URL = HTTPS_TEST_DOMAIN + "://logo.png";
-    testMustBeAbsolutePath({ siteLogo: URL }, URL);
+  asyncTest("get with local https: siteLogo - allowed", function() {    
+    createController({
+      ready: function() {
+        var siteLogo = HTTPS_TEST_DOMAIN + "://logo.png";
+        var retval = controller.get(HTTPS_TEST_DOMAIN, {
+          siteLogo: siteLogo
+        });
+        equal(typeof retval, "undefined", "no error expected");
+        testErrorNotVisible();
+        start();
+      }
+    });
   });
+
+  asyncTest("get with arbitrary domain https: siteLogo - allowed", function() {    
+    createController({
+      ready: function() {
+        var startInfo;
+        mediator.subscribe("start", function(msg, info) {
+          startInfo = info;
+        });
+
+        var siteLogo = 'https://cdn.example.com/logo.png';
+        var retval = controller.get(HTTPS_TEST_DOMAIN, {
+          siteLogo: siteLogo
+        });
+        testHelpers.testObjectValuesEqual(startInfo, {
+          siteLogo: siteLogo
+        });
+        equal(typeof retval, "undefined", "no error expected");
+        testErrorNotVisible();
+        start();
+      }
+    });
+  }); 
 
   asyncTest("get with absolute path and http RP - not allowed", function() {
     var siteLogo = '/i/card.png';
-    testExpectGetFailure({ siteLogo: siteLogo }, "only https sites can specify a siteLogo", HTTP_TEST_DOMAIN);
+    testExpectGetFailure({ siteLogo: siteLogo }, "siteLogos can only be served from https and data schemes.", HTTP_TEST_DOMAIN);
   });
 
   asyncTest("get with absolute path that is too long - not allowed", function() {
@@ -506,13 +552,33 @@
     });
   });
 
-  asyncTest("get with a scheme-relative siteLogo URL - not allowed", function() {
+  asyncTest("get with a scheme-relative siteLogo URL and https RP - allowed", function() {
     var URL = "//example.com/image.png";
-    testMustBeAbsolutePath({ siteLogo: URL }, URL);
+    createController({
+      ready: function() {
+        var startInfo;
+        mediator.subscribe("start", function(msg, info) {
+          startInfo = info;
+        });
+
+        var siteLogo = HTTPS_TEST_DOMAIN + "/logo.png";
+        var retval = controller.get(HTTPS_TEST_DOMAIN, {
+          siteLogo: siteLogo
+        });
+
+        testHelpers.testObjectValuesEqual(startInfo, {
+          siteLogo: siteLogo
+        });
+        equal(typeof retval, "undefined", "no error expected");
+        testErrorNotVisible();
+        start();
+      }
+    });
   });
 
+  // This sort of seems like a worthy test case
   asyncTest("get with siteLogo='/' URL - not allowed", function() {
-    testMustBeAbsolutePath({ siteLogo: "/" }, "/");
+    testExpectGetFailure({ siteLogo: "/" });
   });
 
   asyncTest("get with fully qualified returnTo - not allowed", function() {
