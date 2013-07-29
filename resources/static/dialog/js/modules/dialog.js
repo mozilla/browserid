@@ -209,6 +209,46 @@ BrowserID.Modules.Dialog = (function() {
     return bool;
   }
 
+  function validateSiteLogo(origin_url, inputLogoUri) {
+    // return a regularized logo URI if inputLogoUri is valid,
+    // else throw an Error. Valid logo URIs can take only these forms:
+    //   1) data:image/EXT;base64,...
+    //        where EXT is one of imageMimeTypes below
+    //   2) https://domain.tld/path
+    //        where https is explicit or implicit via either
+    //        scheme-relative or site-absolute input.
+    // Relative input such as 'images/myLogo.jpg' is invalid.
+
+    var dataMatches = null; // is this a valid data URI?
+    var outputLogoUri;
+    // Ideally we'd be loading this from a canonical constants library.
+    var imageMimeTypes = {'png': 1, 'gif': 1, 'jpg': 1, 'jpeg':1, 'svg': 1};
+    // This regex converts valid input of the form:
+    //   'data:image/png;base64,iV...'
+    // into an array that looks like:
+    //   ['data:image/png;base64,iV...', 'image', 'png', ...]
+    // which means that mimetype proper is represented as-> [1]/[2]
+    var dataUriRegex = /^data:(.+)\/(.+);base64,(.*)$/;
+
+    dataMatches = inputLogoUri.match(dataUriRegex);
+    if (dataMatches) {
+      if ((dataMatches[1].toLowerCase() === 'image')
+           &&
+          (dataMatches[2].toLowerCase() in imageMimeTypes)) {
+        return inputLogoUri; // Good to go.
+      }
+      throw new Error("Bad data URI for siteLogo: " + inputLogoUri.slice(0, 15) + " ...");
+    }
+
+    // Regularize URL; throws error if input is relative.
+    outputLogoUri = fixupURL(origin_url, inputLogoUri);
+    /*jshint newcap:false*/
+    if (URLParse(outputLogoUri).scheme !== 'https') {
+      throw new Error("siteLogos can only be served from https and data schemes.");
+    }
+    return outputLogoUri;
+  }
+
   var Dialog = bid.Modules.PageModule.extend({
     start: function(options) {
       var self=this;
@@ -303,33 +343,8 @@ BrowserID.Modules.Dialog = (function() {
           params.privacyPolicy = fixupURL(origin_url, paramsFromRP.privacyPolicy);
         }
 
-        var validLogoSchemes = {"https": 1, 'data': 1};
-        // 'data:image/png;base64,iV...' -> ['data:image/png;base64,iV...', 'image', 'png', ...]
-        // ... therefore mimetype -> [1]/[2]
-        var dataUriRegex = /^data:(.+)\/(.+);base64,(.*)$/;
-        var dataMatches = null;
-        // who needs a shared mimetype parsing library?
-        var imageMimeTypes = {'png': 1, 'gif': 1, 'jpg': 1, 'jpeg':1, 'svg': 1};
         if (paramsFromRP.siteLogo) {
-          dataMatches = paramsFromRP.siteLogo.match(dataUriRegex);
-          if (dataMatches) {
-            if ((dataMatches[1].toLowerCase() === 'image')
-                 &&
-                (dataMatches[2].toLowerCase() in imageMimeTypes)) {
-                ; // Good to go.
-            } else {
-              throw new Error("bad data URI for siteLogo: " + paramsFromRP.siteLogo.slice(0, 15) + " ...");
-            }
-          } else {
-            // Regularize URL; throws error if input is relative.
-            params.siteLogo = fixupURL(origin_url, paramsFromRP.siteLogo);
-            /*jshint newcap:false*/
-            if (!(URLParse(params.siteLogo).scheme in validLogoSchemes)) {
-              // This is kind of misleading as URLParse won't actually recognize
-              // the data scheme.
-              throw new Error("siteLogos can only be served from " + _.keys(validLogoSchemes).join(' and ') + " schemes.");
-            }
-          }
+          params.siteLogo = validateSiteLogo(origin_url, paramsFromRP.siteLogo);
         }
 
         if (paramsFromRP.backgroundColor) {
