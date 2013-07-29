@@ -122,20 +122,20 @@ BrowserID.Modules.Dialog = (function() {
     return encodedURI;
   }
 
-  function fixupAbsolutePath(origin_url, path) {
+  function fixupAbsolutePath(originURL, path) {
     // Ensure URL is an absolute path (not a relative path or a scheme-relative URL)
-    if (/^\/[^\/]/.test(path))  return fixupURL(origin_url, path);
+    if (/^\/[^\/]/.test(path))  return fixupURL(originURL, path);
 
     throw new Error("must be an absolute path: (" + path + ")");
   }
 
-  function fixupReturnTo(origin_url, path) {
+  function fixupReturnTo(originURL, path) {
     // "/" is a valid returnTo, but it is not a valid path for any other
     // parameter. If the path is "/", allow it, otherwise pass the path down
     // the normal checks.
     var returnTo = path === "/" ?
-      origin_url + path :
-      fixupAbsolutePath(origin_url, path);
+      originURL + path :
+      fixupAbsolutePath(originURL, path);
     return returnTo;
   }
 
@@ -209,7 +209,7 @@ BrowserID.Modules.Dialog = (function() {
     return bool;
   }
 
-  function validateSiteLogo(origin_url, inputLogoUri) {
+  function validateSiteLogo(originURL, inputLogoUri) {
     // return a regularized logo URI if inputLogoUri is valid,
     // else throw an Error. Valid logo URIs can take only these forms:
     //   1) data:image/EXT;base64,...
@@ -241,7 +241,7 @@ BrowserID.Modules.Dialog = (function() {
     }
 
     // Regularize URL; throws error if input is relative.
-    outputLogoUri = fixupURL(origin_url, inputLogoUri);
+    outputLogoUri = fixupURL(originURL, inputLogoUri);
     /*jshint newcap:false*/
     if (URLParse(outputLogoUri).scheme !== 'https') {
       throw new Error("siteLogos can only be served from https and data schemes.");
@@ -282,11 +282,11 @@ BrowserID.Modules.Dialog = (function() {
       sc.stop.call(this);
     },
 
-    get: function(origin_url, paramsFromRP, success, error) {
+    get: function(originURL, paramsFromRP, success, error) {
       var self=this,
           hash = win.location.hash;
 
-      user.setOrigin(origin_url);
+      user.setOrigin(originURL);
 
       // By default, a dialog is an orphan. It is only not an orphan if an
       // assertion is generated. When an assertion is generated, orphaned will
@@ -339,12 +339,12 @@ BrowserID.Modules.Dialog = (function() {
           paramsFromRP.privacyPolicy = paramsFromRP.privacyURL;
 
         if (paramsFromRP.termsOfService && paramsFromRP.privacyPolicy) {
-          params.termsOfService = fixupURL(origin_url, paramsFromRP.termsOfService);
-          params.privacyPolicy = fixupURL(origin_url, paramsFromRP.privacyPolicy);
+          params.termsOfService = fixupURL(originURL, paramsFromRP.termsOfService);
+          params.privacyPolicy = fixupURL(originURL, paramsFromRP.privacyPolicy);
         }
 
         if (paramsFromRP.siteLogo) {
-          params.siteLogo = validateSiteLogo(origin_url, paramsFromRP.siteLogo);
+          params.siteLogo = validateSiteLogo(originURL, paramsFromRP.siteLogo);
         }
 
         if (paramsFromRP.backgroundColor) {
@@ -359,7 +359,7 @@ BrowserID.Modules.Dialog = (function() {
         // returnTo is used for post verification redirection.  Redirect back
         // to the path specified by the RP.
         if (paramsFromRP.returnTo) {
-          var returnTo = fixupReturnTo(origin_url, paramsFromRP.returnTo);
+          var returnTo = fixupReturnTo(originURL, paramsFromRP.returnTo);
           user.setReturnTo(returnTo);
         }
 
@@ -409,7 +409,7 @@ BrowserID.Modules.Dialog = (function() {
         // frame with a powerful origin. So convert 'e' first.
         self.renderError("error", {
           action: {
-            title: "error in " + _.escape(origin_url),
+            title: "error in " + _.escape(originURL),
             message: "improper usage of API: " + _.escape(e)
           }
         });
