@@ -476,7 +476,7 @@
     testExpectGetFailure({siteLogo: URL});
   });
 
-  asyncTest("get with local https: siteLogo - allowed", function() {    
+  asyncTest("get with local https: siteLogo - allowed", function() {
     createController({
       ready: function() {
         var siteLogo = HTTPS_TEST_DOMAIN + "://logo.png";
@@ -490,7 +490,7 @@
     });
   });
 
-  asyncTest("get with arbitrary domain https: siteLogo - allowed", function() {    
+  asyncTest("get with arbitrary domain https: siteLogo - allowed", function() {
     createController({
       ready: function() {
         var startInfo;
@@ -510,7 +510,7 @@
         start();
       }
     });
-  }); 
+  });
 
   asyncTest("get with absolute path and http RP - not allowed", function() {
     var siteLogo = '/i/card.png';
@@ -739,4 +739,3 @@
   });
 
 }());
-
