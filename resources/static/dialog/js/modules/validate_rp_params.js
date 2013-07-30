@@ -229,7 +229,7 @@ BrowserID.Modules.ValidateRpParams = (function() {
     var dataMatches = null; // is this a valid data URI?
     var outputLogoUri;
     // Ideally we'd be loading this from a canonical constants library.
-    var imageMimeTypes = {'png': 1, 'gif': 1, 'jpg': 1, 'jpeg':1, 'svg': 1};
+    var imageMimeTypes = ['png', 'gif', 'jpg', 'jpeg', 'svg'];
     // This regex converts valid input of the form:
     //   'data:image/png;base64,iV...'
     // into an array that looks like:
@@ -241,7 +241,7 @@ BrowserID.Modules.ValidateRpParams = (function() {
     if (dataMatches) {
       if ((dataMatches[1].toLowerCase() === 'image')
            &&
-          (dataMatches[2].toLowerCase() in imageMimeTypes)) {
+          (imageMimeTypes.indexOf(dataMatches[2].toLowerCase()) > -1)) {
         return inputLogoUri; // Good to go.
       }
       throw new Error("Bad data URI for siteLogo: " + inputLogoUri.slice(0, 15) + " ...");
