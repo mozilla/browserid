@@ -30,7 +30,7 @@ BrowserID.Modules.ValidateRpParams = (function() {
       var self = this,
           hash = self.window.location.hash;
 
-      var origin_url = paramsFromRP.origin_url;
+      var originURL = paramsFromRP.originURL;
 
       // Security Note: paramsFromRP is the output of a JSON.parse on an
       // RP-controlled string. Most of these fields are expected to be simple
@@ -64,12 +64,12 @@ BrowserID.Modules.ValidateRpParams = (function() {
         paramsFromRP.privacyPolicy = paramsFromRP.privacyURL;
 
       if (paramsFromRP.termsOfService && paramsFromRP.privacyPolicy) {
-        params.termsOfService = fixupURL(origin_url, paramsFromRP.termsOfService);
-        params.privacyPolicy = fixupURL(origin_url, paramsFromRP.privacyPolicy);
+        params.termsOfService = fixupURL(originURL, paramsFromRP.termsOfService);
+        params.privacyPolicy = fixupURL(originURL, paramsFromRP.privacyPolicy);
       }
 
       if (paramsFromRP.siteLogo) {
-        params.siteLogo = validateSiteLogo(origin_url, paramsFromRP.siteLogo);
+        params.siteLogo = validateSiteLogo(originURL, paramsFromRP.siteLogo);
       }
 
       if (paramsFromRP.backgroundColor) {
@@ -84,7 +84,7 @@ BrowserID.Modules.ValidateRpParams = (function() {
       // returnTo is used for post verification redirection.  Redirect back
       // to the path specified by the RP.
       if (paramsFromRP.returnTo) {
-        params.returnTo = fixupReturnTo(origin_url, paramsFromRP.returnTo);
+        params.returnTo = fixupReturnTo(originURL, paramsFromRP.returnTo);
       }
 
       // forceAuthentication is used by the Marketplace to ensure that the
@@ -161,20 +161,20 @@ BrowserID.Modules.ValidateRpParams = (function() {
     return encodedURI;
   }
 
-  function fixupAbsolutePath(origin_url, path) {
+  function fixupAbsolutePath(originURL, path) {
     // Ensure URL is an absolute path (not a relative path or a scheme-relative URL)
-    if (/^\/[^\/]/.test(path))  return fixupURL(origin_url, path);
+    if (/^\/[^\/]/.test(path))  return fixupURL(originURL, path);
 
     throw new Error("must be an absolute path: (" + path + ")");
   }
 
-  function fixupReturnTo(origin_url, path) {
+  function fixupReturnTo(originURL, path) {
     // "/" is a valid returnTo, but it is not a valid path for any other
     // parameter. If the path is "/", allow it, otherwise pass the path down
     // the normal checks.
     var returnTo = path === "/" ?
-      origin_url + path :
-      fixupAbsolutePath(origin_url, path);
+      originURL + path :
+      fixupAbsolutePath(originURL, path);
     return returnTo;
   }
 
