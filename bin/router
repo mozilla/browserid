@@ -161,6 +161,8 @@ wsapi.routeSetup(app, {
 app.use(function(req, res, next) {
 
   // log metrics
+  // TODO also log to kpiggybank here
+  // TODO userEntry is used in exactly 1 place. so inline it here and simplify the lib/metrics file.
   if (req.url === '/sign_in') metrics.userEntry(req);
 
   forward(

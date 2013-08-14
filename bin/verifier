@@ -104,6 +104,7 @@ function doVerification(req, resp, next) {
       if (want_ct.indexOf(ct) == -1) throw "wrong content type";
     } catch (e) {
       reason = "Content-Type expected to be one of: " + want_ct.join(", ");
+      // TODO also hit kpiggybank here
       metrics.report('verify', {
         result: 'failure',
         reason: reason,
@@ -112,6 +113,7 @@ function doVerification(req, resp, next) {
       return resp.json({ status: "failure", reason: reason}, 415);
     }
     reason = "need assertion and audience";
+    // TODO also hit kpiggybank here
     metrics.report('verify', {
       result: 'failure',
       reason: reason,
@@ -137,6 +139,7 @@ function doVerification(req, resp, next) {
     if (err) {
       statsd.increment("assertion_failure");
       resp.json({"status":"failure", reason: err});  //Could be 500 or 200 OK if invalid cert
+      // TODO also hit kpiggybank here
       metrics.report('verify', {
         result: 'failure',
         reason: err,
@@ -149,6 +152,7 @@ function doVerification(req, resp, next) {
         expires : new Date(r.success.expires).valueOf()
       }));
 
+      // TODO also hit kpiggybank here
       metrics.report('verify', {
         result: 'success',
         rp: r.success.audience
