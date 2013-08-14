@@ -160,10 +160,30 @@ wsapi.routeSetup(app, {
 //catch-all
 app.use(function(req, res, next) {
 
+  // utility function to log a bunch of stuff at user entry point
+  function userEntry = function(req) {
+    var ipAddress = req.connection.remoteAddress;
+    if (req.headers['x-real-ip']) ipAddress = req.headers['x-real-ip'];
+
+    var referer = null;
+    try {
+      // don't log more than we need
+      referer = urlparse(req.headers.referer).originOnly().toString();
+    } catch(e) {
+      // ignore malformed referrers.  just log null
+    }
+
+    metrics.report('signin', {
+      browser: req.headers['user-agent'],
+      rp: referer,
+      // IP address (this probably needs to be replaced with the X-forwarded-for value
+      ip: ipAddress
+    });
+  };
+
   // log metrics
   // TODO also log to kpiggybank here
-  // TODO userEntry is used in exactly 1 place. so inline it here and simplify the lib/metrics file.
-  if (req.url === '/sign_in') metrics.userEntry(req);
+  if (req.url === '/sign_in') userEntry(req);
 
   forward(
     static_url+req.url, req, res,
