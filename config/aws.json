@@ -1,5 +1,6 @@
 // this is configuration specific to aws deployments
 {
+  "use_minified_resources": false,
   // disable statsd for aws
   "statsd": {
     "enabled": false
