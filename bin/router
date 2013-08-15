@@ -182,11 +182,10 @@ app.use(function(req, res, next) {
     });
     store_kpi({
       type: 'signin',
-      browser: req.headers['user-agent'],
       rp: referer,
       // IP address (this probably needs to be replaced with the X-forwarded-for value
       ip: ipAddress
-    });
+    }, req.headers['user-agent']);
   };
 
   // log metrics
