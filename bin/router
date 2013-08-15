@@ -23,6 +23,7 @@ logger = require('../lib/logging.js').logger,
 forward = require('../lib/http_forward').forward,
 addP3PHeader = require('../lib/p3p.js'),
 shutdown = require('../lib/shutdown'),
+store_kpi = require('../lib/kpi'),
 toobusy = require('../lib/busy_middleware.js');
 
 var app = express.createServer();
@@ -179,10 +180,16 @@ app.use(function(req, res, next) {
       // IP address (this probably needs to be replaced with the X-forwarded-for value
       ip: ipAddress
     });
+    store_kpi({
+      type: 'signin',
+      browser: req.headers['user-agent'],
+      rp: referer,
+      // IP address (this probably needs to be replaced with the X-forwarded-for value
+      ip: ipAddress
+    });
   };
 
   // log metrics
-  // TODO also log to kpiggybank here
   if (req.url === '/sign_in') userEntry(req);
 
   forward(
