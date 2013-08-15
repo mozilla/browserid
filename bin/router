@@ -162,7 +162,7 @@ wsapi.routeSetup(app, {
 app.use(function(req, res, next) {
 
   // utility function to log a bunch of stuff at user entry point
-  function userEntry = function(req) {
+  function userEntry(req) {
     var ipAddress = req.connection.remoteAddress;
     if (req.headers['x-real-ip']) ipAddress = req.headers['x-real-ip'];
 
