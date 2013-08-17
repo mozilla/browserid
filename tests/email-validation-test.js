@@ -17,8 +17,8 @@ var suite = vows.describe('email-validation-test');
 
 start_stop.addStartupBatches(suite);
 
-// this test verifies that a user who has only authenticated with
-// an assertion from their primary, may not call restricted apis
+// this test verifies thatthe email validation system correctly
+// follows the desired HTML5 email standards
 
 var validEmail1 = 'test@test.com';
 var validEmail2 = 'test-email@test.com';
