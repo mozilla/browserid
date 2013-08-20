@@ -28,6 +28,7 @@ var validEmail4 = 'my.test@test.com';
 var invalidEmail1 = 'test@-test.com';
 var invalidEmail2 = 'test@';
 var invalidEmail3 = 'test@.org';
+var invalidEmail4 = 'test-foo@test-foo.test-test.com';
 
 suite.addBatch({
   "Testing first valid email address": {
@@ -81,6 +82,14 @@ suite.addBatch({
   "Testing third invalid email address": {
     topic: wsapi.get('/wsapi/address_info', {
       email: invalidEmail3
+    }),
+    "returns 400": function(err, r) {
+      assert.strictEqual(r.code, 400);
+    }
+  },
+  "Testing fourth invalid email address": {
+    topic: wsapi.get('/wsapi/address_info', {
+      email: invalidEmail4
     }),
     "returns 400": function(err, r) {
       assert.strictEqual(r.code, 400);
