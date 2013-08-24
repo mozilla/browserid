@@ -88,6 +88,8 @@
   function testInvalidPasswordAndValidationPassword(password, vpassword) {
     $("#password").val(password);
     $("#vpassword").val(vpassword);
+
+    // This only asserts in the negative case.
     register("password_set", function(msg, info) {
       ok(false, "password_set should not be called");
     });
@@ -98,7 +100,13 @@
       // https://github.com/mozilla/browserid/issues/3502
       if (!(password && !vpassword)) {
         testTooltipVisible();
+      } else {
+        // Run a no-op test to match the conditional testTooltipVisible() test.
+        // This no-op test is to satisfy the QUnit requirement that tests must
+        // have at least one assertion.
+        ok(true, "Run a no-op test to satisfy QUnit");
       }
+
       start();
     });
   }
