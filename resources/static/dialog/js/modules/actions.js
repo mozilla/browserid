@@ -63,7 +63,7 @@ BrowserID.Modules.Actions = (function() {
     },
 
     doStageUser: function(info) {
-      dialogHelpers.createUser.call(this, info.email, info.password, info.ready);
+      dialogHelpers.createUser.call(this, info.email, info.password, info.backgroundColor, info.ready);
     },
 
     doConfirmUser: function(info) {
@@ -108,7 +108,7 @@ BrowserID.Modules.Actions = (function() {
 
     doStageReverifyEmail: function(info) {
       dialogHelpers.reverifyEmail.call(this, info.email, info.ready);
-    },
+   },
 
     doConfirmReverifyEmail: function(info) {
       startRegCheckService.call(this, info, "waitForEmailReverifyComplete", "reverify_email_confirmed");

@@ -133,6 +133,10 @@ BrowserID.State = (function() {
       self.siteTOSPP = !!(info.privacyPolicy && info.termsOfService);
       self.emailHint = info.emailHint;
 
+      info.origin = user.getOrigin();
+      self.rpInfo = bid.Models.RpInfo.create(info);
+      user.setRpInfo(self.rpInfo);
+
       if (info.forceIssuer) {
         user.setIssuer(info.forceIssuer);
       }
@@ -254,7 +258,8 @@ BrowserID.State = (function() {
        */
       info = _.extend({ email: self.newUserEmail || self.addEmailEmail ||
                                self.resetPasswordEmail || self.transitionNoPassword ||
-                               self.newFxAccountEmail}, info);
+                               self.newFxAccountEmail
+                      }, info);
       if(self.newUserEmail) {
         startAction(false, "doStageUser", info);
       }
