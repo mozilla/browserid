@@ -63,7 +63,7 @@ BrowserID.Modules.Actions = (function() {
     },
 
     doStageUser: function(info) {
-      dialogHelpers.createUser.call(this, info.email, info.password, info.backgroundColor, info.ready);
+      dialogHelpers.createUser.call(this, info.email, info.password, info.ready);
     },
 
     doConfirmUser: function(info) {
