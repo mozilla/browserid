@@ -221,6 +221,12 @@
   "hoek": {
     "0.7.6": "60fbd904557541cd2b8795abf308a1b3770e155a"
   },
+  "helenus": {
+    "0.6.2": "cf1553eee559d742bac735f221fefe0f6da63361"
+  },
+  "helenus-thrift": {
+    "0.7.3": "4a96775c519d775f26baa170479e41dec9940ec2"
+  },
   "htmlparser": {
     "1.7.6": "6a263c7ee5930f3e5c56fa564011f99e49f80d34"
   },
@@ -314,7 +320,7 @@
     "0.0.7": "96d4bbd21dff2d798b3374a3e9329cfecce3afa8"
   },
   "node-uuid": {
-    "1.4.1": "39aef510e5889a3dca9c895b506c73aae1bac048"
+    "1.3.3": "d3db4d7b56810d9e4032342766282af07391729b"
   },
   "nodemailer": {
     "0.5.3": "f1de09bc4fc91e92e59318370d80714f479eeb97"

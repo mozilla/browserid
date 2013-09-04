@@ -56,7 +56,8 @@
     "winston": "0.7.2",
     "connect-fonts": "0.0.11",
     "connect-fonts-opensans": "0.0.5",
-    "connect-fonts-feurasans": "0.0.3"
+    "connect-fonts-feurasans": "0.0.3",
+    "helenus": "~0.6.2"
   },
   "devDependencies": {
     "vows": "git://github.com/cloudhead/vows#253ca34c",
