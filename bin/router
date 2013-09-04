@@ -23,6 +23,7 @@ logger = require('../lib/logging.js').logger,
 forward = require('../lib/http_forward').forward,
 addP3PHeader = require('../lib/p3p.js'),
 shutdown = require('../lib/shutdown'),
+store_kpi = require('../lib/kpi'),
 toobusy = require('../lib/busy_middleware.js');
 
 var app = express.createServer();
@@ -160,8 +161,35 @@ wsapi.routeSetup(app, {
 //catch-all
 app.use(function(req, res, next) {
 
+  // utility function to log a bunch of stuff at user entry point
+  function userEntry(req) {
+    var ipAddress = req.connection.remoteAddress;
+    if (req.headers['x-real-ip']) ipAddress = req.headers['x-real-ip'];
+
+    var referer = null;
+    try {
+      // don't log more than we need
+      referer = urlparse(req.headers.referer).originOnly().toString();
+    } catch(e) {
+      // ignore malformed referrers.  just log null
+    }
+
+    metrics.report('signin', {
+      browser: req.headers['user-agent'],
+      rp: referer,
+      // IP address (this probably needs to be replaced with the X-forwarded-for value
+      ip: ipAddress
+    });
+    store_kpi({
+      type: 'signin',
+      rp: referer,
+      // IP address (this probably needs to be replaced with the X-forwarded-for value
+      ip: ipAddress
+    }, req.headers['user-agent']);
+  };
+
   // log metrics
-  if (req.url === '/sign_in') metrics.userEntry(req);
+  if (req.url === '/sign_in') userEntry(req);
 
   forward(
     static_url+req.url, req, res,

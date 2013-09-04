@@ -21,6 +21,7 @@ config = require('../lib/configuration'),
 shutdown = require('../lib/shutdown'),
 statsd = require('../lib/statsd'),
 booleanQuery = require('../lib/boolean-query'),
+store_kpi = require('../lib/kpi'),
 toobusy = require('../lib/busy_middleware.js');
 
 logger.info("verifier server starting up");
@@ -104,6 +105,12 @@ function doVerification(req, resp, next) {
       if (want_ct.indexOf(ct) == -1) throw "wrong content type";
     } catch (e) {
       reason = "Content-Type expected to be one of: " + want_ct.join(", ");
+      store_kpi({
+        type: 'verify',
+        result: 'failure',
+        reason: reason,
+        rp: audience
+      }, req.headers['user-agent']);
       metrics.report('verify', {
         result: 'failure',
         reason: reason,
@@ -112,6 +119,12 @@ function doVerification(req, resp, next) {
       return resp.json({ status: "failure", reason: reason}, 415);
     }
     reason = "need assertion and audience";
+    store_kpi({
+      type: 'verify',
+      result: 'failure',
+      reason: reason,
+      rp: audience
+    }, req.headers['user-agent']);
     metrics.report('verify', {
       result: 'failure',
       reason: reason,
@@ -135,8 +148,15 @@ function doVerification(req, resp, next) {
     else if (!r || !r.success) err = "no response returned from child process";
 
     if (err) {
+      // TODO this is ridiculous. three loggers for the same event :-\
       statsd.increment("assertion_failure");
       resp.json({"status":"failure", reason: err});  //Could be 500 or 200 OK if invalid cert
+      store_kpi({
+        type: 'verify',
+        result: 'failure',
+        reason: err,
+        rp: audience
+      }, req.headers['user-agent']);
       metrics.report('verify', {
         result: 'failure',
         reason: err,
@@ -148,7 +168,11 @@ function doVerification(req, resp, next) {
         audience : audience, // NOTE: we return the audience formatted as the RP provided it, not normalized in any way.
         expires : new Date(r.success.expires).valueOf()
       }));
-
+      store_kpi({
+        type: 'verify',
+        result: 'success',
+        rp: r.success.audience
+      }, req.headers['user-agent']);
       metrics.report('verify', {
         result: 'success',
         rp: r.success.audience
