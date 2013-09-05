@@ -1,6 +1,7 @@
 ;WinChan = (function() {
   var RELAY_FRAME_NAME = "__winchan_relay_frame";
   var CLOSE_CMD = "die";
+  var undefined;
 
   // a portable addListener implementation
   function addListener(w, event, cb) {
@@ -32,8 +33,8 @@
       // We must check for both XUL and Java versions of Fennec.  Both have
       // distinct UA strings.
       var userAgent = navigator.userAgent;
-      return (userAgent.indexOf('Fennec/') != -1) ||  // XUL
-             (userAgent.indexOf('Firefox/') != -1 && userAgent.indexOf('Android') != -1);   // Java
+      return (userAgent.indexOf('Fennec/') !== -1) ||  // XUL
+             (userAgent.indexOf('Firefox/') !== -1 && userAgent.indexOf('Android') !== -1);   // Java
     } catch(e) {}
     return false;
   }
@@ -85,7 +86,7 @@
      *                  6. caller upon reciept of 'ready', sends args
      */
     return {
-      open: function(opts, cb) {
+      open: function(opts, cb, close_cb) {
         if (!cb) throw "missing required callback argument";
 
         // test required options
@@ -132,7 +133,7 @@
         // lets listen in case the window blows up before telling us
         var closeInterval = setInterval(function() {
           if (w && w.closed) {
-            cleanup();
+            closeDialog();
             if (cb) {
               cb('unknown closed window');
               cb = null;
@@ -142,13 +143,7 @@
 
         var req = JSON.stringify({a: 'request', d: opts.params});
 
-        // cleanup on unload
-        function cleanup() {
-          if (iframe) document.body.removeChild(iframe);
-          iframe = undefined;
-          if (closeInterval) closeInterval = clearInterval(closeInterval);
-          removeListener(window, 'message', onMessage);
-          removeListener(window, 'unload', cleanup);
+        function closeDialog() {
           if (w) {
             try {
               w.close();
@@ -158,10 +153,22 @@
               messageTarget.postMessage(CLOSE_CMD, origin);
             }
           }
-          w = messageTarget = undefined;
         }
 
-        addListener(window, 'unload', cleanup);
+        // cleanup on dialog close
+        function onDialogClose() {
+          if (iframe) document.body.removeChild(iframe);
+          iframe = undefined;
+          if (closeInterval) closeInterval = clearInterval(closeInterval);
+          removeListener(window, 'message', onMessage);
+          removeListener(window, 'unload', closeDialog);
+          w = messageTarget = undefined;
+
+          if (close_cb) close_cb();
+          close_cb = undefined;
+        }
+
+        addListener(window, 'unload', closeDialog);
 
         function onMessage(e) {
           if (e.origin !== origin) { return; }
@@ -169,17 +176,19 @@
             var d = JSON.parse(e.data);
             if (d.a === 'ready') messageTarget.postMessage(req, origin);
             else if (d.a === 'error') {
-              cleanup();
+              closeDialog();
               if (cb) {
                 cb(d.d);
                 cb = null;
               }
             } else if (d.a === 'response') {
-              cleanup();
+              closeDialog();
               if (cb) {
                 cb(null, d.d);
                 cb = null;
               }
+            } else if (d.a === 'close') {
+              onDialogClose();
             }
           } catch(err) { }
         }
@@ -187,7 +196,7 @@
         addListener(window, 'message', onMessage);
 
         return {
-          close: cleanup,
+          close: closeDialog,
           focus: function() {
             if (w) {
               try {
@@ -261,6 +270,7 @@
           } catch (ohWell) { }
           if (cb) doPost({ a: 'error', d: 'client closed window' });
           cb = undefined;
+          doPost({ a: 'close' });
           // explicitly close the window, in case the client is trying to reload or nav
           try { window.close(); } catch (e) { }
         };
