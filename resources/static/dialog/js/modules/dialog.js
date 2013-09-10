@@ -281,7 +281,9 @@ BrowserID.Modules.Dialog = (function() {
 
 
       // XXX Perhaps put this into the state machine.
-      self.bind(self.window, "unload", onWindowUnload);
+      // use the beforeunload instead of unload or else IE8 does not have time
+      // to write the final KPIs to localStorage
+      self.bind(self.window, "beforeunload", onWindowUnload);
 
       self.publish("channel_established");
 

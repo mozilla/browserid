@@ -133,10 +133,24 @@
   });
 
   chan.bind("dialog_complete", function(trans, checkAuthStatus) {
+    // dialog_complete is called whenever either an error occurred, the dialog
+    // was closed, or if an assertion was generated. It is called before
+    // dialog_close. Processing can occur in the dialog after the
+    // dialog_complete message is called.
     pause = false;
-    // The dialog has closed, so that we get results from users who only open
-    // the dialog a single time, send the KPIs immediately. Note, this does not
-    // take care of native contexts. Native contexts are taken care of in in
+    if (checkAuthStatus) {
+      // the dialog running can change authentication status,
+      // lets manually purge our network cache
+      user.clearContext();
+      checkAndEmit();
+    }
+  });
+
+  chan.bind("dialog_close", function(trans) {
+    // The dialog has closed & no more processing will occur.
+    // So that we get results from users who only open the dialog a single
+    // time, send the KPIs immediately. Note, this does not take care of
+    // native contexts. Native contexts are taken care of in in
     // dialog/js/misc/internal_api.js. Errors sending the KPI data should not
     // affect anything else.
     try {
@@ -154,11 +168,6 @@
       }
     } catch(e) {}
 
-    if (checkAuthStatus) {
-      // the dialog running can change authentication status,
-      // lets manually purge our network cache
-      user.clearContext();
-      checkAndEmit();
-    }
   });
+
 }());

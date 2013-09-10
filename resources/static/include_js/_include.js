@@ -375,7 +375,7 @@
           return REQUIRES_WATCH;
         }
       }
-      
+
       if (!isSupported()) {
         var reason = noSupportReason();
         var url = "unsupported_dialog";
@@ -468,6 +468,9 @@
           if (options && options.oncancel) options.oncancel();
           delete options.oncancel;
         }
+      }, function() {
+        // Called on window close.
+        commChan.notify({ method: 'dialog_close' });
       });
     };
 
