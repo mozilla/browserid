@@ -60,6 +60,8 @@ BrowserID.Storage = (function() {
     storage.removeItem("emails");
     storage.removeItem("siteInfo");
     storage.removeItem("managePage");
+    storage.removeItem("realmInfo");
+
     // Ensure there are default values after they are removed.  This is
     // necessary so that IE8's localStorage synchronization issues do not
     // surface.  In IE8, if the dialog page is open when the verification page
@@ -82,6 +84,7 @@ BrowserID.Storage = (function() {
       managePage: {},
       returnTo: null,
       siteInfo: {},
+      realmInfo: {},
       stagedOnBehalfOf: null,
       usersComputer: {}
     }, function(defaultVal, key) {
@@ -184,47 +187,28 @@ BrowserID.Storage = (function() {
   }
 
   function siteSet(site, key, value) {
-    var allSiteInfo = JSON.parse(storage.siteInfo || "{}");
-    var siteInfo = allSiteInfo[site] = allSiteInfo[site] || {};
-
     if(key === "email" && !getEmail(value)) {
       throw new Error("unknown email address");
     }
-
-    siteInfo[key] = value;
-
-    storage.siteInfo = JSON.stringify(allSiteInfo);
+    generic3KeySet('siteInfo', site, key, value);
   }
 
-  function siteGet(site, key) {
-    var allSiteInfo = JSON.parse(storage.siteInfo || "{}");
-    var siteInfo = allSiteInfo[site];
+  var siteGet = generic3KeyGet.curry("siteInfo");
 
-    return siteInfo && siteInfo[key];
-  }
+  var siteRemove = generic3KeyRemove.curry("siteInfo");
 
-  function siteRemove(site, key) {
-    var allSiteInfo = JSON.parse(storage.siteInfo || "{}");
-    var siteInfo = allSiteInfo[site];
-
-    if (siteInfo) {
-      delete siteInfo[key];
-
-      // If no more info for site, get rid of it.
-      if (!_.size(siteInfo)) delete allSiteInfo[site];
-
-      storage.siteInfo = JSON.stringify(allSiteInfo);
-    }
-  }
-
-  function siteCount(callback) {
-    var allSiteInfo = JSON.parse(storage.siteInfo || "{}");
-    return _.size(allSiteInfo);
+  function genericCount(namespace) {
+    var allInfo = JSON.parse(storage[namespace] || "{}");
+    return _.size(allInfo);
   }
 
   function generic2KeySet(namespace, key, value) {
     var allInfo = JSON.parse(storage[namespace] || "{}");
-    allInfo[key] = value;
+    if (value == null) {
+      delete allInfo[key];
+    } else {
+      allInfo[key] = value;
+    }
     storage[namespace] = JSON.stringify(allInfo);
   }
 
@@ -237,6 +221,22 @@ BrowserID.Storage = (function() {
     var allInfo = JSON.parse(storage[namespace] || "{}");
     delete allInfo[key];
     storage[namespace] = JSON.stringify(allInfo);
+  }
+
+  function generic3KeySet(namespace, sub, key, value) {
+    var info = generic2KeyGet(namespace, sub) || {};
+    info[key] = value;
+    generic2KeySet(namespace, sub, info);
+  }
+
+  function generic3KeyGet(namespace, sub, key) {
+    return (generic2KeyGet(namespace, sub) || {})[key];
+  }
+
+  function generic3KeyRemove(namespace, sub, key) {
+    var info = generic2KeyGet(namespace, sub) || {};
+    delete info[key];
+    generic2KeySet(namespace, sub, _.size(info) ? info : null);
   }
 
   function loggedInCount() {
@@ -271,6 +271,12 @@ BrowserID.Storage = (function() {
       delete allSiteInfo[site].logged_in;
     }
     storage.siteInfo = JSON.stringify(allSiteInfo);
+    var allRealmInfo = JSON.parse(storage.realmInfo || "{}");
+    for (var realm in allRealmInfo) {
+      delete allRealmInfo[realm].logged_in;
+      delete allRealmInfo[realm].sites;
+    }
+    storage.realmInfo = JSON.stringify(allRealmInfo);
   }
 
   function mapEmailToUserID(emailOrUserID) {
@@ -638,7 +644,7 @@ BrowserID.Storage = (function() {
        * @method site.count
        * @return {number}
        */
-      count: siteCount
+      count: genericCount.curry("siteInfo")
     },
 
     manage_page: {
@@ -775,6 +781,27 @@ BrowserID.Storage = (function() {
        * Clear any RP Redirection info
        */
       clear: clearRpRequestInfo
+    },
+
+    /*
+     * Info used regarding realms, such as if a user has signed into a
+     * realm.
+     */
+    realm: {
+      /**
+       * Get info for realm.
+       */
+      get: generic3KeyGet.curry("realmInfo"),
+      /**
+       * Set info for realm.
+       */
+      set: generic3KeySet.curry("realmInfo"),
+      /**
+       * Clear realm info.
+       */
+      remove: generic3KeyRemove.curry("realmInfo"),
+
+      count: genericCount.curry("realmInfo")
     }
   };
 }());

@@ -99,7 +99,7 @@ BrowserID.Modules.ValidateRpParams = (function() {
       // and replace fxos.login.persona.org as the issuer of certs
       if (paramsFromRP.experimental_forceIssuer) {
         params.forceIssuer =
-            fixupIssuer(paramsFromRP.experimental_forceIssuer);
+            fixupHostname(paramsFromRP.experimental_forceIssuer, "forceIssuer");
       }
 
       // allowUnverified means that the user doesn't need to have
@@ -118,6 +118,10 @@ BrowserID.Modules.ValidateRpParams = (function() {
         params.emailHint = validateEmail(
             paramsFromRP.experimental_emailHint,
             "experimental_emailHint");
+      }
+
+      if (paramsFromRP.realm) {
+        params.realm = fixupHostname(paramsFromRP.realm, "realm");
       }
 
       if (hash.indexOf("#AUTH_RETURN") === 0) {
@@ -187,18 +191,18 @@ BrowserID.Modules.ValidateRpParams = (function() {
     return returnTo;
   }
 
-  function fixupIssuer(issuer) {
-    // An issuer should not have a scheme on the front of it.
+  function fixupHostname(host, paramName) {
+    // A hostname should not have a scheme on the front of it.
     // The URL parser requires a scheme. Prepend the scheme to do the
     // verification.
     /*jshint newcap:false*/
-    var u = URLParse("http://" + issuer);
-    if (u.host !== issuer) {
+    var u = URLParse("http://" + host);
+    if (u.host !== host) {
       var encodedURI = encodeURI(u.validate().normalize().toString());
-      throw new Error("invalid issuer: " + encodedURI);
+      throw new Error("invalid " + paramName +": " + encodedURI);
     }
 
-    return issuer;
+    return host;
   }
 
   function validateBackgroundColor(value) {
