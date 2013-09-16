@@ -40,6 +40,7 @@
     "mkdirp": "0.3.5",
     "mysql": "0.9.6",
     "nodemailer": "0.5.3",
+    "node-cassandra-cql": "~0.2.2-1",
     "node-statsd": "0.0.7",
     "optimist": "0.6.0",
     "postprocess": "0.2.4",
@@ -56,9 +57,7 @@
     "winston": "0.7.2",
     "connect-fonts": "0.0.11",
     "connect-fonts-opensans": "0.0.5",
-    "connect-fonts-feurasans": "0.0.3",
-    "helenus": "~0.6.2",
-    "node-cassandra-cql": "~0.2.2-1"
+    "connect-fonts-feurasans": "0.0.3"
   },
   "devDependencies": {
     "vows": "git://github.com/cloudhead/vows#253ca34c",
@@ -76,6 +75,6 @@
     "start": "node ./scripts/run_locally.js"
   },
   "engines": {
-    "node": ">= 0.8.11"
+    "node": ">= 0.10.0"
   }
 }
