@@ -294,7 +294,9 @@ BrowserID.Storage = (function() {
   function setConfirmationState(userid, state) {
     userid = mapEmailToUserID(userid);
 
-    if (typeof userid !== 'number') throw new Error('bad userid ' + userid);
+    // TODO figure out a migration scheme for the front-end. in the meantime,
+    //      don't barf because new userids are UUIDs, not numbers.
+    // if (typeof userid !== 'number') throw new Error('bad userid ' + userid);
 
     if (!validState(state)) throw new Error("invalid state");
 
