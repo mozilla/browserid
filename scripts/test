@@ -5,6 +5,7 @@
 //   * 'front' - frontend unit tests run headlessly (requires phantomjs to be installed)
 //   * 'back' - backend unit tests with a zero-dependency json db
 //   * 'back_mysql - backend unit tests against mysql (requires mysql installed)
+//   * 'back_cassandra - backend unit tests against cassandra (requires cassandra installed)
 //   * 'all' - of it
 
 const
@@ -26,7 +27,7 @@ if (!process.env['WHAT_TESTS']) {
   whatTests.push(process.env['WHAT_TESTS']);
 }
 
-if (whatTests[0] == 'all') whatTests = [ 'back_mysql', 'back', 'front' ];
+if (whatTests[0] == 'all') whatTests = [ 'back_cassandra', 'back_mysql', 'back', 'front' ];
 
 var ec = 0;
 var frontend_test_filter = process.env['FRONTEND_TEST_FILTER'] ?
@@ -73,6 +74,11 @@ function run() {
     back_mysql: {
       what: "API level unit tests using MySQL",
       node_env: 'test_mysql',
+      script: 'test_backend'
+    },
+    back_cassandra: {
+      what: "API level unit tests using Cassandra",
+      node_env: 'test_cassandra',
       script: 'test_backend'
     },
     selenium: {
