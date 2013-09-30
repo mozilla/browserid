@@ -55,7 +55,7 @@
     internal.setPersistent(ORIGIN, function(status) {
       strictEqual(status, null, "user is not authenticated should not succeed in setting persistent");
 
-      testUndefined(storage.site.get(ORIGIN, "remember"), "remember status not set");
+      testUndefined(storage.site.get(ORIGIN, "logged_in"), "logged_in status not set");
       testUndefined(storage.site.get(ORIGIN, "email"), "email not set");
       start();
     });
@@ -66,7 +66,7 @@
       internal.setPersistent(ORIGIN, function(status) {
         equal(status, true, "setPersistent status reported as true");
 
-        equal(storage.site.get(ORIGIN, "remember"), true, "remember status set to true");
+        equal(storage.site.get(ORIGIN, "logged_in"), true, "logged_in status set to true");
         start();
       });
     });
