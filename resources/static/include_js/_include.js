@@ -318,8 +318,9 @@
       checkRenamed(options, "loggedInEmail", "loggedInUser");
       loggedInUser = options.loggedInUser;
       if(typeof loggedInUser !== 'undefined' &&
-	 typeof loggedInUser !== 'string' &&
-	 typeof loggedInUser !== 'object')
+	 typeof loggedInUser !== 'object' &&
+	 typeof loggedInUser !== 'boolean' &&
+	 typeof loggedInUser !== 'string')
 	      throw new Error("loggedInUser is not a valid type");
 
 
