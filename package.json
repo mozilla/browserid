@@ -71,7 +71,6 @@
     "htmlparser": "1.7.6"
   },
   "scripts": {
-    "preinstall": "node ./scripts/lockdown",
     "postinstall": "node ./scripts/postinstall.js",
     "postupdate": "node ./scripts/postinstall.js",
     "test": "./scripts/test",
