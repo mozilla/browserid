@@ -299,7 +299,6 @@
       }
 
       if (!options.onlogin) throw new Error("'onlogin' is a required argument to navigator.id.watch()");
-      if (!options.onlogout) throw new Error("'onlogout' is a required argument to navigator.id.watch()");
 
       observers.login = options.onlogin || null;
       observers.logout = options.onlogout || null;
@@ -319,7 +318,8 @@
       var rp_api = api_called;
       if (rp_api === "request") {
         if (observers.ready) rp_api = "watch_with_onready";
-        else rp_api = "watch_without_onready";
+        else if (observers.onlogout) rp_api = "watch_without_onready";
+        else rp_api = "stateless";
       }
 
       return rp_api;
@@ -339,7 +339,7 @@
       }
 
       options.rp_api = getRPAPI();
-      var couldDoRedirectIfNeeded = (!needsPopupFix || api_called === 'request');
+      var couldDoRedirectIfNeeded = (!needsPopupFix || api_called === 'request' || api_called === 'auth');
 
       // reset the api_called in case the site implementor changes which api
       // method called the next time around.
