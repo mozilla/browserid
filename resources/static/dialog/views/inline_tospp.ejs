@@ -17,7 +17,7 @@
   <% if (typeof no_iframe !== "undefined" && no_iframe === true) { %>
     <div class="contents" id="tosppframe" name="tosppframe"></div>
   <% } else { %>
-    <iframe class="contents" id="tosppframe" name="tosppframe" sandbox security="restricted"></iframe>
+    <iframe class="contents" id="tosppframe" name="tosppframe" sandbox="allow-scripts" security="restricted"></iframe>
   <% } %>
   <p class="submit cf buttonrow isMobile">
     <button href="#"><%= gettext("OK") %></button>
