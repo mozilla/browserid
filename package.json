@@ -76,6 +76,6 @@
     "start": "node ./scripts/run_locally.js"
   },
   "engines": {
-    "node": ">= 0.10.0"
+    "node": ">= 0.8.11"
   }
 }
