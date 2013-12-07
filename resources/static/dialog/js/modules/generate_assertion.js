@@ -27,9 +27,10 @@ BrowserID.Modules.GenerateAssertion = (function() {
 
       var email = options.email,
           origin = options.rpInfo.getOrigin(),
-          isOneTime = options.rpInfo.getRpAPI() === "stateless";
+          isOneTime = options.rpInfo.getRpAPI() === "stateless",
+          disclosedScopes = options.disclosedScopes;
 
-      user.getAssertion(email, origin, function(assertion) {
+      user.getAssertion(email, origin, disclosedScopes, function(assertion) {
         assertion = assertion || null;
 
         if (assertion) {

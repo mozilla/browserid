@@ -666,8 +666,14 @@
       chan.call({ method: 'genKeyPair', success: cb});
     };
 
-    navigator.id.registerCertificate = function(certificate) {
-      chan.notify({ method: 'registerCertificate', params: certificate });
+    navigator.id.registerCertificate = function(certificate, attributeCertificates) {
+      chan.notify({
+        method: 'registerCertificate',
+        params: {
+          certificate: certificate,
+          attributeCertificates: attributeCertificates
+        }
+      });
     };
 
     navigator.id.raiseProvisioningFailure = function(reason) {

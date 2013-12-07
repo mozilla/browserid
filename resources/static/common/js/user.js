@@ -282,7 +282,7 @@ BrowserID.User = (function() {
    * @param {function} [onComplete] - Called on successful completion.
    * @param {function} [onFailure] - Called on error.
    */
-  function persistEmailKeypair(email, keypair, cert, onComplete, onFailure) {
+  function persistEmailKeypair(email, keypair, cert, attrCerts, onComplete, onFailure) {
     // XXX This needs to be looked at to make sure caching does not bite us.
     var issuer = User.rpInfo.getIssuer();
     User.addressInfo(email, function(info) {
@@ -295,7 +295,8 @@ BrowserID.User = (function() {
         updated: now,
         pub: keypair.publicKey.toSimpleObject(),
         priv: keypair.secretKey.toSimpleObject(),
-        cert: cert
+        cert: cert,
+        attrCerts: _.isArray(attrCerts) && attrCerts // TODO validate first
       });
 
       if (info.state === "unverified") {
@@ -330,7 +331,13 @@ BrowserID.User = (function() {
     var rpInfo = User.rpInfo;
     network.certKey(email, keypair.publicKey, rpInfo.getIssuer(), rpInfo.getAllowUnverified(),
         function(cert) {
-      persistEmailKeypair(email, keypair, cert, onComplete, onFailure);
+      var attrCerts;
+      if (_.isObject(cert)) {
+        // future extensibility: can return attribute certificates
+        attrCerts = cert.attributeCertificates;
+        cert = cert.certificate;
+      }
+      persistEmailKeypair(email, keypair, cert, attrCerts, onComplete, onFailure);
     }, onFailure);
   }
 
@@ -400,6 +407,49 @@ BrowserID.User = (function() {
 
       User.syncEmails(complete.curry(onComplete, authenticated), onFailure);
     }, onFailure);
+  }
+
+  function validateAttributeCertificate(attrCert) {
+    return attrCert &&
+      attrCert.payload &&
+      helpers.isString(attrCert.payload.scope) &&
+      helpers.isObject(attrCert.payload.cdi) &&
+      helpers.isString(attrCert.payload.cdi.alg) &&
+      helpers.isString(attrCert.payload.cdi.dig);
+  }
+
+  function extractAttributeCertificates(jwcrypto, attrCerts) {
+    var validatedCertAttrs = {};
+
+    _.each(attrCerts, function(attrCert) {
+      var jwt = jwcrypto.extractComponents(attrCert);
+
+      if (!validateAttributeCertificate(jwt)) {
+        helpers.log('Data Format ERROR: attribute certificate is missing ' +
+            'a required property');
+      } else if (validatedCertAttrs[jwt.payload.scope]) {
+        helpers.log('Data Format ERROR: duplicate attribute certificate ' +
+            'for scope ' + jwt.payload.scope);
+      } else {
+        validatedCertAttrs[jwt.payload.scope] = jwt.payload;
+      }
+    });
+
+    return validatedCertAttrs;
+  }
+
+  function discloseAttributes(jwcrypto, attrCerts, disclosableScopes) {
+    var disclosedAttrCerts = [];
+
+    _.each(attrCerts, function(attrCert) {
+      var jwt = jwcrypto.extractComponents(attrCert);
+
+      if (validateAttributeCertificate(jwt) &&
+          _.indexOf(disclosableScopes, jwt.payload.scope) !== -1)
+        disclosedAttrCerts.push(attrCert);
+    });
+
+    return disclosedAttrCerts;
   }
 
   User = {
@@ -553,10 +603,10 @@ BrowserID.User = (function() {
     provisionPrimaryUser: function(email, info, onComplete, onFailure) {
       User.primaryUserAuthenticationInfo(email, info, function(authInfo) {
         if (authInfo.authenticated) {
-          persistEmailKeypair(email, authInfo.keypair, authInfo.cert,
+          persistEmailKeypair(email, authInfo.keypair, authInfo.cert, authInfo.attrCerts,
             function() {
               // We are getting an assertion for persona.org.
-              User.getAssertion(email, PERSONA_ORG_AUDIENCE, function(assertion) {
+              User.getAssertion(email, PERSONA_ORG_AUDIENCE, [], function(assertion) {
                 if (assertion) {
                   onComplete("primary.verified", {
                     assertion: assertion
@@ -619,10 +669,11 @@ BrowserID.User = (function() {
           url: info.prov,
           ephemeral: !storage.usersComputer.confirmed(email)
         },
-        function(keypair, cert) {
+        function(keypair, cert, attrCerts) {
           var userInfo = _.extend({
             keypair: keypair,
             cert: cert,
+            attrCerts: attrCerts,
             authenticated: true
           }, info);
 
@@ -1128,6 +1179,7 @@ BrowserID.User = (function() {
       function clearCert(email, idInfo) {
         delete idInfo.priv;
         delete idInfo.cert;
+        delete idInfo.attrCerts;
         delete primaryAuthCache[email];
         storage.addEmail(email, idInfo);
       }
@@ -1284,10 +1336,9 @@ BrowserID.User = (function() {
      * @param {function} [onComplete] - Called with assertion, null otw.
      * @param {function} [onFailure] - Called on error.
      */
-    getAssertion: function(email, audience, onComplete, onFailure) {
+    getAssertion: function(email, audience, disclosableScopes, onComplete, onFailure) {
       var issuer = User.rpInfo.getIssuer(),
           storedID = storage.getEmail(email, issuer),
-          userAssertedClaims = User.rpInfo.getUserAssertedClaims() || {},
           assertion;
 
       function createAssertion(idInfo) {
@@ -1298,6 +1349,15 @@ BrowserID.User = (function() {
           var serverTime = networkContext.getServerTime();
           cryptoLoader.load(function(jwcrypto) {
             var sk = jwcrypto.loadSecretKeyFromObject(idInfo.priv);
+            var claims = _.extend({}, User.rpInfo.getUserAssertedClaims());
+
+            // use either the disclosed scopes we were called with, or those
+            // persisted in local storage.
+            var attrCerts = discloseAttributes(jwcrypto, idInfo.attrCerts,
+                disclosableScopes || User.getSiteDisclosableScopes(audience));
+            if (_.size(attrCerts)) {
+              claims.attribute_certs = attrCerts;
+            }
 
             // assertions are valid for 2 minutes
             var expirationMS = serverTime.getTime() + (2 * 60 * 1000);
@@ -1307,7 +1367,7 @@ BrowserID.User = (function() {
             // raise "script has become unresponsive" errors.
             setTimeout(function() {
               jwcrypto.assertion.sign(
-                userAssertedClaims, {audience: audience, expiresAt: expirationDate},
+                claims, {audience: audience, expiresAt: expirationDate},
                 sk,
                 function(err, signedAssertion) {
                   assertion = jwcrypto.cert.bundle([idInfo.cert], signedAssertion);
@@ -1315,6 +1375,9 @@ BrowserID.User = (function() {
                   // issuer is used for B2G to get silent assertions to get
                   // assertions backed by certs from a special issuer.
                   storage.site.set(audience, "issuer", issuer);
+                  if (disclosableScopes) {
+                    storage.site.set(audience, "disclosable_scopes", disclosableScopes);
+                  }
 
                   /**
                    * If a user who signs with a primary address is not authenticated to Persona,
@@ -1351,7 +1414,7 @@ BrowserID.User = (function() {
               // assertion.
               User.provisionPrimaryUser(email, info, function(status) {
                 if (status === "primary.verified") {
-                  User.getAssertion(email, audience, onComplete, onFailure);
+                  User.getAssertion(email, audience, disclosableScopes, onComplete, onFailure);
                 }
                 else {
                   complete(onComplete, null);
@@ -1362,7 +1425,7 @@ BrowserID.User = (function() {
               // we have no key for this identity, go generate the key,
               // sync it and then get the assertion recursively.
               User.syncEmailKeypair(email, function(status) {
-                User.getAssertion(email, audience, onComplete, onFailure);
+                User.getAssertion(email, audience, disclosableScopes, onComplete, onFailure);
               }, onFailure);
             }
           }, onFailure);
@@ -1511,7 +1574,7 @@ BrowserID.User = (function() {
           // generated.
           // If there has been an issuer change, this will check with the new
           // issuer to make sure the user is authenticated there.
-          User.getAssertion(loggedInEmail, origin, function(assertion) {
+          User.getAssertion(loggedInEmail, origin, null, function(assertion) {
             if (assertion) {
               storage.site.remove(origin, "one_time");
             }
@@ -1608,6 +1671,74 @@ BrowserID.User = (function() {
         }
         else complete(onFailure, "user is not authenticated");
       }, onFailure);
+    },
+
+    /**
+     * Check whether the user should be prompted to disclose attributes
+     * for a newly visited site. A site must explicitly indicate in either
+     * experimental_requiredScopes or experimental_optionalScopes
+     * whether it requires attribute certificates.
+     * @method shouldAskForDisclosableAttrs
+     * @param {string} email - Email address to lookup
+     * @param {function} onComplete - called on successful completion.
+     * @param {function} onFailure - called on XHR failure.
+     */
+    shouldAskForDisclosableScopes: function(email, onComplete, onFailure) {
+        User.getDisclosableAttributes(email, User.rpInfo.getIssuer(), function(attrCerts) {
+          var disclosableScopes = User.getSiteDisclosableScopes(User.rpInfo.getOrigin());
+          var requiredScopes = User.rpInfo.getRequiredScopes() || [];
+          var optionalScopes = User.rpInfo.getOptionalScopes() || [];
+          var shouldAsk;
+
+          if (disclosableScopes) {
+            // only consider required attributes that have changed since we last visited
+            requiredScopes = _.difference(requiredScopes, disclosableScopes);
+          }
+
+          // if we have attribute certificates that the RP requires, or this is a first
+          // visit to an RP requesting the wildcard attribute, then prompt the user
+          shouldAsk =
+            _.size(_.intersection(requiredScopes, _.pluck(attrCerts, 'scope'))) != 0 ||
+            (!disclosableScopes && _.indexOf(optionalScopes, '*') != -1);
+
+          complete(onComplete, shouldAsk);
+      }, onFailure);
+    },
+
+    /**
+     * Get disclosable attributes associated with a stored identity. This method
+     * returns an object containing all attributes of a certificate, indexed by
+     * scope.
+     * @method getDisclosableAttributes
+     * @param {string} email - Email address to lookup
+     * @param {string} issuer - Issuer name
+     * @param {function} onComplete - called on successful completion.
+     * @param {function} onFailure - called on XHR failure.
+     */
+    getDisclosableAttributes: function(email, issuer, onComplete, onFailure) {
+      cryptoLoader.load(function(jwcrypto) {
+        var idInfo = storage.getEmail(email, issuer);
+        var attrCerts;
+
+        if (idInfo)
+          attrCerts = extractAttributeCertificates(jwcrypto, idInfo.attrCerts);
+
+        if (_.size(attrCerts)) {
+          complete(onComplete, attrCerts);
+        } else {
+          complete(onComplete, null);
+        }
+      });
+    },
+
+    /**
+     * Get disclosable scopes user has previously authorized for an origin.
+     * @param {string} origin - Origin name
+     */
+    getSiteDisclosableScopes: function(origin) {
+      // Get disclosable attributes for an origin. null means nothing stored,
+      // empty array means positively no attributes to be disclosed.
+      return storage.site.get(origin, "disclosable_scopes") || null;
     }
   };
 

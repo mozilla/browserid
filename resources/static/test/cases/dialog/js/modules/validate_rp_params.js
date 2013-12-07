@@ -527,5 +527,47 @@
     });
   });
 
+  asyncTest("non-array requiredScopes - not allowed", function() {
+    testExpectValidationFailure({
+      rp_api: "internal",
+      experimental_requiredScopes: "experimental_requiredScopes must be an array"
+    });
+  });
+
+  asyncTest("valid requiredScopes - allowed", function() {
+    testExpectValidationSuccess({
+      experimental_requiredScopes: [ 'profile', 'address', 'phone' ]
+    }, {
+      requiredScopes: [ 'profile', 'address', 'phone' ]
+    });
+  });
+
+  asyncTest("wildcard requiredScopes - not allowed", function() {
+    testExpectValidationFailure({
+      experimental_requiredScopes: [ '*' ]
+    });
+  });
+
+  asyncTest("non-array optionalScopes - not allowed", function() {
+    testExpectValidationFailure({
+      experimental_optionalScopes: "experimental_optionalScopes must be an array"
+    });
+  });
+
+  asyncTest("valid optionalScopes - allowed", function() {
+    testExpectValidationSuccess({
+      experimental_optionalScopes: [ 'email', 'address' ]
+    }, {
+      optionalScopes: [ 'email', 'address' ]
+    });
+  });
+
+  asyncTest("wildcard optionalScopes - allowed", function() {
+    testExpectValidationSuccess({
+      experimental_optionalScopes: [ '*' ]
+    }, {
+      optionalScopes: [ '*' ]
+    });
+  });
 
 }());

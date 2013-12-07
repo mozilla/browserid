@@ -95,6 +95,14 @@ pre {
     </li><li>
       <input type="checkbox" id="allowUnverified">
       <label for="allowUnverified">Allow Unverified</label>
+    </li><li>
+      <input type="checkbox" id="supplyRequiredScopes">
+      <label for="requiredScopes">Required scopes for attribute certificates</label>
+      <input type="text" id="requiredScopes" value="" />
+    </li><li>
+      <input type="checkbox" id="supplyOptionalScopes">
+      <label for="optionalScopes">Optional scopes for attribute certificates</label>
+      <input type="text" id="optionalScopes" value="" />
     </li>
   </ul>
     <button class="assertion">Get an assertion</button>
@@ -190,6 +198,8 @@ $(document).ready(function() {
       experimental_forceAuthentication: $('#forceAuthentication').attr('checked') ? true : false,
       experimental_forceIssuer: $('#forceIssuer').attr('checked') ? "issuer.domain" : undefined,
       experimental_allowUnverified: $('#allowUnverified').attr('checked') ? true : false,
+      experimental_requiredScopes: $('#supplyRequiredScopes').attr('checked') ? $('#requiredScopes').val().split(',') : undefined,
+      experimental_optionalScopes: $('#supplyOptionalScopes').attr('checked') ? $('#optionalScopes').val().split(',') : undefined,
       oncancel: function() {
         loggit("oncancel");
         $(".specify button.assertion").removeAttr('disabled');

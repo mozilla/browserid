@@ -1,0 +1,25 @@
+<% /* This Source Code Form is subject to the terms of the Mozilla Public
+      License, v. 2.0. If a copy of the MPL was not distributed with this
+      file, You can obtain one at http://mozilla.org/MPL/2.0/. */ %>
+
+  <div id="select_disclosable_scopes" class="cf form_section">
+    <h2><%= gettext('Attribute Selector') %></h2>
+	<p><%= gettext('Choose attributes you wish to share with ') + siteName %>:</p>
+
+      <ul class="inputs" id="selectScopes">
+          <% _.each(attrs, function(item) { var desc = item.scope_description || item.scope, id = "scope_" + item.scope; %>
+              <li>
+                  <label for="<%= id %>" title="<%= desc %>" >
+                    <input type="checkbox" name="scope" id="<%= id %>" value="<%= item.scope %>" />
+                    <%= desc %>
+                  </label>
+              </li>
+          <% }); %>
+      </ul>
+
+      <p class="submit cf buttonrow">
+        <button id="discloseScopes"><%= gettext('continue') %></button>
+        <a href="#" class="cancelDialog isMobile"><%= gettext('cancel') %></a>
+      </p>
+
+  </div>

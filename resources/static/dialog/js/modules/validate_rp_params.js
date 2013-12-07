@@ -135,6 +135,22 @@ BrowserID.Modules.ValidateRpParams = (function() {
         }
       }
 
+      // experimental_requiredScopes allows a site to specify which
+      // attribute certificates it requires to authorize the user
+      if (paramsFromRP.experimental_requiredScopes) {
+        params.requiredScopes = validateRequiredScopes(
+            paramsFromRP.experimental_requiredScopes,
+            "experimental_requiredScopes");
+      }
+
+      // experimental_optionalScopes allows a site to specify which
+      // attribute certificates it optionally desires to authorize the user
+      if (paramsFromRP.experimental_optionalScopes) {
+        params.optionalScopes = validateOptionalScopes(
+            paramsFromRP.experimental_optionalScopes,
+            "experimental_optionalScopes");
+      }
+
       if (getParams.indexOf("?AUTH_RETURN") === 0) {
         var primaryParams = storage.idpVerification.get();
         if (!primaryParams)
@@ -334,11 +350,35 @@ BrowserID.Modules.ValidateRpParams = (function() {
   }
 
   function validateUserAssertedClaims(claims, name) {
-    if (Object.prototype.toString.apply(claims) !== "[object Object]") {
+    if (!_.isObject(claims)) {
       throw new Error("invalid value for " + name + ": " + claims);
     }
 
     return claims;
+  }
+
+  function validateRequiredScopes(scopes, name) {
+    if (!_.isArray(scopes)) {
+      throw new Error("invalid value for " + name + ": " + scopes);
+    }
+
+    if (_.indexOf(scopes, '*') != -1) {
+      throw new Error("wildcard scope is not valid in requiredScopes: " + scopes);
+    }
+
+    return scopes;
+  }
+
+  function validateOptionalScopes(scopes, name) {
+    if (!_.isArray(scopes)) {
+      throw new Error("invalid value for " + name + ": " + scopes);
+    }
+
+    if (_.indexOf(scopes, '*') != -1 && _.size(scopes) != 1) {
+      throw new Error("wildcard scope must be only value: " + scopes);
+    }
+
+    return scopes;
   }
 
   return Module;
