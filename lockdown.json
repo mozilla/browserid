@@ -307,8 +307,14 @@
   "nice-route53": {
     "0.3.4": "43c15d65c772a25b25edee4d5a091ed0bc711df4"
   },
+  "node-cassandra-cql": {
+    "0.2.2-1": "3ca99db0c5aca9ee415f9ab47dac7b3057d797fe"
+  },
   "node-font-face-generator": {
     "0.1.1": "d29cf7d2074bafe314e4360be1bba7ec5c80f790"
+  },
+  "node-int64": {
+    "0.3.0": "894bb7c497e7c614b52ff840519b6cd660222fe2"
   },
   "node-proxy": {
     "0.6.0": "41e64712dbd947aa9d9f466b5c0b5ee020bbcbbb"
@@ -317,7 +323,7 @@
     "0.0.7": "96d4bbd21dff2d798b3374a3e9329cfecce3afa8"
   },
   "node-uuid": {
-    "1.4.1": "39aef510e5889a3dca9c895b506c73aae1bac048"
+    "1.4.0": "07f9b2337572ff6275c775e1d48513f3a45d7a65"
   },
   "nodemailer": {
     "0.5.3": "f1de09bc4fc91e92e59318370d80714f479eeb97"

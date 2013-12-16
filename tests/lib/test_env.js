@@ -4,7 +4,7 @@
 
 /* this zero-exports include file should be included by each of the tests.
  * if NODE_ENV was not explicitly set to a test environment it will set
- * NODE_ENV and issue a warning on the console to developers */ 
+ * NODE_ENV and issue a warning on the console to developers */
 
 if (undefined === process.env['NODE_ENV']) {
   console.log("Setting NODE_ENV to test_json to test with the local JSON database");
@@ -17,7 +17,7 @@ if (undefined === process.env['NODE_ENV']) {
 
 // if the environment is a 'test_' environment, then we'll use an
 // ephemeral database
-if (process.env['NODE_ENV'] === 'test_mysql') {
+if (['test_mysql', 'test_cassandra'].indexOf(process.env['NODE_ENV']) > -1) {
   process.env['DATABASE_NAME'] = "browserid_tmp_" +
     require('../../lib/secrets.js').generate(6);
 } else if (process.env['NODE_ENV'] === 'test_json') {
