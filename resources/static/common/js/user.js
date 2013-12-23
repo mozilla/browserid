@@ -409,29 +409,29 @@ BrowserID.User = (function() {
     }, onFailure);
   }
 
-  function validateAttributeCertificate(attrCert) {
-    return attrCert &&
-      attrCert.payload &&
-      helpers.isString(attrCert.payload.scope) &&
-      helpers.isObject(attrCert.payload.cdi) &&
-      helpers.isString(attrCert.payload.cdi.alg) &&
-      helpers.isString(attrCert.payload.cdi.dig);
+  function validateAttributeCertificate(jac) {
+    return jac &&
+      jac.payload &&
+      helpers.isString(jac.payload.scope) &&
+      helpers.isObject(jac.payload.cdi) &&
+      helpers.isString(jac.payload.cdi.alg) &&
+      helpers.isString(jac.payload.cdi.dig);
   }
 
   function extractAttributeCertificates(jwcrypto, attrCerts) {
     var validatedCertAttrs = {};
 
     _.each(attrCerts, function(attrCert) {
-      var jwt = jwcrypto.extractComponents(attrCert);
+      var jac = jwcrypto.extractComponents(attrCert);
 
-      if (!validateAttributeCertificate(jwt)) {
+      if (!validateAttributeCertificate(jac)) {
         helpers.log('Data Format ERROR: attribute certificate is missing ' +
             'a required property');
-      } else if (validatedCertAttrs[jwt.payload.scope]) {
+      } else if (validatedCertAttrs[jac.payload.scope]) {
         helpers.log('Data Format ERROR: duplicate attribute certificate ' +
-            'for scope ' + jwt.payload.scope);
+            'for scope ' + jac.payload.scope);
       } else {
-        validatedCertAttrs[jwt.payload.scope] = jwt.payload;
+        validatedCertAttrs[jac.payload.scope] = jac.payload;
       }
     });
 
@@ -441,13 +441,15 @@ BrowserID.User = (function() {
   function discloseAttributes(jwcrypto, attrCerts, disclosableScopes) {
     var disclosedAttrCerts = [];
 
-    _.each(attrCerts, function(attrCert) {
-      var jwt = jwcrypto.extractComponents(attrCert);
+    if (_.size(disclosableScopes)) {
+      _.each(attrCerts, function(attrCert) {
+        var jac = jwcrypto.extractComponents(attrCert);
 
-      if (validateAttributeCertificate(jwt) &&
-          _.indexOf(disclosableScopes, jwt.payload.scope) !== -1)
-        disclosedAttrCerts.push(attrCert);
-    });
+        if (validateAttributeCertificate(jac) &&
+            _.indexOf(disclosableScopes, jac.payload.scope) !== -1)
+          disclosedAttrCerts.push(attrCert);
+      }  );
+    }
 
     return disclosedAttrCerts;
   }
