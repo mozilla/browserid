@@ -527,46 +527,46 @@
     });
   });
 
-  asyncTest("non-array requiredScopes - not allowed", function() {
+  asyncTest("non-array essentialScopes - not allowed", function() {
     testExpectValidationFailure({
       rp_api: "internal",
-      experimental_requiredScopes: "experimental_requiredScopes must be an array"
+      experimental_essentialScopes: "experimental_essentialScopes must be an array"
     });
   });
 
-  asyncTest("valid requiredScopes - allowed", function() {
+  asyncTest("valid essentialScopes - allowed", function() {
     testExpectValidationSuccess({
-      experimental_requiredScopes: [ 'profile', 'address', 'phone' ]
+      experimental_essentialScopes: [ 'profile', 'address', 'phone' ]
     }, {
-      requiredScopes: [ 'profile', 'address', 'phone' ]
+      essentialScopes: [ 'profile', 'address', 'phone' ]
     });
   });
 
-  asyncTest("wildcard requiredScopes - not allowed", function() {
+  asyncTest("wildcard essentialScopes - not allowed", function() {
     testExpectValidationFailure({
-      experimental_requiredScopes: [ '*' ]
+      experimental_essentialScopes: [ '*' ]
     });
   });
 
-  asyncTest("non-array optionalScopes - not allowed", function() {
+  asyncTest("non-array voluntaryScopes - not allowed", function() {
     testExpectValidationFailure({
-      experimental_optionalScopes: "experimental_optionalScopes must be an array"
+      experimental_voluntaryScopes: "experimental_voluntaryScopes must be an array"
     });
   });
 
-  asyncTest("valid optionalScopes - allowed", function() {
+  asyncTest("valid voluntaryScopes - allowed", function() {
     testExpectValidationSuccess({
-      experimental_optionalScopes: [ 'email', 'address' ]
+      experimental_voluntaryScopes: [ 'email', 'address' ]
     }, {
-      optionalScopes: [ 'email', 'address' ]
+      voluntaryScopes: [ 'email', 'address' ]
     });
   });
 
-  asyncTest("wildcard optionalScopes - allowed", function() {
+  asyncTest("wildcard voluntaryScopes - allowed", function() {
     testExpectValidationSuccess({
-      experimental_optionalScopes: [ '*' ]
+      experimental_voluntaryScopes: [ '*' ]
     }, {
-      optionalScopes: [ '*' ]
+      voluntaryScopes: [ '*' ]
     });
   });
 

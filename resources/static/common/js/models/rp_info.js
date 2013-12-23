@@ -33,8 +33,8 @@ BrowserID.Models.RpInfo = (function() {
     issuer: 'default',
     emailHint: und,
     userAssertedClaims: und,
-    requiredScopes: und,
-    optionalScopes: und,
+    essentialScopes: und,
+    voluntaryScopes: und,
     rpAPI: und,
 
     init: function(options) {
@@ -54,8 +54,8 @@ BrowserID.Models.RpInfo = (function() {
         'rpAPI',
         'emailHint',
         'userAssertedClaims',
-        'requiredScopes',
-        'optionalScopes'
+        'essentialScopes',
+        'voluntaryScopes'
         );
 
       if (options.forceIssuer) self.issuer = options.forceIssuer;
@@ -126,12 +126,12 @@ BrowserID.Models.RpInfo = (function() {
       return this.userAssertedClaims;
     },
 
-    getRequiredScopes: function() {
-      return this.requiredScopes;
+    getEssentialScopes: function() {
+      return this.essentialScopes;
     },
 
-    getOptionalScopes: function() {
-      return this.optionalScopes;
+    getVoluntaryScopes: function() {
+      return this.voluntaryScopes;
     }
   });
 

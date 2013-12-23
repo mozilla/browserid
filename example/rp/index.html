@@ -96,13 +96,13 @@ pre {
       <input type="checkbox" id="allowUnverified">
       <label for="allowUnverified">Allow Unverified</label>
     </li><li>
-      <input type="checkbox" id="supplyRequiredScopes">
-      <label for="requiredScopes">Required scopes for attribute certificates</label>
-      <input type="text" id="requiredScopes" value="" />
+      <input type="checkbox" id="supplyEssentialScopes">
+      <label for="essentialScopes">Required scopes for attribute certificates</label>
+      <input type="text" id="essentialScopes" value="" />
     </li><li>
-      <input type="checkbox" id="supplyOptionalScopes">
-      <label for="optionalScopes">Optional scopes for attribute certificates</label>
-      <input type="text" id="optionalScopes" value="" />
+      <input type="checkbox" id="supplyVoluntaryScopes">
+      <label for="voluntaryScopes">Optional scopes for attribute certificates</label>
+      <input type="text" id="voluntaryScopes" value="" />
     </li>
   </ul>
     <button class="assertion">Get an assertion</button>
@@ -198,8 +198,8 @@ $(document).ready(function() {
       experimental_forceAuthentication: $('#forceAuthentication').attr('checked') ? true : false,
       experimental_forceIssuer: $('#forceIssuer').attr('checked') ? "issuer.domain" : undefined,
       experimental_allowUnverified: $('#allowUnverified').attr('checked') ? true : false,
-      experimental_requiredScopes: $('#supplyRequiredScopes').attr('checked') ? $('#requiredScopes').val().split(',') : undefined,
-      experimental_optionalScopes: $('#supplyOptionalScopes').attr('checked') ? $('#optionalScopes').val().split(',') : undefined,
+      experimental_essentialScopes: $('#supplyEssentialScopes').attr('checked') ? $('#essentialScopes').val().split(',') : undefined,
+      experimental_voluntaryScopes: $('#supplyVoluntaryScopes').attr('checked') ? $('#voluntaryScopes').val().split(',') : undefined,
       oncancel: function() {
         loggit("oncancel");
         $(".specify button.assertion").removeAttr('disabled');

@@ -49,15 +49,15 @@ BrowserID.Modules.SelectDisclosableScopes = (function() {
       dom.addClass(BODY_SELECTOR, SELECT_DISCLOSABLE_SCOPES_CLASS);
 
       var rpInfo = options.rpInfo;
-      var requiredScopes = rpInfo.getRequiredScopes() || [];
-      var optionalScopes = rpInfo.getOptionalScopes() || [];
+      var essentialScopes = rpInfo.getEssentialScopes() || [];
+      var voluntaryScopes = rpInfo.getVoluntaryScopes() || [];
       var previouslyDisclosedScopes = user.getSiteDisclosableScopes(rpInfo.getOrigin()) || [];
 
-      if (_.indexOf(optionalScopes, '*') !== -1) {
+      if (_.indexOf(voluntaryScopes, '*') !== -1) {
         // offer all available scopes if the wildcard was requested
         self.disclosableAttrs = options.disclosableAttrs;
       } else {
-        var allScopes = _.union(requiredScopes, optionalScopes, previouslyDisclosedScopes);
+        var allScopes = _.union(essentialScopes, voluntaryScopes, previouslyDisclosedScopes);
 
         // offer all available scopes that the RP desires or that we previously disclosed
         self.disclosableAttrs = helpers.whitelistFilter(options.disclosableAttrs, allScopes);
@@ -70,7 +70,7 @@ BrowserID.Modules.SelectDisclosableScopes = (function() {
 
       // preselect any scopes that are required by the RP
       _.each(self.disclosableAttrs, function(disclosableAttr, disclosableAttrScope) {
-        if (_.indexOf(requiredScopes, disclosableAttrScope) !== -1)
+        if (_.indexOf(essentialScopes, disclosableAttrScope) !== -1)
           selectScopeByElementId("scope_" + disclosableAttrScope);
       });
 

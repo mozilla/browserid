@@ -135,20 +135,20 @@ BrowserID.Modules.ValidateRpParams = (function() {
         }
       }
 
-      // experimental_requiredScopes allows a site to specify which
+      // experimental_essentialScopes allows a site to specify which
       // attribute certificates it requires to authorize the user
-      if (paramsFromRP.experimental_requiredScopes) {
-        params.requiredScopes = validateRequiredScopes(
-            paramsFromRP.experimental_requiredScopes,
-            "experimental_requiredScopes");
+      if (paramsFromRP.experimental_essentialScopes) {
+        params.essentialScopes = validateEssentialScopes(
+            paramsFromRP.experimental_essentialScopes,
+            "experimental_essentialScopes");
       }
 
-      // experimental_optionalScopes allows a site to specify which
+      // experimental_voluntaryScopes allows a site to specify which
       // attribute certificates it optionally desires to authorize the user
-      if (paramsFromRP.experimental_optionalScopes) {
-        params.optionalScopes = validateOptionalScopes(
-            paramsFromRP.experimental_optionalScopes,
-            "experimental_optionalScopes");
+      if (paramsFromRP.experimental_voluntaryScopes) {
+        params.voluntaryScopes = validateVoluntaryScopes(
+            paramsFromRP.experimental_voluntaryScopes,
+            "experimental_voluntaryScopes");
       }
 
       if (getParams.indexOf("?AUTH_RETURN") === 0) {
@@ -357,19 +357,19 @@ BrowserID.Modules.ValidateRpParams = (function() {
     return claims;
   }
 
-  function validateRequiredScopes(scopes, name) {
+  function validateEssentialScopes(scopes, name) {
     if (!_.isArray(scopes)) {
       throw new Error("invalid value for " + name + ": " + scopes);
     }
 
     if (_.indexOf(scopes, '*') != -1) {
-      throw new Error("wildcard scope is not valid in requiredScopes: " + scopes);
+      throw new Error("wildcard scope is not valid in essentialScopes: " + scopes);
     }
 
     return scopes;
   }
 
-  function validateOptionalScopes(scopes, name) {
+  function validateVoluntaryScopes(scopes, name) {
     if (!_.isArray(scopes)) {
       throw new Error("invalid value for " + name + ": " + scopes);
     }

@@ -1678,7 +1678,7 @@ BrowserID.User = (function() {
     /**
      * Check whether the user should be prompted to disclose attributes
      * for a newly visited site. A site must explicitly indicate in either
-     * experimental_requiredScopes or experimental_optionalScopes
+     * experimental_essentialScopes or experimental_voluntaryScopes
      * whether it requires attribute certificates.
      * @method shouldAskForDisclosableAttrs
      * @param {string} email - Email address to lookup
@@ -1688,20 +1688,20 @@ BrowserID.User = (function() {
     shouldAskForDisclosableScopes: function(email, onComplete, onFailure) {
         User.getDisclosableAttributes(email, User.rpInfo.getIssuer(), function(attrCerts) {
           var disclosableScopes = User.getSiteDisclosableScopes(User.rpInfo.getOrigin());
-          var requiredScopes = User.rpInfo.getRequiredScopes() || [];
-          var optionalScopes = User.rpInfo.getOptionalScopes() || [];
+          var essentialScopes = User.rpInfo.getEssentialScopes() || [];
+          var voluntaryScopes = User.rpInfo.getVoluntaryScopes() || [];
           var shouldAsk;
 
           if (disclosableScopes) {
             // only consider required attributes that have changed since we last visited
-            requiredScopes = _.difference(requiredScopes, disclosableScopes);
+            essentialScopes = _.difference(essentialScopes, disclosableScopes);
           }
 
           // if we have attribute certificates that the RP requires, or this is a first
           // visit to an RP requesting the wildcard attribute, then prompt the user
           shouldAsk =
-            _.size(_.intersection(requiredScopes, _.pluck(attrCerts, 'scope'))) != 0 ||
-            (!disclosableScopes && _.indexOf(optionalScopes, '*') != -1);
+            _.size(_.intersection(essentialScopes, _.pluck(attrCerts, 'scope'))) != 0 ||
+            (!disclosableScopes && _.indexOf(voluntaryScopes, '*') != -1);
 
           complete(onComplete, shouldAsk);
       }, onFailure);

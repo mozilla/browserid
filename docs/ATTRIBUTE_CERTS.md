@@ -67,7 +67,7 @@ Below is a summary of changes to the BrowserID user agent implementation.
 
 ### 4.2. RP API
 
-In order to minimise the impact on existing behaviour, attribute certificates are not sent unless the RP explicitly indicates its desire for them. It does this by including one or both of the `experimental_requiredScopes` and `experimental_optionalScopes` properties in the parameters passed when acquiring an assertion. The attribute certificate selector dialog will not be shown unless the RP requires at least one attribute, or it includes a single-valued array in `experimental_optionalScopes` containing the value `'*'`.
+In order to minimise the impact on existing behaviour, attribute certificates are not sent unless the RP explicitly indicates its desire for them. It does this by including one or both of the `experimental_essentialScopes` and `experimental_voluntaryScopes` properties in the parameters passed when acquiring an assertion. The attribute certificate selector dialog will not be shown unless the RP requires at least one attribute, or it includes a single-valued array in `experimental_voluntaryScopes` containing the value `'*'`.
 
 ### 4.3. localStorage properties
 
@@ -83,9 +83,9 @@ If the user was not prompted, or when the user has completed the attribute selec
 
 ### 4.5. Attribute selector dialog
 
-The attribute selector dialog (resources/static/dialog/js/modules/select_disclosable_scopes.js) displays a list of checkboxes containing the display name of each available attribute certificate. An available attribute certificate is a certificate that we have and that the RP has indicated it desires or that we have previously disclosed. (The RP may request all available attributes by including "*" in `experimental_optionalScopes`.)
+The attribute selector dialog (resources/static/dialog/js/modules/select_disclosable_scopes.js) displays a list of checkboxes containing the display name of each available attribute certificate. An available attribute certificate is a certificate that we have and that the RP has indicated it desires or that we have previously disclosed. (The RP may request all available attributes by including "*" in `experimental_voluntaryScopes`.)
 
-Any attributes passed by the RP in `experimental_requiredScopes` will be checked by default. Previously disclosed attributes that are no longer required will be unchecked.
+Any attributes passed by the RP in `experimental_essentialScopes` will be checked by default. Previously disclosed attributes that are no longer required will be unchecked.
 
 The selected attributes are ultimately passed to `BrowserID.User.getAssertion()`.
 
