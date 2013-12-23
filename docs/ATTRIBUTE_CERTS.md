@@ -93,13 +93,13 @@ The selected attributes are ultimately passed to `BrowserID.User.getAssertion()`
 
 The internal API `BrowserID.User.getAssertion()` has a new argument containing an array of disclosable scopes. The set of disclosed attributes is determined from this argument if not null or undefined, otherwise from `siteInfo[origin].disclosable_scopes`. (If the argument is a zero element array, then no attributes will be disclosed.)
 
-The generated assertion will contain all available attribute certificates corresponding to the disclosed attributes. The certificates are as an array of JWT strings in the claim "attribute_certs".
+The generated assertion will contain all available attribute certificates corresponding to the disclosed attributes. The certificates are as an array of JWT strings in the claim "jac".
 
 ## 5. Verifier changes
 
 A verifier that does not understand attribute certificates may safely ignore them.
 
-A verifier that does understand attribute certificates must perform the following additional verification steps for each value of "attribute_certs" in the assertion:
+A verifier that does understand attribute certificates must perform the following additional verification steps for each value of "jac" in the assertion:
 
 * verify it is a valid JWT, and extract it if so
 * verify that the scope and cdi claims are present, and that the scope claim is unique amongst all attribute certificates in the assertion

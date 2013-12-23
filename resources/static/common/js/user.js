@@ -1356,7 +1356,7 @@ BrowserID.User = (function() {
             var attrCerts = discloseAttributes(jwcrypto, idInfo.attrCerts,
                 disclosableScopes || User.getSiteDisclosableScopes(audience));
             if (_.size(attrCerts)) {
-              claims.attribute_certs = attrCerts;
+              claims.jac = attrCerts;
             }
 
             // assertions are valid for 2 minutes
