@@ -66,7 +66,6 @@
     // ok(watch({ onlogin: noOp }), "no logout means stateless");
 
     ok(!watch({ onlogin: noOp, loggedInUser: 'asdf' }), 'stateless cant use loggedInUser');
-    ok(!watch({ onlogin: noOp, onmatch: noOp }), 'stateless cant use onmatch');
     ok(!watch({ onlogin: noOp, onready: noOp }), 'stateless cant use onready');
   });
 
