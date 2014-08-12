@@ -496,38 +496,58 @@ BrowserID.State = (function() {
       // means the user is authenticated with their IdP and the certificate for
       // the address is valid.  An assertion can be generated, but first we
       // may have to check whether the user owns the computer.
-      user.shouldAskIfUsersComputer(function(shouldAsk) {
+      self.chosenEmailInfo = info; // save for use by generate_assertion
+      user.shouldAskForDisclosableScopes(info.email, function(shouldAsk) {
         if (shouldAsk) {
-          redirectToState("is_this_your_computer", info);
-        }
-        else {
-          redirectToState("generate_assertion", info);
+          redirectToState("select_disclosable_scopes");
+        } else {
+          redirectToState("disclosable_scopes_set");
         }
       });
     });
 
     handleState("is_this_your_computer", function(msg, info) {
-      // We have to confirm the user's computer ownership status.  Save off
-      // the selected email info for when the user_computer_status_set is
-      // complete so that the user can continue the flow with the correct
-      // email address.
-      self.chosenEmailInfo = info;
+      // We have to confirm the user's computer ownership status.
       startAction("doIsThisYourComputer", info);
+    });
+
+    handleState("select_disclosable_scopes", function(msg, info) {
+      // We should prompt the user for any attributes they wish to disclose
+      user.getDisclosableAttributes(self.email, self.rpInfo.getIssuer(), function(attrCerts) {
+        if (_.size(attrCerts)) {
+          info.rpInfo = self.rpInfo;
+          info.disclosableAttrs = attrCerts;
+          startAction("doSelectDisclosableScopes", info);
+        } else {
+          redirectToState("disclosable_scopes_set", info);
+        }
+      });
+    });
+
+    handleState("disclosable_scopes_set", function(msg, info) {
+      self.chosenEmailInfo.disclosedScopes = info.disclosedScopes;
+      user.shouldAskIfUsersComputer(function(shouldAsk) {
+        if (shouldAsk) {
+          redirectToState("is_this_your_computer", info);
+        } else {
+          redirectToState("generate_assertion", info);
+        }
+      });
     });
 
     handleState("user_computer_status_set", function(msg, info) {
       // User's status has been confirmed, an assertion can safely be
       // generated as there are no more delays introduced by user interaction.
       // Use the email address that was stored in the call to
-      // "is_this_your_computer".
-      var emailInfo = self.chosenEmailInfo;
-      self.chosenEmailInfo = null;
-      redirectToState("generate_assertion", emailInfo);
+      // "email_valid_and_ready".
+      redirectToState("generate_assertion", info);
     });
 
     handleState("generate_assertion", function(msg, info) {
-      info.rpInfo = self.rpInfo;
-      startAction("doGenerateAssertion", info);
+      var emailInfo = self.chosenEmailInfo;
+      self.chosenEmailInfo = null;
+      emailInfo.rpInfo = self.rpInfo;
+      startAction("doGenerateAssertion", emailInfo);
     });
 
     handleState("forgot_password", function(msg, info) {

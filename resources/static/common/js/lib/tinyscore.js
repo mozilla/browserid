@@ -121,6 +121,34 @@
       return intersection;
     },
 
+    union: function(array) {
+      var others = [].slice.call(arguments, 1);
+      var union = [].concat(array);
+      _.each(others, function(item) {
+        union = union.concat(_.difference(item, union));
+      });
+
+      return union;
+    },
+
+    pluck: function(obj, key) {
+      var values = [];
+      _.each(obj, function(item) {
+        values.push(item[key]);
+      });
+
+      return values;
+    },
+
+    filter: function(obj, iterator, context) {
+      var results = [];
+      _.each(obj, function(value, index, list) {
+        if (iterator.call(context, value, index, list))
+          results.push(value);
+      });
+      return results;
+    },
+
     escape: function(string) {
       return (''+string).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;').replace(/'/g, '&#x27;').replace(/\//g,'&#x2F;');
     }

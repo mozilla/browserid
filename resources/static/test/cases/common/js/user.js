@@ -28,6 +28,8 @@
   // this cert is meaningless, but it has the right format
   var random_cert = "eyJhbGciOiJSUzEyOCJ9.eyJpc3MiOiJpc3N1ZXIuY29tIiwiZXhwIjoxMzE2Njk1MzY3NzA3LCJwdWJsaWMta2V5Ijp7ImFsZ29yaXRobSI6IlJTIiwibiI6IjU2MDYzMDI4MDcwNDMyOTgyMzIyMDg3NDE4MTc2ODc2NzQ4MDcyMDM1NDgyODk4MzM0ODExMzY4NDA4NTI1NTk2MTk4MjUyNTE5MjY3MTA4MTMyNjA0MTk4MDA0NzkyODQ5MDc3ODY4OTUxOTA2MTcwODEyNTQwNzEzOTgyOTU0NjUzODEwNTM5OTQ5Mzg0NzEyNzczMzkwMjAwNzkxOTQ5NTY1OTAzNDM5NTIxNDI0OTA5NTc2ODMyNDE4ODkwODE5MjA0MzU0NzI5MjE3MjA3MzYwMTA1OTA2MDM5MDIzMjk5NTYxMzc0MDk4OTQyNzg5OTk2NzgwMTAyMDczMDcxNzYwODUyODQxMDY4OTg5ODYwNDAzNDMxNzM3NDgwMTgyNzI1ODUzODk5NzMzNzA2MDY5IiwiZSI6IjY1NTM3In0sInByaW5jaXBhbCI6eyJlbWFpbCI6InRlc3R1c2VyQHRlc3R1c2VyLmNvbSJ9fQ.aVIO470S_DkcaddQgFUXciGwq2F_MTdYOJtVnEYShni7I6mqBwK3fkdWShPEgLFWUSlVUtcy61FkDnq2G-6ikSx1fUZY7iBeSCOKYlh6Kj9v43JX-uhctRSB2pI17g09EUtvmb845EHUJuoowdBLmLa4DSTdZE-h4xUQ9MsY7Ik";
 
+  // random attr cert
+  var random_attr_cert = "eyJhbGciOiJSUzI1NiJ9.eyJpc3MiOiJicm93c2VyaWQucGFkbC5jb20iLCJzY29wZV9kZXNjcmlwdGlvbiI6Ik15IHN0YW5kYXJkIHByb2ZpbGUiLCJuYW1lIjoiTHVrZSBIb3dhcmQiLCJnaXZlbl9uYW1lIjoiTHVrZSIsImZhbWlseV9uYW1lIjoiSG93YXJkIiwid2Vic2l0ZSI6Ind3dy5sdWtlaG93YXJkLmNvbSIsInByZWZlcnJlZF91c2VybmFtZSI6Imx1a2VoIiwiY2RpIjp7ImFsZyI6IlMyNTYiLCJkaWciOiJmSGY1SHhKdXpXVFN1ZXBWWTNOMEJ2V2x2dVhQTmlVSHdxc2swSFgxQ2pjIn0sInNjb3BlIjoicHJvZmlsZSIsImp0aSI6IjJmN2Q3YmE4LTM1YjctNGI2ZS05ZmY3LTlkZGI0ZDE1YzJhZCJ9.TDpdRfdto-NWFF3ZdoJZzi8DIf20xemLZoURJtmiGNATRN8nfXF39viGLvFRAAtrH18QADu4NpnN2KVrUG00h4XnIyFEz81imH2FSUd4FvJxT6yS0kkJyIgnwEGH2GrO3zCReII3fg4o3UQ_Z6tTKrJc1CHOyffv7yd-Q1cadMH07yKJYupoepVOla2OTcBvGvlpP0WtgaoSkorq4hqpbZREUOgL6mHdf_xJlGGRsdR9O3kfb4YC2qi8JD8U43ENA31CVJb_s1n0P_tD7MlnQcrm3eRpDi6sGXgGSuO3R8zS3RQnaqDPiL527B6B0TaqSirWNVuZOLTs2HiCRI-lvA";
 
   module("common/js/user", {
     setup: function() {
@@ -439,7 +441,7 @@
 
   function testCertClearedAfterAssertionGeneration(email) {
     lib.syncEmailKeypair(email, function() {
-      lib.getAssertion(email, "https://testorigin.com", function onSuccess(assertion) {
+      lib.getAssertion(email, "https://testorigin.com", null, function onSuccess(assertion) {
         var record = storage.getEmail(email);
         testHelpers.testUndefined(record.cert);
         start();
@@ -1034,7 +1036,7 @@
 
   asyncTest("getAssertion with known email that has key", function() {
     lib.syncEmailKeypair(TEST_EMAIL, function() {
-      lib.getAssertion(TEST_EMAIL, lib.rpInfo.getOrigin(), function onSuccess(assertion) {
+      lib.getAssertion(TEST_EMAIL, lib.rpInfo.getOrigin(), null, function onSuccess(assertion) {
         testAssertion(assertion, start);
         equal(storage.site.get(testOrigin, "email"), TEST_EMAIL, "email address was persisted");
         // issuer is used when getting a silent assertion.
@@ -1046,7 +1048,7 @@
 
   asyncTest("getAssertion with known secondary email that does not have a key", function() {
     storage.addEmail(TEST_EMAIL, { });
-    lib.getAssertion(TEST_EMAIL, lib.rpInfo.getOrigin(), function onSuccess(assertion) {
+    lib.getAssertion(TEST_EMAIL, lib.rpInfo.getOrigin(), null, function onSuccess(assertion) {
       testAssertion(assertion, start);
       equal(storage.site.get(testOrigin, "email"), TEST_EMAIL, "email address was persisted");
     }, testHelpers.unexpectedXHRFailure);
@@ -1061,6 +1063,7 @@
     lib.getAssertion(
       "registered@testuser.com",
       lib.rpInfo.getOrigin(),
+      null, // disclosableScopes
       function(assertion) {
         testAssertion(assertion, start);
         equal(storage.site.get(testOrigin, "email"), "registered@testuser.com", "email address was persisted");
@@ -1076,6 +1079,7 @@
     lib.getAssertion(
       "registered@testuser.com",
       lib.rpInfo.getOrigin(),
+      null, // disclosableScopes
       function(assertion) {
         equal(assertion, null, "user must authenticate with IdP, no assertion");
         start();
@@ -1085,7 +1089,7 @@
 
   asyncTest("getAssertion with unknown email", function() {
     lib.syncEmailKeypair(TEST_EMAIL, function() {
-      lib.getAssertion("testuser2@testuser.com", lib.rpInfo.getOrigin(), function onSuccess(assertion) {
+      lib.getAssertion("testuser2@testuser.com", lib.rpInfo.getOrigin(), null, function onSuccess(assertion) {
         equal(null, assertion, "email was unknown, we do not have an assertion");
         equal(storage.site.get(testOrigin, "email"), undefined, "email address was not set");
         start();
@@ -1095,14 +1099,14 @@
 
   asyncTest("getAssertion with XHR failure", function() {
     storage.addEmail(TEST_EMAIL, {});
-    failureCheck(lib.getAssertion, TEST_EMAIL, lib.rpInfo.getOrigin());
+    failureCheck(lib.getAssertion, TEST_EMAIL, null, lib.rpInfo.getOrigin());
   });
 
   asyncTest("getAssertion with confirmed session - cert is retained after getAssertion", function() {
     storage.updateEmailToUserIDMapping(1, [TEST_EMAIL]);
     storage.usersComputer.setConfirmed(TEST_EMAIL);
     lib.syncEmailKeypair(TEST_EMAIL, function() {
-      lib.getAssertion(TEST_EMAIL, "https://testorigin.com", function onSuccess(assertion) {
+      lib.getAssertion(TEST_EMAIL, "https://testorigin.com", null, function onSuccess(assertion) {
         var record = storage.getEmail(TEST_EMAIL);
         testHelpers.testNotUndefined(record.cert);
         start();

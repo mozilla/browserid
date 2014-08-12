@@ -162,7 +162,7 @@
     user.checkAuthenticationAndSync(function(authenticated) {
       // User must be authenticated to get an assertion.
       if(authenticated) {
-        user.getAssertion(email, origin, function(assertion) {
+        user.getAssertion(email, origin, null, function(assertion) {
           complete(assertion || null);
         }, complete.curry(null));
       }

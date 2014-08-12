@@ -113,14 +113,14 @@ BrowserID.Provisioning = (function() {
     });
 
     // this is what happens when there is an error
-    chan.bind('registerCertificate', function(trans, cert) {
+    chan.bind('registerCertificate', function(trans, params) {
       // this means we have successfully completed the party!
       // keypair is our keypair,
       // cert is our certificate,
       // email is the email that's vouched for.
       // fantastic!
       tearDown();
-      successCB(keypair, cert);
+      successCB(keypair, params.certificate, params.attributeCertificates);
     });
 
   };

@@ -174,6 +174,10 @@ BrowserID.Modules.Actions = (function() {
       startService("is_this_your_computer", info);
     },
 
+    doSelectDisclosableScopes: function(info) {
+      startService("select_disclosable_scopes", info);
+    },
+
     doGenerateAssertion: function(info) {
       startService("generate_assertion", info);
     },
