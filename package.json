@@ -35,7 +35,7 @@
     "cover": "0.2.9",
     "ejs": "1.0.0",
     "etagify": "0.0.2",
-    "express": "4.8.5",
+    "express": "2.5.0",
     "gobbledygook": "0.0.3",
     "hood": "0.2.1",
     "i18n-abide": "0.0.22",
