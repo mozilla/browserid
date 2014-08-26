@@ -3,7 +3,7 @@
 
   <tr>
     <td align="center">
-      <%- format(gettext('Click this link to confirm access to %(site)s:'), { site: '<strong>' + site + '</strong>' })%>
+      <%- format(gettext('Click this link to confirm access to %(site)s:'), { site: '<strong>' + site.replace('.', '&#xFEFF;.') + '</strong>' })%>
     </td>
   </tr>
 
