@@ -249,8 +249,6 @@ BrowserID.Modules.Authenticate = (function() {
     /*jshint validthis: true*/
     var self=this;
 
-    dom.setInner(PASSWORD_SELECTOR, "");
-
     self.submit = authenticate;
 
     var state = "returning";
