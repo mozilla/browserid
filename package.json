@@ -39,7 +39,6 @@
     "gobbledygook": "0.0.3",
     "hood": "0.2.1",
     "i18n-abide": "0.0.14",
-    "lockdown": "0.0.5",
     "jwcrypto": "0.4.4",
     "mkdirp": "0.3.5",
     "mysql": "0.9.6",
@@ -68,7 +67,6 @@
     "htmlparser": "1.7.6"
   },
   "scripts": {
-    "preinstall": "node ./scripts/lockdown",
     "postinstall": "node ./scripts/postinstall.js",
     "postupdate": "node ./scripts/postinstall.js",
     "test": "./scripts/test",
