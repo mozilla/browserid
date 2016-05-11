@@ -383,6 +383,17 @@ BrowserID.Modules.Authenticate = (function() {
       }
 
       self.bind(EMAIL_SELECTOR, "keyup", emailChange);
+
+      // In case of autofill the continue button was disabled
+      // To make sure that email field is not empty we have to
+      // use setInterval function.
+      // See issue #4224
+      window.setInterval(function(){
+        var emailFieldValue = dom.getInner(EMAIL_SELECTOR);
+        if(emailFieldValue != '') {
+          dom.removeAttr(CONTINUE_BUTTON_SELECTOR, DISABLED_ATTRIBUTE); 
+        }
+      }, 200);
       // Adding the change event causes the email to be checked whenever an
       // element blurs but it has been updated via autofill.  See issue #406
       self.bind(EMAIL_SELECTOR, "change", emailChange);
