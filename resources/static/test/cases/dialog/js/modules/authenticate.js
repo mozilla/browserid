@@ -326,34 +326,6 @@
   });
 
 
-  asyncTest("clear password if user changes email address", function() {
-    xhr.useResult("known_secondary");
-    $(EMAIL_SELECTOR).val("registered@testuser.com");
-
-    var enterPasswordCount = 0;
-    mediator.subscribe("enter_password", function() {
-      // The first time the password is shown, change the email address.  The
-      // second time the password is shown, make sure the password was cleared.
-
-      if(enterPasswordCount === 0) {
-        // simulate the user changing the email address.  This should clear the
-        // password.
-        $(PASSWORD_SELECTOR).val("password");
-        $(EMAIL_SELECTOR).val("testuser@testuser.com");
-        $(EMAIL_SELECTOR).keyup();
-        controller.checkEmail();
-      }
-      else {
-        equal($(PASSWORD_SELECTOR).val(), "", "password field was cleared");
-        start();
-      }
-
-      enterPasswordCount++;
-    });
-
-    controller.checkEmail();
-  });
-
   asyncTest("do not clear password if user selects an email address using autofill, then presses a key that does not change the address (CTRL-C for instance)", function() {
     xhr.useResult("known_secondary");
 
