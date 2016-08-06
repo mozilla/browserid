@@ -61,7 +61,7 @@
 
     user.checkAuthentication(function(authenticated) {
       if (authenticated) {
-        storage.site.set(origin, "remember", true);
+        storage.site.set(origin, "logged_in", true);
       }
 
       complete(!!authenticated || null);
