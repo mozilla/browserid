@@ -5,7 +5,7 @@
   // a portable addListener implementation
   function addListener(w, event, cb) {
     if(w.attachEvent) w.attachEvent('on' + event, cb);
-    else if (w.addEventListener) w.addEventListener(event, cb, false);
+    else if (w.addEventListener) w.addEventListener(event, cb);//, false);
   }
 
   // a portable removeListener implementation
