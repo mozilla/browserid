@@ -165,6 +165,7 @@ runner.run(module, {
 
   "after password reset, original browser asks for new password 'cause this is a different browser": function(done) {
     browser.chain({onError: done})
+      .wclick(CSS['dialog'].postVerificationPassword) // Click this text field to help IE8.
       .wtype(CSS['dialog'].postVerificationPassword, NEW_PASSWORD)
       .wclick(CSS['dialog'].postVerificationPasswordButton, done);
   },

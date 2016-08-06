@@ -85,6 +85,7 @@ runner.run(module, {
   "add primary email to account": function(done) {
     browser.chain({onError: done})
       .wclick(CSS['dialog'].useNewEmail)
+      .wclick(CSS['dialog'].newEmail) // Click this text field to help IE8.
       .wtype(CSS['dialog'].newEmail, primaryToSecondaryUser)
       .wclick(CSS['dialog'].addNewEmailButton)
       .wwin(done);

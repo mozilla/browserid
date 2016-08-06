@@ -64,6 +64,7 @@ runner.run(module, {
       .wclick(CSS['123done.org'].signInButton)
       .wwin(CSS['dialog'].windowName)
       .wclick(CSS['dialog'].useNewEmail)
+      .wclick(CSS['dialog'].newEmail) // Click this text field to help IE8.
       .wtype(CSS['dialog'].newEmail, secondPrimaryEmail)
       .wclick(CSS['dialog'].addNewEmailButton)
       .wclick(CSS['testidp.org'].loginButton)
