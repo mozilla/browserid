@@ -20,10 +20,25 @@ BrowserID.Modules.Actions = (function() {
 
     // Only one service outside of the main dialog allowed.
     if(runningService) {
-      serviceManager.stop(runningService);
+      try {
+        serviceManager.stop(runningService);
+      } catch (e) {
+        // stop() throws if runningService wasn't running, no action needed.
+      }
+      runningService = null;
     }
 
-    var module = serviceManager.start(name, options);
+    var module;
+    try {
+      module = serviceManager.start(name, options);
+    } catch (e) {
+      // service failed to start or was already running.
+      // we must parse the error message to determine which.
+      if (e.message.indexOf('already running') > -1) {
+        runningService = name;
+      }
+    }
+
     if(module) {
       runningService = name;
     }
